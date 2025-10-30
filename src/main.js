@@ -3,7 +3,6 @@ import './assets/css/style.css'
 import './assets/css/dark.css'
 import './assets/css/material-icons.css'
 
-
 // Vue core imports
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
@@ -14,13 +13,8 @@ import router from './router'
 // Font Awesome imports
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { 
-  faInstagram,
-  faGithub,
-} from '@fortawesome/free-brands-svg-icons'
-import {
-    faRightToBracket,
-} from '@fortawesome/free-solid-svg-icons'
+import { faInstagram, faGithub } from '@fortawesome/free-brands-svg-icons'
+import { faRightToBracket } from '@fortawesome/free-solid-svg-icons'
 
 // Add icons to library
 library.add(faInstagram, faGithub, faRightToBracket)

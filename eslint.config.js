@@ -24,12 +24,12 @@ export default defineConfig([
 
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
-  
+
   {
     ...pluginVitest.configs.recommended,
     files: ['src/**/__tests__/*'],
   },
-  
+
   {
     ...pluginPlaywright.configs['flat/recommended'],
     files: ['e2e/**/*.{test,spec}.{js,ts,jsx,tsx}'],

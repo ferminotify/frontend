@@ -1,9 +1,9 @@
 <script setup>
-import TheWelcome from '../components/TheWelcome.vue'
+import CercaEventi from '../components/CercaEventi.vue'
 </script>
 
 <template>
   <main>
-    <TheWelcome />
+    <CercaEventi />
   </main>
 </template>
