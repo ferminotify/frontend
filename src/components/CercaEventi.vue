@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineEmits, onMounted, nextTick } from 'vue'
+import { ref, defineEmits, nextTick } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import WelcomeItem from './WelcomeItem.vue'
@@ -13,20 +13,14 @@ import SupportIcon from './icons/IconSupport.vue'
 const query = ref('')
 
 // info panel state (replaces jQuery slideToggle + localStorage logic)
-const showInfo = ref(true)
+// Initialize from localStorage synchronously to avoid initial flash on first render
+const storedClosed = typeof window !== 'undefined' ? localStorage.getItem('cercaEventiInfoClosed') : null
+const showInfo = ref(storedClosed === 'true' ? false : true)
 const showDetails = ref(false)
 // opener link visibility; avoid showing while panel is animating out to prevent layout shift
-const showOpener = ref(false)
+const showOpener = ref(!showInfo.value)
 // track if we're in the open flow initiated from the opener link
 const isOpening = ref(false)
-
-onMounted(() => {
-  const closed = localStorage.getItem('cercaEventiInfoClosed')
-  // default: show the info panel unless explicitly closed
-  showInfo.value = closed === 'true' ? false : true
-  showDetails.value = false
-  showOpener.value = !showInfo.value
-})
 
 // emit a search event so parent can handle navigation/results
 const emit = defineEmits(['search'])
