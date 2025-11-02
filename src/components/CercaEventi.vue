@@ -3,6 +3,7 @@ import { ref, defineEmits, nextTick, onMounted, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import csv2json from '@/utils/csv2json.js'
+import { generateAlert } from '@/utils/alertbanner.js'
 
 // local state for the search query
 const query = ref('')
@@ -17,6 +18,27 @@ const showDetails = ref(false)
 const showOpener = ref(!showInfo.value)
 // track if we're in the open flow initiated from the opener link
 const isOpening = ref(false)
+
+// ------- Filters (UI + logic) -------
+const filtersOpen = ref(false)
+const filterIcon = computed(() => (filtersOpen.value ? 'close' : 'tune'))
+const filterLabels = [
+  'Nascondi conclusi',
+  'In corso',
+  'Futuri',
+  'Conclusi',
+]
+// activeFilter is one of filterLabels or '' (none)
+const activeFilter = ref('')
+// badge visibility (small circle near the filter toggle when a filter is active)
+const filterBadgeVisible = computed(() => !!activeFilter.value)
+// reset button visibility (animated separately)
+const resetVisible = ref(false)
+
+// animation state per filter button to mimic sequential fade-in/out
+const filterBtnStates = ref(
+  filterLabels.map(() => ({ hidden: true, fadeRight: false, fadeLeftOut: false })),
+)
 
 // emit a search event so parent can handle navigation/results
 const emit = defineEmits(['search'])
@@ -143,6 +165,45 @@ function getEventStartDate(ev) {
   return parseStart(ev) || parseEnd(ev)
 }
 
+// Determine event status relative to "now": 'past' | 'running' | 'future'
+function eventStatus(ev) {
+  const now = new Date()
+  const hasDateTime =
+    ev['start.dateTime'] != null || ev['end.dateTime'] != null || ev.startDateTime != null || ev.endDateTime != null
+
+  let s = parseStart(ev)
+  let e = parseEnd(ev) || s
+
+  if (!s && !e) return 'future'
+
+  // If same instant for datetime events, extend end by +1h (keeps parity with legacy handling)
+  if (hasDateTime && s && e && s.getTime() === e.getTime()) {
+    e = new Date(e)
+    e.setHours(e.getHours() + 1)
+  }
+
+  // For all-day (date-only) events, treat end as end-of-day
+  if (!hasDateTime && e) {
+    e = new Date(e)
+    e.setHours(23, 59, 59, 999)
+  }
+
+  // If start missing but end exists, assume start = end (so single moment/day)
+  if (!s && e) s = new Date(e)
+
+  if (e && now.getTime() > e.getTime()) return 'past'
+  if (s && e && now.getTime() >= s.getTime() && now.getTime() <= e.getTime()) return 'running'
+  return 'future'
+}
+
+function eventClasses(ev) {
+  const st = eventStatus(ev)
+  return {
+    'event-running': st === 'running',
+    'event-past': st === 'past',
+  }
+}
+
 onMounted(async () => {
   try {
     const res = await fetch(
@@ -200,12 +261,37 @@ const eventsByDay = computed(() => {
   return buckets
 })
 
+// Apply active filter to events per day
+const filteredEventsByDay = computed(() => {
+  const out = { 0: [], 1: [], 2: [], 3: [] }
+  const filter = activeFilter.value
+  const match = (ev) => {
+    const st = eventStatus(ev)
+    switch (filter) {
+      case 'Nascondi conclusi':
+        return st !== 'past'
+      case 'In corso':
+        return st === 'running'
+      case 'Futuri':
+        return st === 'future'
+      case 'Conclusi':
+        return st === 'past'
+      default:
+        return true
+    }
+  }
+  for (const k of [0, 1, 2, 3]) {
+    out[k] = (eventsByDay.value[k] || []).filter(match)
+  }
+  return out
+})
+
 function eventsForDay(dayIndex) {
-  return eventsByDay.value[dayIndex] || []
+  return filteredEventsByDay.value[dayIndex] || []
 }
 
 const hasAnyEvents = computed(() =>
-  [0, 1, 2, 3].some((d) => (eventsByDay.value?.[d]?.length || 0) > 0),
+  [0, 1, 2, 3].some((d) => (filteredEventsByDay.value?.[d]?.length || 0) > 0),
 )
 
 // ------- Dates header formatting -------
@@ -237,6 +323,70 @@ function getDateInfo(offset) {
   return { label, dateText }
 }
 
+// ------- Filters: behaviors -------
+function toggleFilters() {
+  filtersOpen.value = !filtersOpen.value
+
+  const btns = filterBtnStates.value
+  if (filtersOpen.value) {
+    // opening: sequential fade in left->right
+    btns.forEach((_, i) => {
+      setTimeout(() => {
+        btns[i].hidden = false
+        btns[i].fadeLeftOut = false
+        btns[i].fadeRight = true
+      }, 150 * i)
+    })
+    // hide reset while opening; will be shown if active filter exists
+    resetVisible.value = !!activeFilter.value
+  } else {
+    // closing: sequential fade out right->left
+    for (let i = btns.length - 1; i >= 0; i--) {
+      setTimeout(() => {
+        btns[i].fadeRight = false
+        btns[i].fadeLeftOut = true
+      }, 150 * (btns.length - 1 - i))
+    }
+    // keep reset visibility depending on active filter
+    resetVisible.value = !!activeFilter.value
+  }
+}
+
+function applyFilter(label) {
+  // Clicking the already active filter clears it
+  if (activeFilter.value === label) {
+    activeFilter.value = ''
+    localStorage.removeItem('filter')
+    resetVisible.value = false
+    return
+  }
+
+  activeFilter.value = label
+  localStorage.setItem('filter', label)
+  resetVisible.value = true
+}
+
+function resetFilters() {
+  activeFilter.value = ''
+  localStorage.removeItem('filter')
+  resetVisible.value = false
+}
+
+function applyFilterFromLocalStorage() {
+  const saved = localStorage.getItem('filter')
+  if (saved && filterLabels.includes(saved)) {
+    activeFilter.value = saved
+    resetVisible.value = true
+    // Inform the user filters were restored automatically
+    generateAlert('info', 'Ci sono filtri attivi')
+  }
+}
+
+onMounted(() => {
+  // After events load code runs above, also try to restore a saved filter
+  applyFilterFromLocalStorage()
+})
+
 // ------- Event display helpers -------
 function getField(ev, names) {
   for (const n of names) {
@@ -247,10 +397,6 @@ function getField(ev, names) {
 
 function displayTitle(ev) {
   return getField(ev, ['title', 'summary', 'data', 'name']) || 'Evento'
-}
-
-function displayDescription(ev) {
-  return getField(ev, ['description', 'descrizione', 'desc']) || ''
 }
 
 function displayStartText(ev) {
@@ -366,19 +512,44 @@ function displayEndText(ev) {
 
   <div class="cercaEventi-section">
     <div class="cercaEventi-keywords-list" style="display: none"></div>
-    <!-- TODO -->
     <div class="cercaEventi-filter-container">
       <div class="relative">
-        <a class="btn outlined flex-center" onclick="showFilters(this)"
-          ><span class="material-symbols-outlined material-space-right">tune</span> Filtri</a
+        <a
+          class="btn flex-center"
+          :class="filtersOpen ? 'filled' : 'outlined'"
+          @click="toggleFilters"
         >
-        <span class="material-symbols-outlined filter-on-circle"> circle </span>
+          <span class="material-symbols-outlined material-space-right">{{ filterIcon }}</span>
+          Filtri
+        </a>
+        <span
+          class="material-symbols-outlined filter-on-circle"
+          :style="{ visibility: filterBadgeVisible ? 'visible' : 'hidden' }"
+        >
+          circle
+        </span>
       </div>
-      <a class="btn outlined filter-btn hidden" onclick="filter(this)">Nascondi conclusi</a>
-      <a class="btn outlined filter-btn hidden" onclick="filter(this)">In corso</a>
-      <a class="btn outlined filter-btn hidden" onclick="filter(this)">Futuri</a>
-      <a class="btn outlined filter-btn hidden" onclick="filter(this)">Conclusi</a>
-      <a class="btn text reset-filter-btn hidden" onclick="resetFilters()">Reset filtri</a>
+      <a
+        v-for="(label, idx) in filterLabels"
+        :key="label"
+        class="btn filter-btn"
+        :class="[
+          activeFilter === label ? 'filled' : 'outlined',
+          filterBtnStates[idx].hidden ? 'hidden' : '',
+          filterBtnStates[idx].fadeRight ? 'fade-right' : '',
+          filterBtnStates[idx].fadeLeftOut ? 'fade-left-out' : '',
+        ]"
+        @click="applyFilter(label)"
+      >
+        {{ label }}
+      </a>
+      <a
+        class="btn text reset-filter-btn"
+        :class="[resetVisible ? 'fade-right' : 'fade-left-out', resetVisible ? '' : 'hidden']"
+        @click="resetFilters"
+      >
+        Reset filtri
+      </a>
     </div>
 
     <!-- TODO similar events -->
@@ -420,7 +591,7 @@ function displayEndText(ev) {
             v-for="(event, i) in eventsForDay(d)"
             :key="i"
             class="event"
-            :class="{ running: event.isRunning }"
+            :class="eventClasses(event)"
           >
             <p class="event-title">{{ displayTitle(event) }}</p>
             <div class="event-time">

@@ -2,6 +2,7 @@
 import './assets/css/style.css'
 import './assets/css/dark.css'
 import './assets/css/material-icons.css'
+import './assets/css/alertbanner.css'
 
 // Vue core imports
 import { createApp } from 'vue'

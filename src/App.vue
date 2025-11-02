@@ -8,7 +8,7 @@ import { RouterLink, RouterView } from 'vue-router'
       <div class="sidebar-inner">
         <RouterLink class="sidebar-link" id="cercaeventi" to="/">
           <span class="material-symbols-outlined"> search </span>
-          <span class="sidebar-link-text">Filtra Eventi</span>
+          <span class="sidebar-link-text">Cerca Eventi</span>
         </RouterLink>
 
         <RouterLink class="sidebar-link" id="login" to="/login">
