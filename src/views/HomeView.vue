@@ -3,5 +3,5 @@ import CercaEventi from '../components/CercaEventi.vue'
 </script>
 
 <template>
-    <CercaEventi />
+  <CercaEventi />
 </template>

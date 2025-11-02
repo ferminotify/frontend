@@ -22,12 +22,7 @@ const isOpening = ref(false)
 // ------- Filters (UI + logic) -------
 const filtersOpen = ref(false)
 const filterIcon = computed(() => (filtersOpen.value ? 'close' : 'tune'))
-const filterLabels = [
-  'Nascondi conclusi',
-  'In corso',
-  'Futuri',
-  'Conclusi',
-]
+const filterLabels = ['Nascondi conclusi', 'In corso', 'Futuri', 'Conclusi']
 // activeFilter is one of filterLabels or '' (none)
 const activeFilter = ref('')
 // badge visibility (small circle near the filter toggle when a filter is active)
@@ -169,7 +164,10 @@ function getEventStartDate(ev) {
 function eventStatus(ev) {
   const now = new Date()
   const hasDateTime =
-    ev['start.dateTime'] != null || ev['end.dateTime'] != null || ev.startDateTime != null || ev.endDateTime != null
+    ev['start.dateTime'] != null ||
+    ev['end.dateTime'] != null ||
+    ev.startDateTime != null ||
+    ev.endDateTime != null
 
   let s = parseStart(ev)
   let e = parseEnd(ev) || s
@@ -342,10 +340,13 @@ function toggleFilters() {
   } else {
     // closing: sequential fade out right->left
     for (let i = btns.length - 1; i >= 0; i--) {
-      setTimeout(() => {
-        btns[i].fadeRight = false
-        btns[i].fadeLeftOut = true
-      }, 150 * (btns.length - 1 - i))
+      setTimeout(
+        () => {
+          btns[i].fadeRight = false
+          btns[i].fadeLeftOut = true
+        },
+        150 * (btns.length - 1 - i),
+      )
     }
     // keep reset visibility depending on active filter
     resetVisible.value = !!activeFilter.value
@@ -447,7 +448,7 @@ function displayEndText(ev) {
             <label>Keyword</label>
           </div>
           <a id="submit-btn" class="btn filled addButton" @click="cercaEventi">
-            <font-awesome-icon :icon="faChevronRight" />
+            <span class="material-symbols-outlined">arrow_forward_ios</span>
           </a>
         </div>
       </div>
