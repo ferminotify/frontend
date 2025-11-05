@@ -378,7 +378,7 @@ code,
   z-index: 100;
 }
 .sidebar-inner {
-  height: 80%;
+  height: 100%;
   width: 88px;
   display: flex;
   flex-direction: column;
