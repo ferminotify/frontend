@@ -7,7 +7,7 @@
           <h1 class="firstTitle flex-center-x">Accedi</h1>
           <div class="input-container">
             <div class="material-textfield">
-              <input placeholder="" type="email" required name="email" />
+              <input v-model="email" placeholder="" type="email" required name="email" />
               <label>Email</label>
             </div>
             <p class="firstSubtitle">
@@ -17,6 +17,7 @@
           <div class="input-container">
             <div class="material-textfield">
               <input
+                v-model="password"
                 placeholder=""
                 type="password"
                 required
@@ -51,15 +52,34 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { loading, togglePasswordVisibility, initPasswordIconForEdge } from '@/utils/forms.js'
+import { useAuthStore } from '@/stores/auth'
+import { generateAlert } from '@/utils/alertbanner'
 
 const submitBtnRef = ref(null)
 const pswInputRef = ref(null)
 const pswIconRef = ref(null)
+const auth = useAuthStore()
+const email = ref('')
+const password = ref('')
 
-function onSubmit() {
+async function onSubmit() {
   // trigger button loading but let the native form POST proceed
   if (submitBtnRef.value) {
     loading(submitBtnRef.value)
+    try{
+      await auth.login(email.value, password.value)
+    }catch(error){
+      switch (error.response.status) {
+        case 404:
+          generateAlert('Non ci sono utenti registrati con l\'email ' + email.value + '. Crea un account <a href="/register">qui</a>.', 'error')
+          break
+        case 401:
+          generateAlert('La password non è corretta.', 'error')
+          break
+        default:
+          generateAlert('Si &egrave; verificato un errore. Riprova pi&ugrave; tardi.', 'error')
+      }
+    }
   }
 }
 

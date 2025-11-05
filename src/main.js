@@ -15,10 +15,9 @@ import router from './router'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faInstagram, faGithub } from '@fortawesome/free-brands-svg-icons'
-import { faRightToBracket } from '@fortawesome/free-solid-svg-icons'
 
 // Add icons to library
-library.add(faInstagram, faGithub, faRightToBracket)
+library.add(faInstagram, faGithub)
 
 // Create the Vue app
 const app = createApp(App)
