@@ -420,24 +420,14 @@ code,
   color: var(--on-primary);
   background: var(--primary);
 }
-.sidebar-theme,
-.sidebar-menu-theme {
-  border: 1px solid var(--on-surface-variant);
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.sidebar-theme-btn {
-  font-variation-settings: 'FILL' 0;
-}
-.sidebar-theme-container a:hover .sidebar-theme-btn {
-  font-variation-settings: 'FILL' 1;
-}
-.sidebar-theme-container a:hover {
-  background: var(--surface-variant-hover-bg);
+.sidebar-link span.material-symbols-outlined {
+    margin-bottom: 4px;
+    border-radius: 16px;
+    width: 56px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .sidebar a {
   text-decoration: none;
@@ -472,7 +462,7 @@ code,
   align-items: center;
 }
 .main .material-symbols-outlined {
-  font-size: 1rem;
+  font-size: inherit;
 }
 
 .rounded-container {

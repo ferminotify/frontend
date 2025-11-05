@@ -6,19 +6,43 @@ import { RouterLink, RouterView } from 'vue-router'
   <header>
     <div class="sidebar">
       <div class="sidebar-inner">
-        <RouterLink class="sidebar-link" id="cercaeventi" to="/">
-          <span class="material-symbols-outlined"> search </span>
-          <span class="sidebar-link-text">Cerca Eventi</span>
+        <RouterLink to="/" custom v-slot="{ href, navigate, isExactActive }">
+          <a
+            :href="href"
+            @click="navigate"
+            class="sidebar-link"
+            id="cercaeventi"
+            :class="{ active: isExactActive }"
+          >
+            <span class="material-symbols-outlined sidebar-icon"> search </span>
+            <span class="sidebar-link-text">Cerca Eventi</span>
+          </a>
         </RouterLink>
 
-        <RouterLink class="sidebar-link" id="login" to="/login">
-          <span class="material-symbols-outlined"> login </span>
-          <span class="sidebar-link-text">Accesso</span>
+        <RouterLink to="/login" custom v-slot="{ href, navigate, isExactActive }">
+          <a
+            :href="href"
+            @click="navigate"
+            class="sidebar-link"
+            id="login"
+            :class="{ active: isExactActive }"
+          >
+            <span class="material-symbols-outlined sidebar-icon"> login </span>
+            <span class="sidebar-link-text">Accesso</span>
+          </a>
         </RouterLink>
 
-        <RouterLink class="sidebar-link" id="faq" to="/faq">
-          <span class="material-symbols-outlined"> help_center </span>
-          <span class="sidebar-link-text">FAQ</span>
+        <RouterLink to="/faq" custom v-slot="{ href, navigate, isExactActive }">
+          <a
+            :href="href"
+            @click="navigate"
+            class="sidebar-link"
+            id="faq"
+            :class="{ active: isExactActive }"
+          >
+            <span class="material-symbols-outlined sidebar-icon"> help_center </span>
+            <span class="sidebar-link-text">FAQ</span>
+          </a>
         </RouterLink>
 
         <div class="sidebar-link sidebar-contatti">

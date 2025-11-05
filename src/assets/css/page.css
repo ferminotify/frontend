@@ -75,13 +75,13 @@
   width: calc(100% - 30px);
   background-color: var(--surface-variant);
 }
-#PSWShowHideIcon i {
+#PSWShowHideIcon span.material-symbols-outlined {
   position: absolute;
   transform: translateX(-35px) translateY(17px);
   color: var(--muted);
   cursor: pointer;
 }
-input:focus + label + #PSWShowHideIcon i {
+input:focus + label + #PSWShowHideIcon span.material-symbols-outlined {
   color: var(--on-surface-primary);
 }
 
