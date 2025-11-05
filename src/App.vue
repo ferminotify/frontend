@@ -30,11 +30,6 @@ import { RouterLink, RouterView } from 'vue-router'
           <div class="nav-links">
             <ul>
               <li>
-                <a onclick="changeTheme()" class="sidebar-menu-link sidebar-menu-theme flex-center"
-                  ><span class="material-symbols-outlined sidebar-theme-btn"> light_mode </span></a
-                >
-              </li>
-              <li>
                 <div class="sidebar-link sidebar-contatti">
                   <a href="https://www.instagram.com/ferminotify/" target="_blank"
                     ><font-awesome-icon :icon="['fab', 'instagram']"
@@ -47,19 +42,6 @@ import { RouterLink, RouterView } from 'vue-router'
             </ul>
           </div>
           <span class="sidebar-link-text">Menu</span>
-        </div>
-      </div>
-      <div class="sidebar-theme-container sidebar-desktop">
-        <a onclick="changeTheme()" class="sidebar-theme"
-          ><span class="material-symbols-outlined sidebar-theme-btn"> light_mode </span></a
-        >
-        <div class="sidebar-link sidebar-contatti sidebar-desktop">
-          <a href="https://www.instagram.com/ferminotify/" target="_blank"
-            ><font-awesome-icon :icon="['fab', 'instagram']"
-          /></a>
-          <a href="https://github.com/ferminotify" target="_blank"
-            ><font-awesome-icon :icon="['fab', 'github']"
-          /></a>
         </div>
       </div>
     </div>
