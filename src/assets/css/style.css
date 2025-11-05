@@ -421,13 +421,13 @@ code,
   background: var(--primary);
 }
 .sidebar-link span.material-symbols-outlined {
-    margin-bottom: 4px;
-    border-radius: 16px;
-    width: 56px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  margin-bottom: 4px;
+  border-radius: 16px;
+  width: 56px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .sidebar a {
   text-decoration: none;

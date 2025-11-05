@@ -1,5 +1,15 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
+
+const route = useRoute()
+const isDashboard = computed(() => route.path.startsWith('/dashboard'))
+const isAuthActive = computed(
+  () => route.path === '/login' || route.path === '/register' || isDashboard.value,
+)
+const authTo = computed(() => (isDashboard.value ? '/dashboard' : '/login'))
+const authIcon = computed(() => (isDashboard.value ? 'space_dashboard' : 'login'))
+const authLabel = computed(() => (isDashboard.value ? 'Dashboard' : 'Accesso'))
 </script>
 
 <template>
@@ -19,16 +29,16 @@ import { RouterLink, RouterView } from 'vue-router'
           </a>
         </RouterLink>
 
-        <RouterLink to="/login" custom v-slot="{ href, navigate, isExactActive }">
+        <RouterLink :to="authTo" custom v-slot="{ href, navigate }">
           <a
             :href="href"
             @click="navigate"
             class="sidebar-link"
             id="login"
-            :class="{ active: isExactActive }"
+            :class="{ active: isAuthActive }"
           >
-            <span class="material-symbols-outlined sidebar-icon"> login </span>
-            <span class="sidebar-link-text">Accesso</span>
+            <span class="material-symbols-outlined sidebar-icon"> {{ authIcon }} </span>
+            <span class="sidebar-link-text">{{ authLabel }}</span>
           </a>
         </RouterLink>
 

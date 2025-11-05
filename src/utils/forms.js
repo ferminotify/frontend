@@ -63,8 +63,7 @@ export function togglePasswordVisibility(passwordInputOrEl, iconElOrId) {
     typeof passwordInputOrEl === 'string'
       ? document.getElementById(passwordInputOrEl)
       : passwordInputOrEl
-  const iconEl =
-    typeof iconElOrId === 'string' ? document.getElementById(iconElOrId) : iconElOrId
+  const iconEl = typeof iconElOrId === 'string' ? document.getElementById(iconElOrId) : iconElOrId
 
   if (!input) return
 
