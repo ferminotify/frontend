@@ -18,23 +18,31 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView,
+      meta: { title: 'Accesso · Fermi Notify' },
     },
     {
       path: '/register',
       name: 'register',
       component: LoginView,
+      meta: { title: 'Registrazione · Fermi Notify' },
     },
     {
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
+      meta: { title: 'Dashboard · Fermi Notify' },
     },
     {
       path: '/faq',
       name: 'faq',
       component: FaqView,
+      meta: { title: 'FAQ · Fermi Notify' },
     },
   ],
+})
+
+router.afterEach((to) => {
+  document.title = to.meta.title || 'Fermi Notify'
 })
 
 export default router
