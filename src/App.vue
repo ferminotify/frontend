@@ -21,6 +21,15 @@ import { RouterLink, RouterView } from 'vue-router'
           <span class="sidebar-link-text">FAQ</span>
         </RouterLink>
 
+        <div class="sidebar-link sidebar-contatti">
+          <a href="https://www.instagram.com/ferminotify/" target="_blank"
+            ><font-awesome-icon :icon="['fab', 'instagram']"
+          /></a>
+          <a href="https://github.com/ferminotify" target="_blank"
+            ><font-awesome-icon :icon="['fab', 'github']"
+          /></a>
+        </div>
+
         <div class="sidebar-link sidebar-menu" id="manu">
           <a class="hamburger">
             <span class="line"></span>
