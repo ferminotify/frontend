@@ -1,15 +1,18 @@
 <script setup>
 import { computed } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
+const user = useUserStore()
+const isLoggedIn = computed(() => !!user.token)
 const isDashboard = computed(() => route.path.startsWith('/dashboard'))
-const isAuthActive = computed(
-  () => route.path === '/login' || route.path === '/register' || isDashboard.value,
-)
-const authTo = computed(() => (isDashboard.value ? '/dashboard' : '/login'))
-const authIcon = computed(() => (isDashboard.value ? 'space_dashboard' : 'login'))
-const authLabel = computed(() => (isDashboard.value ? 'Dashboard' : 'Accesso'))
+const isAuthActive = computed(() => {
+  return isLoggedIn.value ? isDashboard.value : route.path === '/login' || route.path === '/register'
+})
+const authTo = computed(() => (isLoggedIn.value ? '/dashboard' : '/login'))
+const authIcon = computed(() => (isLoggedIn.value ? 'space_dashboard' : 'login'))
+const authLabel = computed(() => (isLoggedIn.value ? 'Dashboard' : 'Accesso'))
 </script>
 
 <template>

@@ -101,13 +101,11 @@ import {
   saveBtnParams,
   resetLoading,
 } from '@/utils/forms.js'
-import { useAuthStore } from '@/stores/auth'
 import { generateAlert } from '@/utils/alertbanner.js'
 
 const submitBtnRef = ref(null)
 const pswInputRef = ref(null)
 const pswIconRef = ref(null)
-const auth = useAuthStore()
 const name = ref('')
 const surname = ref('')
 const email = ref('')

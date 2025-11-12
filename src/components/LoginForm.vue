@@ -53,37 +53,48 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { loading, togglePasswordVisibility, initPasswordIconForEdge } from '@/utils/forms.js'
-import { useAuthStore } from '@/stores/auth'
+import { loading, togglePasswordVisibility, initPasswordIconForEdge, saveBtnParams, resetLoading } from '@/utils/forms.js'
+import { useUserStore } from '@/stores/user'
 import { generateAlert } from '@/utils/alertbanner.js'
 
 const submitBtnRef = ref(null)
 const pswInputRef = ref(null)
 const pswIconRef = ref(null)
-const auth = useAuthStore()
+const user = useUserStore()
 const email = ref('')
 const password = ref('')
 const router = useRouter()
+const btnParams = ref(null)
 
 async function onSubmit() {
   if (!submitBtnRef.value) return
+  if (!btnParams.value) btnParams.value = saveBtnParams(submitBtnRef.value)
   loading(submitBtnRef.value)
   try {
-    await auth.login(email.value, password.value)
+    await user.login(email.value, password.value)
     await router.push('/dashboard')
   } catch (error) {
-    // Normalize error handling; api/auth.js throws generic Error on !ok
+    // Better normalization: handle network/CORS errors and backend messages
     const status = error?.response?.status
-    if (status === 404) {
+    const backendMsg = error?.response?.data?.error || error?.response?.data?.message
+
+    if (!error?.response) {
+      // Network/CORS/timeout
+      console.error('Login network error:', error)
+      generateAlert('error', "Impossibile contattare il server. Controlla la connessione e riprova.")
+    } else if (status === 404) {
       generateAlert(
         'error',
         `Non ci sono utenti registrati con l'email ${email.value}. Crea un account <a href="/register">qui</a>.`,
       )
     } else if (status === 401) {
       generateAlert('error', 'La password non è corretta.')
+    } else if (backendMsg) {
+      generateAlert('error', backendMsg)
     } else {
-      generateAlert('error', 'Si &egrave; verificato un errore. Riprova pi&ugrave; tardi.')
+      generateAlert('error', 'Si è verificato un errore. Riprova più tardi.')
     }
+    resetLoading(submitBtnRef.value, btnParams.value)
   }
 }
 

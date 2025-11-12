@@ -41,6 +41,17 @@ const router = createRouter({
   ],
 })
 
+// Lightweight auth guard using persisted token
+router.beforeEach((to) => {
+  const token = localStorage.getItem('token')
+  if (token && (to.path === '/login' || to.path === '/register')) {
+    return '/dashboard'
+  }
+  if (!token && to.path.startsWith('/dashboard')) {
+    return '/login'
+  }
+})
+
 router.afterEach((to) => {
   document.title = to.meta.title || 'Fermi Notify'
 })
