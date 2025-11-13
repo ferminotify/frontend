@@ -89,7 +89,7 @@
   </div>
 </template>
 
-<style src="@/assets/css/page.css"></style>
+<style scoped src="@/assets/css/page.css"></style>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'

@@ -33,6 +33,20 @@ export const useUserStore = defineStore('user', {
       this.user = res.data
     },
 
+    async addKeyword(keyword) {
+      if (!keyword) return
+      await api.put(`${API_URL}/keyword/add`, { keyword })
+      const current = Array.isArray(this.user?.tags) ? this.user.tags : []
+      this.user = { ...(this.user || {}), tags: [...current, keyword] }
+    },
+
+    async deleteKeyword(keyword) {
+      if (!keyword) return
+      await api.delete(`${API_URL}/keyword/delete`, { data: { keyword } })
+      const current = Array.isArray(this.user?.tags) ? this.user.tags : []
+      this.user = { ...(this.user || {}), tags: current.filter((k) => k !== keyword) }
+    },
+
     async logout() {
       if (this.refreshToken) {
         await axios.post(`${API_URL}/auth/logout`, { refreshToken: this.refreshToken })

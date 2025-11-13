@@ -1,7 +1,5 @@
 <script setup>
 import { ref, defineEmits, nextTick, onMounted, computed } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import csv2json from '@/utils/csv2json.js'
 import { generateAlert } from '@/utils/alertbanner.js'
 
@@ -617,7 +615,7 @@ function displayEndText(ev) {
   </div>
 </template>
 
-<style src="../assets/css/cercaeventi.css"></style>
+<style scoped src="../assets/css/cercaeventi.css"></style>
 
 <style>
 /* Simple slide-down/up for the info panel */

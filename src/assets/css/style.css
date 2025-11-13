@@ -460,6 +460,7 @@ code,
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-left: 88px;
 }
 .main .material-symbols-outlined {
   font-size: inherit;

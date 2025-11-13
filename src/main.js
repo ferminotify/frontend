@@ -11,14 +11,15 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 
-// Font Awesome imports
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faInstagram, faGithub } from '@fortawesome/free-brands-svg-icons'
-
 import { useUserStore } from '@/stores/user'
 
-
+// Font Awesome imports
+import { library, config } from '@fortawesome/fontawesome-svg-core'
+import '@fortawesome/fontawesome-svg-core/styles.css'
+// Prevent the core from auto-injecting CSS since we import it explicitly above
+config.autoAddCss = false
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faInstagram, faGithub } from '@fortawesome/free-brands-svg-icons'
 // Add icons to library
 library.add(faInstagram, faGithub)
 

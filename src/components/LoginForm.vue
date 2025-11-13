@@ -48,7 +48,7 @@
   </div>
 </template>
 
-<style src="@/assets/css/page.css"></style>
+<style scoped src="@/assets/css/page.css"></style>
 
 <script setup>
 import { onMounted, ref } from 'vue'
