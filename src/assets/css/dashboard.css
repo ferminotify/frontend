@@ -21,7 +21,7 @@
 .keywords-info li {
     padding: 4px 0;
 }
-.maggioriInfo i{
+.maggioriInfo span.material-symbols-outlined{
     color: var(--on-surface-primary);
 }
 .keywords-form-container{

@@ -1,5 +1,5 @@
 <script setup>
-import CercaEventi from '../components/CercaEventi.vue'
+  import CercaEventi from '../components/CercaEventi.vue'
 </script>
 
 <template>

@@ -1,9 +1,9 @@
 <script setup>
-import { useRoute } from 'vue-router'
-import LoginForm from '../components/LoginForm.vue'
-import RegisterForm from '../components/RegisterForm.vue'
+  import { useRoute } from 'vue-router'
+  import LoginForm from '../components/LoginForm.vue'
+  import RegisterForm from '../components/RegisterForm.vue'
 
-const route = useRoute()
+  const route = useRoute()
 </script>
 
 <template>

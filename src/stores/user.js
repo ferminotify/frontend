@@ -36,15 +36,43 @@ export const useUserStore = defineStore('user', {
     async addKeyword(keyword) {
       if (!keyword) return
       await api.put(`${API_URL}/keyword/add`, { keyword })
-      const current = Array.isArray(this.user?.tags) ? this.user.tags : []
-      this.user = { ...(this.user || {}), tags: [...current, keyword] }
+      const current = Array.isArray(this.user?.keywords) ? this.user.keywords : []
+      this.user = { ...(this.user || {}), keywords: [...current, keyword] }
     },
 
     async deleteKeyword(keyword) {
       if (!keyword) return
       await api.delete(`${API_URL}/keyword/delete`, { data: { keyword } })
-      const current = Array.isArray(this.user?.tags) ? this.user.tags : []
-      this.user = { ...(this.user || {}), tags: current.filter((k) => k !== keyword) }
+      const current = Array.isArray(this.user?.keywords) ? this.user.keywords : []
+      this.user = { ...(this.user || {}), keywords: current.filter((k) => k !== keyword) }
+    },
+
+    async updateNotificationPreferences(preferences) {
+      await api.post(`${API_URL}/auth/notification-preferences`, preferences)
+      if (this.user) {
+        this.user = { ...this.user, notification_preferences: preferences }
+      }
+    },
+
+    async toggleProbableNotifications() {
+      await api.post(`${API_URL}/auth/toggle-probable-notifications`)
+      if (this.user) {
+        this.user = { ...this.user, include_similar_tags: !this.user.include_similar_tags }
+      }
+    },
+
+    async updateNotificationTime(time, dayBefore) {
+      await api.post(`${API_URL}/auth/notification-time`, { time, day: dayBefore })
+      if (this.user) {
+        this.user = { ...this.user, notification_time: time, notification_day_before: dayBefore }
+      }
+    },
+
+    async updateProfile(data) {
+      await api.post(`${API_URL}/auth/edit`, data)
+      if (this.user) {
+        this.user = { ...this.user, ...data }
+      }
     },
 
     async logout() {
