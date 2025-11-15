@@ -13,6 +13,8 @@
   cursor: default;
   max-width: 350px;
   word-wrap: break-word;
+  display: flex;
+  align-items: center;
 }
 
 .alertbanner,

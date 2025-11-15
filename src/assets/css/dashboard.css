@@ -44,7 +44,6 @@
 .keyword{
     margin: 5px 0;
     display: flex;
-    align-items: center;
     width: fit-content;
 }
 .keyword:hover i{
@@ -260,22 +259,11 @@
     margin: 0 5px;
 }
 
-.dashboard-edit-btn-container i{
-    padding: 0 12px;
-    /*background-color: var(--primary-color);*/
-    background: transparent;
-    border-radius: 10px;
-    color: var(--on-surface);
-    margin-top: 5px;
-    cursor: pointer;
-}
-
-.dashboard-edit-btn-container i:hover{
-    color: var(--primary-color);
-}
-
 .dashboard-editing-btns{
-    display: none;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    max-width: 100px;
 }
 
 .dashboard-editing-btns button{
@@ -385,11 +373,4 @@
 	top: 18.67px;
 	left: 18.67px;
 	animation-delay: -1.6s;
-}
-
-/* material icon edit kw btn not centered */
-.keywords-container .btn{
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }

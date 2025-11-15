@@ -15,8 +15,7 @@
     <Eventi :keywords="keywords" />
 
     <!-- Settings -->
-	<Settings />
-
+    <Settings />
   </div>
 </template>
 

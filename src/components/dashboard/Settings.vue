@@ -1,16 +1,15 @@
 <template>
   <div class="sub-section">
     <h2>
-      <font-awesome-icon :icon="faGear" style="color: var(--on-surface-primary)" />
+      <span class="material-symbols-outlined">settings</span>
       Impostazioni
     </h2>
 
     <div class="impostazioni-container">
       <!-- Notification Channels -->
       <div class="invioNotificheContainer impostazioni-sect" id="canali">
-        <p style="padding-bottom: 10px">
-          <font-awesome-icon :icon="faMessage" class="primary-text" />
-          <span>Canali notifiche</span>
+        <p style="padding-bottom: 10px" class="impostazioni-sect-title">
+          <span class="material-symbols-outlined">chat_bubble</span> Canali notifiche
         </p>
         <div class="checkNot-container sendEmail">
           Email
@@ -40,9 +39,9 @@
 
       <!-- Probable Variations -->
       <div class="impostazioni-sect invioNotificheContainer" id="variazioni" style="padding-bottom: 15px">
-        <p style="padding-bottom: 10px">
-          <font-awesome-icon :icon="faBell" class="primary-text" />
-          <span>Variazioni dell'orario</span>
+        <p style="padding-bottom: 10px" class="impostazioni-sect-title">
+          <span class="material-symbols-outlined">notifications</span>
+          Variazioni dell'orario
         </p>
         <div class="checkNot-container sendEmail" style="display: flex; align-items: flex-start">
           Invia variazioni probabili
@@ -55,7 +54,7 @@
           Ricevi notifiche anche delle variazioni dell'orario che potrebbero essere associate alle tue keyword.
         </p>
         <p style="font-size: 12px; color: var(--on-surface)">
-          <font-awesome-icon :icon="faArrowRight" />
+          <span class="material-symbols-outlined">arrow_right_alt</span>
           Esempio: con keyword
           <code>5 CIN</code>
           invia le variazioni sulla
@@ -72,9 +71,9 @@
         class="invioNotificheContainer impostazioni-sect"
         id="orario"
         style="position: relative; padding-bottom: 10px">
-        <p style="padding-bottom: 10px; border-bottom: 1px solid var(--on-surface)">
-          <font-awesome-icon :icon="faClock" class="primary-text" />
-          <span>Orario Daily Notification</span>
+        <p style="padding-bottom: 10px; border-bottom: 1px solid var(--on-surface)" class="impostazioni-sect-title">
+          <span class="material-symbols-outlined">schedule</span>
+          Orario Daily Notification
         </p>
 
         <div class="notTime" style="margin: 10px 0">
@@ -97,23 +96,29 @@
                 id="timepicker"
                 class="dashboard-input dashboard-time"
                 :disabled="!isEditingTime"
-                style="width: 120px" />
+                style="width: 75px" />
             </div>
           </div>
 
           <div class="dashboard-edit-btn-container">
-            <div v-if="!isEditingTime" class="dashboard-toEdit-btns dashboard-toEdit-btns-notTime flex-y-center">
-              <a class="btn text notTime-edit-btn" @click="startEditTime">
-                <font-awesome-icon :icon="faPen" />
+            <div v-if="!isEditingTime && !isSavingTime" class="dashboard-toEdit-btns flex-y-center">
+              <a class="btn text" @click="startEditTime">
+                <span class="material-symbols-outlined">edit</span>
               </a>
             </div>
-            <div v-else class="dashboard-editing-btns dashboard-editing-btns-notTime" style="display: flex">
+            <div v-else-if="isSavingTime" class="dashboard-toEdit-btns flex-y-center">
+              <div class="submit-lds-grid">
+                <div></div><div></div><div></div>
+                <div></div><div></div><div></div>
+                <div></div><div></div><div></div>
+              </div>
+            </div>
+            <div v-else class="dashboard-editing-btns">
               <button class="btn text" @click="cancelEditTime">
-                <font-awesome-icon :icon="faXmark" />
+                <span class="material-symbols-outlined">close</span>
               </button>
-              <button class="btn text" @click="saveNotificationTime" :disabled="isSavingTime">
-                <font-awesome-icon v-if="!isSavingTime" :icon="faCheck" />
-                <span v-else class="spinner-small"></span>
+              <button class="btn text" @click="saveNotificationTime">
+                <span class="material-symbols-outlined">check</span>
               </button>
             </div>
           </div>
@@ -121,30 +126,19 @@
       </div>
     </div>
 
-    <button class="btn outlined logout-btn" style="margin-top: 30px" @click="onLogout">
-      <font-awesome-icon :icon="faSignOut" aria-hidden="true" />
+    <button class="btn filled" style="margin-top: 30px" @click="onLogout" ref="logoutBtn">
+      <span class="material-symbols-outlined" aria-hidden="true">logout</span>
       Logout
     </button>
   </div>
 </template>
 
 <script setup>
-  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-  import {
-    faGear,
-    faMessage,
-    faBell,
-    faClock,
-    faArrowRight,
-    faPen,
-    faXmark,
-    faCheck,
-    faSignOut,
-  } from '@fortawesome/free-solid-svg-icons'
   import { ref, computed, onMounted, watch, nextTick } from 'vue'
   import { useRouter } from 'vue-router'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
+  import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
 
   const store = useUserStore()
   const router = useRouter()
@@ -156,6 +150,8 @@
   const isEditingTime = ref(false)
   const isSavingTime = ref(false)
   const timepickerInput = ref(null)
+  const logoutBtn = ref(null)
+  let logoutParams = null
 
   // Store original values for canceling
   const originalTime = ref('06:00')
@@ -225,11 +221,13 @@
         window.mdtimepicker(timepickerInput.value, 'setValue', notificationTime.value)
       }
 
-      // Listen for value changes - mdtimepicker dispatches 'timechanged' event
-      timepickerInput.value.addEventListener('timechanged', (e) => {
-        if (e.detail && e.detail.value) {
-          notificationTime.value = e.detail.value
-        }
+      // Listen for input changes - mdtimepicker updates the input value directly
+      timepickerInput.value.addEventListener('input', (e) => {
+        notificationTime.value = e.target.value
+      })
+
+      timepickerInput.value.addEventListener('change', (e) => {
+        notificationTime.value = e.target.value
       })
     } catch (error) {
       console.error('Error initializing mdtimepicker:', error)
@@ -294,8 +292,13 @@
 
   async function updatePreferences() {
     try {
-      const prefValue = preferences.value
-      await store.updateNotificationPreferences(prefValue)
+      const email_val = preferences.value.email
+      const telegram_val = preferences.value.telegram
+      const pref = {
+        email: email_val,
+        telegram: telegram_val,
+      }
+      await store.updateNotificationPreferences(pref)
     } catch (err) {
       console.error('Failed to update preferences:', err)
       generateAlert('error', 'Si è verificato un errore. Riprova più tardi.')
@@ -334,7 +337,8 @@
   }
 
   async function saveNotificationTime() {
-    const time = notificationTime.value
+    // Get the current value from the input (mdtimepicker updates it directly)
+    const time = timepickerInput.value?.value || notificationTime.value
     const dayBefore = notificationDay.value === 'true'
 
     // Validation
@@ -351,13 +355,17 @@
 
     try {
       isSavingTime.value = true
+      
       await store.updateNotificationTime(time, dayBefore)
 
-      // Update originals
+      // Update local state
+      notificationTime.value = time
       originalTime.value = time
       originalDay.value = String(dayBefore)
 
+      // Exit edit mode on success
       isEditingTime.value = false
+      
       generateAlert('success', 'Orario aggiornato con successo!')
     } catch (err) {
       console.error('Failed to update notification time:', err)
@@ -369,12 +377,25 @@
 
   async function onLogout() {
     try {
+      logoutParams = saveBtnParams(logoutBtn.value)
+      loading(logoutBtn.value)
       await store.logout()
     } finally {
-      router.push('/login')
+      if (logoutParams) {
+        resetLoading(logoutBtn.value, logoutParams)
+      }
+      router.push('/')
     }
   }
 </script>
 
 <style src="@/assets/css/mdtimepicker.css"></style>
 <style scoped src="@/assets/css/dashboard.css"></style>
+<style scoped>
+  .impostazioni-sect-title .material-symbols-outlined {
+    color: var(--on-surface-primary);
+  }
+  .dashboard-toEdit-btns .btn{
+    color: var(--on-surface);
+  }
+</style>

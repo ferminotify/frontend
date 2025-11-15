@@ -53,13 +53,8 @@
 <script setup>
   import { onMounted, ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import {
-    loading,
-    togglePasswordVisibility,
-    initPasswordIconForEdge,
-    saveBtnParams,
-    resetLoading,
-  } from '@/utils/forms.js'
+  import { togglePasswordVisibility, initPasswordIconForEdge } from '@/utils/forms.js'
+  import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
 
