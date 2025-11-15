@@ -94,10 +94,10 @@
               <input
                 type="text"
                 ref="timepickerInput"
+                id="timepicker"
                 class="dashboard-input dashboard-time"
                 :disabled="!isEditingTime"
-                style="width: 120px"
-                readonly />
+                style="width: 120px" />
             </div>
           </div>
 
@@ -180,7 +180,7 @@
   function loadTimepickerScript() {
     // Check if mdtimepicker is already loaded
     if (window.mdtimepicker) {
-      initTimepicker()
+      nextTick(() => initTimepicker())
       return
     }
 
@@ -188,40 +188,59 @@
     const script = document.createElement('script')
     script.src = '/mdtimepicker.js'
     script.onload = () => {
-      initTimepicker()
+      nextTick(() => initTimepicker())
+    }
+    script.onerror = () => {
+      console.error('Failed to load mdtimepicker.js')
     }
     document.head.appendChild(script)
   }
 
   function initTimepicker() {
-    if (!timepickerInput.value || !window.mdtimepicker) return
-
-    const dayBefore = notificationDay.value === 'true'
-    const config = {
-      is24hour: true,
-      theme: 'dark',
-      clearBtn: false,
-      minTime: '0:00',
-      maxTime: dayBefore ? '23:55' : '08:10',
+    if (!timepickerInput.value) {
+      console.warn('Timepicker input ref not available')
+      return
     }
 
-    timepickerInstance = window.mdtimepicker(timepickerInput.value, config)
-
-    // Set initial value
-    if (notificationTime.value) {
-      window.mdtimepicker(timepickerInput.value, 'setValue', notificationTime.value)
+    if (!window.mdtimepicker) {
+      console.warn('mdtimepicker not loaded')
+      return
     }
 
-    // Listen for value changes
-    timepickerInput.value.addEventListener('timechanged', (e) => {
-      notificationTime.value = e.detail.value
-    })
+    try {
+      const dayBefore = notificationDay.value === 'true'
+      const config = {
+        is24hour: true,
+        theme: 'dark',
+        clearBtn: false,
+        minTime: '0:00',
+        maxTime: dayBefore ? '23:55' : '08:10',
+      }
+
+      // Initialize using the element directly (not jQuery selector)
+      timepickerInstance = window.mdtimepicker(timepickerInput.value, config)
+
+      // Set initial value
+      if (notificationTime.value) {
+        window.mdtimepicker(timepickerInput.value, 'setValue', notificationTime.value)
+      }
+
+      // Listen for value changes - mdtimepicker dispatches 'timechanged' event
+      timepickerInput.value.addEventListener('timechanged', (e) => {
+        if (e.detail && e.detail.value) {
+          notificationTime.value = e.detail.value
+        }
+      })
+    } catch (error) {
+      console.error('Error initializing mdtimepicker:', error)
+    }
   }
 
   function destroyTimepicker() {
-    if (timepickerInstance && window.mdtimepicker) {
+    if (timepickerInput.value && window.mdtimepicker) {
       try {
         window.mdtimepicker(timepickerInput.value, 'destroy')
+        timepickerInstance = null
       } catch (e) {
         console.warn('Error destroying timepicker:', e)
       }
@@ -357,5 +376,5 @@
   }
 </script>
 
-<style scoped src="@/assets/css/mdtimepicker.css"></style>
+<style src="@/assets/css/mdtimepicker.css"></style>
 <style scoped src="@/assets/css/dashboard.css"></style>
