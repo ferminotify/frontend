@@ -38,6 +38,12 @@ const router = createRouter({
       component: FaqView,
       meta: { title: 'FAQ · Fermi Notify' },
     },
+    {
+      path: '/user/auth/register/confirmation/:code',
+      name: 'email-confirmation',
+      component: LoginView,
+      meta: { title: 'Conferma Email · Fermi Notify' },
+    }
   ],
 })
 

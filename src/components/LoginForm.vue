@@ -51,8 +51,8 @@
 <style scoped src="@/assets/css/page.css"></style>
 
 <script setup>
-  import { onMounted, ref } from 'vue'
-  import { useRouter } from 'vue-router'
+  import { onMounted, ref, watch } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
   import { togglePasswordVisibility, initPasswordIconForEdge } from '@/utils/forms.js'
   import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
   import { useUserStore } from '@/stores/user'
@@ -65,6 +65,7 @@
   const email = ref('')
   const password = ref('')
   const router = useRouter()
+  const route = useRoute()
   const btnParams = ref(null)
 
   async function onSubmit() {
@@ -103,8 +104,29 @@
     togglePasswordVisibility(pswInputRef.value, pswIconRef.value)
   }
 
+  function handleConfirmQuery() {
+    const q = route.query || {}
+    const error = typeof q.error === 'string' ? q.error : undefined
+    const confirmError = typeof q.confirmError === 'string' ? q.confirmError : undefined
+    const confirmed = q.confirmed === '1'
+
+    if (error || confirmError) {
+      generateAlert('error', error || confirmError)
+      router.replace({ query: { ...q, error: undefined, confirmError: undefined } })
+    } else if (confirmed) {
+      generateAlert('success', 'Account confermato con successo! Ora puoi effettuare il login.')
+      router.replace({ query: { ...q, confirmed: undefined } })
+    }
+  }
+
   onMounted(() => {
     // Hide the custom icon on Edge which auto-adds its own toggle
     initPasswordIconForEdge(pswIconRef.value)
+    handleConfirmQuery()
   })
+
+  watch(
+    () => [route.query?.error, route.query?.confirmError, route.query?.confirmed],
+    () => handleConfirmQuery()
+  )
 </script>

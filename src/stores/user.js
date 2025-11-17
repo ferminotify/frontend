@@ -24,6 +24,31 @@ export const useUserStore = defineStore('user', {
   }),
 
   actions: {
+    async register({ name, surname, email, password, password2, gender }) {
+      try {
+        const res = await axios.put(`${API_URL}/user/auth/register`, {
+          name,
+          surname,
+          email,
+          password,
+          password2,
+          gender,
+        })
+        return res.data
+      } catch (err) {
+        const msg = err?.response?.data?.error || 'Errore durante la registrazione'
+        throw new Error(msg)
+      }
+    },
+    async confirmEmail(code) {
+      try {
+        const res = await axios.get(`${API_URL}/user/auth/register/confirmation/${code}`)
+        return res.data
+      } catch (err) {
+        const msg = err?.response?.data?.error || 'Errore durante la conferma email'
+        throw new Error(msg)
+      }
+    },
     async login(email, password) {
       const res = await axios.post(`${API_URL}/user/auth/login`, { email, password })
       this.token = res.data.token

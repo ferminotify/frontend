@@ -12,13 +12,13 @@ export function togglePasswordVisibility(passwordInputOrEl, iconElOrId) {
   if (input.type === 'password') {
     input.type = 'text'
     if (iconEl)
-      iconEl.innerHTML =
-        '<span class="material-symbols-outlined" aria-hidden="true">visibility</span>'
+      iconEl.textContent =
+        'visibility'
   } else {
     input.type = 'password'
     if (iconEl)
-      iconEl.innerHTML =
-        '<span class="material-symbols-outlined" aria-hidden="true">visibility_off</span>'
+      iconEl.textContent =
+        'visibility_off'
   }
 }
 

@@ -34,8 +34,8 @@
                 @input="onPasswordInput"
                 @keyup="onPasswordInput" />
               <label>Password</label>
-              <span id="PSWShowHideIcon" ref="pswIconRef" @click="onTogglePsw">
-                <span class="material-symbols-outlined" aria-hidden="true">visibility_off</span>
+              <span id="PSWShowHideIcon" @click="onTogglePsw">
+                <span class="material-symbols-outlined" aria-hidden="true" ref="pswIconRef">visibility_off</span>
               </span>
               <p class="input-warning flex-y-center" id="psw-corta" v-show="showShort">
                 <span class="material-symbols-outlined primary-text material-space-right">error</span>
@@ -97,6 +97,7 @@
   import { togglePasswordVisibility, initPasswordIconForEdge } from '@/utils/forms.js'
   import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
   import { generateAlert } from '@/utils/alertbanner.js'
+  import { useUserStore } from '@/stores/user'
 
   const submitBtnRef = ref(null)
   const pswInputRef = ref(null)
@@ -107,6 +108,7 @@
   const password = ref('')
   const password2 = ref('')
   const gender = ref('')
+  const userStore = useUserStore()
   const router = useRouter()
   const btnParams = ref(null)
   const showShort = ref(false)
@@ -160,15 +162,14 @@
         resetLoading(submitBtnRef.value, btnParams.value)
         return
       }
-
-      // TODO: implement actual registration API; for now, simulate success
-      generateAlert('success', 'Registrazione completata!')
+      // Call registration API via store
+      const res = await userStore.register(data)
       resetLoading(submitBtnRef.value, btnParams.value)
-      // Example success:
-      // await auth.register(data)
-      // await router.push('/dashboard')
+      generateAlert('success', res?.message || 'Ti abbiamo inviato una mail per confermare l\'account! (controlla anche lo SPAM).')
+      await router.push({ name: 'login' })
     } catch (error) {
-      generateAlert('error', 'Si &egrave; verificato un errore. Riprova pi&ugrave; tardi.')
+      const msg = error?.message || 'Si &egrave; verificato un errore. Riprova pi&ugrave; tardi.'
+      generateAlert('error', msg)
       resetLoading(submitBtnRef.value, btnParams.value)
     }
   }
