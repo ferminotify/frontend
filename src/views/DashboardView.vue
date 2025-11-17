@@ -23,7 +23,25 @@
     <!-- User Info -->
     <UserInfo />
 
+    <!-- Notifiche -->
     <Notifiche />
+
+    <!-- Report a problem -->
+    <div class="sub-section reportProblem">
+      <p>
+        <a href="mailto:mail@fn.lkev.in">
+          <span class="material-symbols-outlined material-space-right primary-text" aria-hidden="true">error</span>
+          <span class="link">Segnala un problema</span>
+        </a>
+      </p>
+      <p>mail@fn.lkev.in</p>
+      <p>
+        <a href="https://www.instagram.com/ferminotify/" class="link">
+          <i class="fa-brands fa-instagram"></i>
+          ferminotify
+        </a>
+      </p>
+    </div>
   </div>
 </template>
 

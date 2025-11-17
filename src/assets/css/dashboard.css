@@ -46,7 +46,7 @@
     display: flex;
     width: fit-content;
 }
-.keyword:hover i{
+.keyword:hover .keyword-list-bullet{
     color: var(--on-surface-primary);
 }
 .keyword-editing{
