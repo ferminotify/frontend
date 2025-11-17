@@ -32,11 +32,10 @@
                 id="password"
                 ref="pswInputRef"
                 @input="onPasswordInput"
-                @keyup="onPasswordInput"
-              />
+                @keyup="onPasswordInput" />
               <label>Password</label>
-              <span id="PSWShowHideIcon" ref="pswIconRef" @click="onTogglePsw">
-                <span class="material-symbols-outlined" aria-hidden="true">visibility_off</span>
+              <span id="PSWShowHideIcon" @click="onTogglePsw">
+                <span class="material-symbols-outlined" aria-hidden="true" ref="pswIconRef">visibility_off</span>
               </span>
               <p class="input-warning flex-y-center" id="psw-corta" v-show="showShort">
                 <span class="material-symbols-outlined primary-text material-space-right">error</span>
@@ -54,8 +53,7 @@
                 name="password2"
                 id="password2"
                 @input="onConfirmInput"
-                @keyup="onConfirmInput"
-              />
+                @keyup="onConfirmInput" />
               <label>Conferma password</label>
               <p class="input-warning flex-y-center" id="psw-non-corrispondono" v-show="showMismatch">
                 <span class="material-symbols-outlined primary-text material-space-right">error</span>
@@ -76,9 +74,11 @@
           </div>
           <button class="btn filled submit-btn" ref="submitBtnRef" type="submit">Registrati</button>
           <p style="font-size: 0.84rem; color: var(--muted)">
-            <span class="material-symbols-outlined" aria-hidden="true">info</span> Conserviamo le tue informazioni in modo sicuro e
-            crittografato, consulta la nostra
-            <RouterLink :to="{ name: 'faq', query: { page: 'privacy' } }" style="color: var(--muted); text-decoration: underline">
+            <span class="material-symbols-outlined" aria-hidden="true">info</span>
+            Conserviamo le tue informazioni in modo sicuro e crittografato, consulta la nostra
+            <RouterLink
+              :to="{ name: 'faq', query: { page: 'privacy' } }"
+              style="color: var(--muted); text-decoration: underline">
               informativa privacy
             </RouterLink>
             per ulteriori dettagli.
@@ -89,106 +89,100 @@
   </div>
 </template>
 
-<style src="@/assets/css/page.css"></style>
+<style scoped src="@/assets/css/page.css"></style>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import {
-  loading,
-  togglePasswordVisibility,
-  initPasswordIconForEdge,
-  saveBtnParams,
-  resetLoading,
-} from '@/utils/forms.js'
-import { generateAlert } from '@/utils/alertbanner.js'
+  import { computed, onMounted, ref } from 'vue'
+  import { useRouter } from 'vue-router'
+  import { togglePasswordVisibility, initPasswordIconForEdge } from '@/utils/forms.js'
+  import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
+  import { generateAlert } from '@/utils/alertbanner.js'
+  import { useUserStore } from '@/stores/user'
 
-const submitBtnRef = ref(null)
-const pswInputRef = ref(null)
-const pswIconRef = ref(null)
-const name = ref('')
-const surname = ref('')
-const email = ref('')
-const password = ref('')
-const password2 = ref('')
-const gender = ref('')
-const router = useRouter()
-const btnParams = ref(null)
-const showShort = ref(false)
-const showMismatch = ref(false)
+  const submitBtnRef = ref(null)
+  const pswInputRef = ref(null)
+  const pswIconRef = ref(null)
+  const name = ref('')
+  const surname = ref('')
+  const email = ref('')
+  const password = ref('')
+  const password2 = ref('')
+  const gender = ref('')
+  const userStore = useUserStore()
+  const router = useRouter()
+  const btnParams = ref(null)
+  const showShort = ref(false)
+  const showMismatch = ref(false)
 
-const passwordLong = computed(() => (password.value?.length || 0) >= 6)
-const passwordMatch = computed(
-  () => password.value === password2.value && (password2.value?.length || 0) > 0,
-)
+  const passwordLong = computed(() => (password.value?.length || 0) >= 6)
+  const passwordMatch = computed(() => password.value === password2.value && (password2.value?.length || 0) > 0)
 
-function serialize() {
-  return {
-    name: name.value.trim(),
-    surname: surname.value.trim(),
-    email: email.value.trim(),
-    password: password.value,
-    password2: password2.value,
-    gender: gender.value,
+  function serialize() {
+    return {
+      name: name.value.trim(),
+      surname: surname.value.trim(),
+      email: email.value.trim(),
+      password: password.value,
+      password2: password2.value,
+      gender: gender.value,
+    }
   }
-}
 
-function onPasswordInput() {
-  const len = password.value?.length || 0
-  showShort.value = len > 0 && len < 6
-  // If the user already typed confirmation, update mismatch live too
-  const confirmLen = password2.value?.length || 0
-  showMismatch.value = confirmLen > 0 && password.value !== password2.value
-}
-
-function onConfirmInput() {
-  const confirmLen = password2.value?.length || 0
-  showMismatch.value = confirmLen > 0 && password.value !== password2.value
-}
-
-async function onSubmit() {
-  if (!submitBtnRef.value) return
-  if (!btnParams.value) btnParams.value = saveBtnParams(submitBtnRef.value)
-  loading(submitBtnRef.value)
-  try {
-    const data = serialize()
-    if (!data.name || !data.surname || !data.email || !data.password || !data.password2 || !data.gender) {
-      generateAlert('error', 'Compila tutti i campi!')
-      resetLoading(submitBtnRef.value, btnParams.value)
-      return
-    }
-    if (!passwordLong.value) {
-      generateAlert('error', 'La password deve essere almeno 6 caratteri!')
-      resetLoading(submitBtnRef.value, btnParams.value)
-      return
-    }
-    if (!passwordMatch.value) {
-      generateAlert('error', 'Le password non corrispondono!')
-      resetLoading(submitBtnRef.value, btnParams.value)
-      return
-    }
-
-    // TODO: implement actual registration API; for now, simulate success
-    generateAlert('success', 'Registrazione completata!')
-    resetLoading(submitBtnRef.value, btnParams.value)
-    // Example success:
-    // await auth.register(data)
-    // await router.push('/dashboard')
-  } catch (error) {
-    generateAlert('error', 'Si &egrave; verificato un errore. Riprova pi&ugrave; tardi.')
-    resetLoading(submitBtnRef.value, btnParams.value)
+  function onPasswordInput() {
+    const len = password.value?.length || 0
+    showShort.value = len > 0 && len < 6
+    // If the user already typed confirmation, update mismatch live too
+    const confirmLen = password2.value?.length || 0
+    showMismatch.value = confirmLen > 0 && password.value !== password2.value
   }
-}
 
-function onTogglePsw() {
-  togglePasswordVisibility(pswInputRef.value, pswIconRef.value)
-}
+  function onConfirmInput() {
+    const confirmLen = password2.value?.length || 0
+    showMismatch.value = confirmLen > 0 && password.value !== password2.value
+  }
 
-onMounted(() => {
-  // Hide the custom icon on Edge which auto-adds its own toggle
-  initPasswordIconForEdge(pswIconRef.value)
-  // Initialize live validation state in case of prefilled values
-  onPasswordInput()
-  onConfirmInput()
-})
+  async function onSubmit() {
+    if (!submitBtnRef.value) return
+    if (!btnParams.value) btnParams.value = saveBtnParams(submitBtnRef.value)
+    loading(submitBtnRef.value)
+    try {
+      const data = serialize()
+      if (!data.name || !data.surname || !data.email || !data.password || !data.password2 || !data.gender) {
+        generateAlert('error', 'Compila tutti i campi!')
+        resetLoading(submitBtnRef.value, btnParams.value)
+        return
+      }
+      if (!passwordLong.value) {
+        generateAlert('error', 'La password deve essere almeno 6 caratteri!')
+        resetLoading(submitBtnRef.value, btnParams.value)
+        return
+      }
+      if (!passwordMatch.value) {
+        generateAlert('error', 'Le password non corrispondono!')
+        resetLoading(submitBtnRef.value, btnParams.value)
+        return
+      }
+      // Call registration API via store
+      const res = await userStore.register(data)
+      resetLoading(submitBtnRef.value, btnParams.value)
+      generateAlert('success', res?.message || 'Ti abbiamo inviato una mail per confermare l\'account! (controlla anche lo SPAM).')
+      await router.push({ name: 'login' })
+    } catch (error) {
+      const msg = error?.message || 'Si &egrave; verificato un errore. Riprova pi&ugrave; tardi.'
+      generateAlert('error', msg)
+      resetLoading(submitBtnRef.value, btnParams.value)
+    }
+  }
+
+  function onTogglePsw() {
+    togglePasswordVisibility(pswInputRef.value, pswIconRef.value)
+  }
+
+  onMounted(() => {
+    // Hide the custom icon on Edge which auto-adds its own toggle
+    initPasswordIconForEdge(pswIconRef.value)
+    // Initialize live validation state in case of prefilled values
+    onPasswordInput()
+    onConfirmInput()
+  })
 </script>

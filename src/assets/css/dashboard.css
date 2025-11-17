@@ -1,0 +1,308 @@
+.rounded-container:nth-child(1) {
+    background: radial-gradient(ellipse farthest-side at 76% 77%, rgba(245, 228, 212, 0.25) 4%, rgba(255, 255, 255, 0) calc(4% + 1px)), radial-gradient(circle at 76% 40%, #fef6ec 4%, rgba(255, 255, 255, 0) 4.18%), linear-gradient(135deg, #ff0000 0%, #000036 100%), radial-gradient(ellipse at 28% 0%, #ffcfac 0%, rgba(98, 149, 144, 0.5) 100%), linear-gradient(180deg, #cd6e8a 0%, #f5eab0 69%, #d6c8a2 70%, #a2758d 100%); background-blend-mode: normal, normal, screen, overlay, normal;
+    color: #0d004d;
+}
+
+.information{
+    font-size: 12px;
+}
+.maggioriInfo-container{
+    font-size: 14px;
+}
+
+.keywords {
+    display: flex;
+    gap: 10px;
+}
+.keywords-info{
+    margin: 4px 7px 10px 7px;
+    border-left: 1px solid var(--on-surface-primary);
+}
+.keywords-info li {
+    padding: 4px 0;
+}
+.maggioriInfo span.material-symbols-outlined{
+    color: var(--on-surface-primary);
+}
+.keywords-form-container{
+    margin: 15px 0;
+}
+.keyword-input {
+    width: min(100%, 350px);
+}
+.keywords-container {
+    padding-left: 3%;
+}
+.keyword-list-bullet{
+    padding-right: 10px;
+    font-size: 0.75em;
+}
+#keyword-list{
+    list-style: none;
+    padding: 0;
+}
+.keyword{
+    margin: 5px 0;
+    display: flex;
+    width: fit-content;
+}
+.keyword:hover .keyword-list-bullet{
+    color: var(--on-surface-primary);
+}
+.keyword-editing{
+    cursor: pointer;
+}
+
+.alert-similar-kw{
+    margin-left: 15px;
+    cursor: pointer;
+    display: none;
+    font-size: 0.85em;
+}
+
+.alert-similar-kw .proposed-kw{
+    padding: 2px 6px;
+    border-radius: 10px;
+    background-color: var(--primary);
+    color: var(--on-primary);
+}
+
+#telegramCode {
+    margin: 10px 0;
+    color: var(--on-primary);
+    font-family: 'Source Code Pro', monospace;
+    border: 3px solid var(--on-primary);
+    border-radius: 10px;
+    padding: 5px 10px;
+    width: fit-content;
+    background-color: var(--primary);
+}
+
+.telegramCodeContainer {
+    margin: 20px 0;
+    cursor: pointer;
+    width: fit-content;
+}
+
+.impostazioni-container{
+    column-count: 2;
+    column-gap: 40px;
+}
+
+.impostazioni-container .impostazioni-sect{
+    break-inside: avoid;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--on-surface);
+}
+
+.user-info-container{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+@media screen and (max-width: 1050px){
+    .impostazioni-container{
+        columns: 1;
+        column-gap: 0px;
+    }
+    .impostazioni-container .impostazioni-sect:last-child{
+        margin-bottom: 0px;
+    }
+    .user-info-container{
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+
+/* CHECKBOX */
+.invioNotificheContainer{
+    margin-bottom: 20px;
+    max-width: calc(490px - 3%); /* 980/2 - 3% padding */
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 45px;
+    height: 25px;
+}
+
+.switch .checkbox {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #666;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22.5px;
+    width: 22.5px;
+    left: 3px;
+    bottom: 1px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.checkbox:checked+.slider {
+    background-color: var(--primary);
+}
+
+.checkbox:focus+.slider {
+    box-shadow: 0 0 1px var(--primary);
+}
+
+.checkbox:checked+.slider:before {
+    -webkit-transform: translateX(16px);
+    -ms-transform: translateX(16px);
+    transform: translateX(16px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.checkNot-container {
+    width: 100%;
+    justify-content: space-between;
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-top: 1px solid var(--on-surface);
+}
+
+/* REPORT PROBLEM */
+.reportProblem{
+    font-size: 12px;
+    margin: 10px 0;
+}
+.reportProblem p{
+    margin: 5px 0;
+}
+
+@keyframes blink{
+    0%{
+        opacity: 0.5;
+    }
+    100%{
+        opacity: 1;
+    }
+}
+
+.info .inputs{
+    width: 100%;
+}
+
+.notTime{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#timepicker:not(:disabled){
+    color: var(--on-surface);
+}
+
+.dashboard-input, .dashboard-input:disabled{
+    width: min(100%, 325px);
+    padding: 10px;
+    margin: 5px 0 0 0;
+    display: inline-block;
+    border: none;
+    outline: 1px solid var(--muted);
+    border-radius: 10px;
+    background: transparent;
+    height: 18px;
+}
+
+.dashboard-input:disabled{
+    color: var(--muted);
+}
+
+.dashboard-input::placeholder{
+    color: var(--muted);
+}
+
+.dashboard-input.inserted, .dashboard-select.inserted{
+    outline: 1px solid var(--on-surface-primary);
+    color: var(--on-surface);
+    background: transparent;
+}
+
+.dashboard-input:focus{
+    background: transparent;
+    color: var(--on-surface);
+    outline-color: var(--on-surface-primary);
+}
+
+.dashboard-input:not(:disabled){
+    color: var(--on-surface);
+}
+
+.dashboard-edit-btn-container{
+    height: 100%;
+    width: 30%;
+    margin: 0 5px;
+}
+
+.dashboard-editing-btns{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    max-width: 100px;
+}
+
+.dashboard-editing-btns button{
+	color: inherit;
+	border: none;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
+}
+
+.dashboard-select, .dashboard-select:disabled{
+    -webkit-appearance: none;
+    background: transparent;
+    width: min(100%, 345px);
+    height: 38px;
+    margin: 5px 0 0 0;
+    display: inline-block;
+    border: none;
+    outline: 1px solid var(--muted);
+    border-radius: 10px;
+    padding: 0 5px;
+    color: var(--muted);
+    opacity: 1;
+}
+
+.dashboard-select:not(:disabled){
+    color: var(--on-surface);
+}
+
+.dashboard-select option{
+    color: #000;
+}
+
+.dashboard-select:focus{
+    background: transparent;
+    outline-color: var(--on-surface-primary);
+}

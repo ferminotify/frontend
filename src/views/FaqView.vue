@@ -12,5 +12,5 @@
 </template>
 
 <script setup>
-// Expand with real content later
+  // Expand with real content later
 </script>

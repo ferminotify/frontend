@@ -40,17 +40,15 @@ function typeToMaterialIcon(type) {
 
 export function generateAlert(type, msg) {
   try {
-    const banner = document.createElement('div')
+    const banner = document.createElement('p')
     banner.classList.add('alertbanner', typeToClass(type))
 
     const safeMsg = escapeHtml(msg)
     const iconName = typeToMaterialIcon(type)
 
     banner.innerHTML = `
-      <p id="alertmessage">
-        <span class="material-symbols-outlined" style="vertical-align: -0.2em; margin-right: 6px;">${iconName}</span>
-        ${safeMsg}
-      </p>
+        <span class="material-symbols-outlined" style="margin-right: 6px; transform: translateY(0px);">${iconName}</span>
+        <span>${safeMsg}
     `
 
     // Append after DOM is ready if needed

@@ -23,6 +23,9 @@ a:hover {
 .material-space-right {
   margin-right: 5px;
 }
+.material-symbols-outlined{
+  transform: translateY(2px); /* material icons are not centered */
+}
 .primary-text {
   color: var(--on-surface-primary);
 }
@@ -460,6 +463,7 @@ code,
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-left: 88px;
 }
 .main .material-symbols-outlined {
   font-size: inherit;

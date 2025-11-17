@@ -1,0 +1,30 @@
+.lds-grid {
+    position: relative;
+    width: 26.67px;
+    height: 26.67px;
+    margin: 1px 6px 0 6px;
+}
+
+.lds-grid div {
+    position: absolute;
+    width: 5.33px;
+    height: 5.33px;
+    border-radius: 50%;
+    background: var(--on-surface);
+    animation: lds-grid 1.2s linear infinite;
+}
+
+.lds-grid div:nth-child(1) { top: 2.67px;  left: 2.67px;  animation-delay: 0s; }
+.lds-grid div:nth-child(2) { top: 2.67px;  left: 10.67px; animation-delay: -0.4s; }
+.lds-grid div:nth-child(3) { top: 2.67px;  left: 18.67px; animation-delay: -0.8s; }
+.lds-grid div:nth-child(4) { top: 10.67px; left: 2.67px;  animation-delay: -0.4s; }
+.lds-grid div:nth-child(5) { top: 10.67px; left: 10.67px; animation-delay: -0.8s; }
+.lds-grid div:nth-child(6) { top: 10.67px; left: 18.67px; animation-delay: -1.2s; }
+.lds-grid div:nth-child(7) { top: 18.67px; left: 2.67px;  animation-delay: -0.8s; }
+.lds-grid div:nth-child(8) { top: 18.67px; left: 10.67px; animation-delay: -1.2s; }
+.lds-grid div:nth-child(9) { top: 18.67px; left: 18.67px; animation-delay: -1.6s; }
+
+@keyframes lds-grid {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}

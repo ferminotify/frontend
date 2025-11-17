@@ -24,8 +24,7 @@
                 required
                 name="password"
                 id="password"
-                ref="pswInputRef"
-              />
+                ref="pswInputRef" />
               <label>Password</label>
               <span id="PSWShowHideIcon" ref="pswIconRef" @click="onTogglePsw">
                 <span class="material-symbols-outlined" aria-hidden="true">visibility_off</span>
@@ -37,10 +36,11 @@
           </div>
           <button class="btn filled submit-btn" ref="submitBtnRef">Accedi</button>
           <p style="font-size: 0.84rem; color: var(--muted)">
-            <span class="material-symbols-outlined" aria-hidden="true">info</span> Fermi Notify non
-            &egrave; un servizio ufficiale del Fermi: non &egrave; possibile accedere con l'account
+            <span class="material-symbols-outlined" aria-hidden="true">info</span>
+            Fermi Notify non &egrave; un servizio ufficiale del Fermi: non &egrave; possibile accedere con l'account
             scolastico (di Moodle). Crea un nuovo account
-            <a href="/register" style="text-decoration: underline">qui</a>.
+            <a href="/register" style="text-decoration: underline">qui</a>
+            .
           </p>
         </form>
       </div>
@@ -48,62 +48,85 @@
   </div>
 </template>
 
-<style src="@/assets/css/page.css"></style>
+<style scoped src="@/assets/css/page.css"></style>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { loading, togglePasswordVisibility, initPasswordIconForEdge, saveBtnParams, resetLoading } from '@/utils/forms.js'
-import { useUserStore } from '@/stores/user'
-import { generateAlert } from '@/utils/alertbanner.js'
+  import { onMounted, ref, watch } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
+  import { togglePasswordVisibility, initPasswordIconForEdge } from '@/utils/forms.js'
+  import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
+  import { useUserStore } from '@/stores/user'
+  import { generateAlert } from '@/utils/alertbanner.js'
 
-const submitBtnRef = ref(null)
-const pswInputRef = ref(null)
-const pswIconRef = ref(null)
-const user = useUserStore()
-const email = ref('')
-const password = ref('')
-const router = useRouter()
-const btnParams = ref(null)
+  const submitBtnRef = ref(null)
+  const pswInputRef = ref(null)
+  const pswIconRef = ref(null)
+  const user = useUserStore()
+  const email = ref('')
+  const password = ref('')
+  const router = useRouter()
+  const route = useRoute()
+  const btnParams = ref(null)
 
-async function onSubmit() {
-  if (!submitBtnRef.value) return
-  if (!btnParams.value) btnParams.value = saveBtnParams(submitBtnRef.value)
-  loading(submitBtnRef.value)
-  try {
-    await user.login(email.value, password.value)
-    await router.push('/dashboard')
-  } catch (error) {
-    // Better normalization: handle network/CORS errors and backend messages
-    const status = error?.response?.status
-    const backendMsg = error?.response?.data?.error || error?.response?.data?.message
+  async function onSubmit() {
+    if (!submitBtnRef.value) return
+    if (!btnParams.value) btnParams.value = saveBtnParams(submitBtnRef.value)
+    loading(submitBtnRef.value)
+    try {
+      await user.login(email.value, password.value)
+      await router.push('/dashboard')
+    } catch (error) {
+      // Better normalization: handle network/CORS errors and backend messages
+      const status = error?.response?.status
+      const backendMsg = error?.response?.data?.error || error?.response?.data?.message
 
-    if (!error?.response) {
-      // Network/CORS/timeout
-      console.error('Login network error:', error)
-      generateAlert('error', "Impossibile contattare il server. Controlla la connessione e riprova.")
-    } else if (status === 404) {
-      generateAlert(
-        'error',
-        `Non ci sono utenti registrati con l'email ${email.value}. Crea un account <a href="/register">qui</a>.`,
-      )
-    } else if (status === 401) {
-      generateAlert('error', 'La password non è corretta.')
-    } else if (backendMsg) {
-      generateAlert('error', backendMsg)
-    } else {
-      generateAlert('error', 'Si è verificato un errore. Riprova più tardi.')
+      if (!error?.response) {
+        // Network/CORS/timeout
+        console.error('Login network error:', error)
+        generateAlert('error', 'Impossibile contattare il server. Controlla la connessione e riprova.')
+      } else if (status === 404) {
+        generateAlert(
+          'error',
+          `Non ci sono utenti registrati con l'email ${email.value}. Crea un account <a href="/register">qui</a>.`
+        )
+      } else if (status === 401) {
+        generateAlert('error', 'La password non è corretta.')
+      } else if (backendMsg) {
+        generateAlert('error', backendMsg)
+      } else {
+        generateAlert('error', 'Si è verificato un errore. Riprova più tardi.')
+      }
+      resetLoading(submitBtnRef.value, btnParams.value)
     }
-    resetLoading(submitBtnRef.value, btnParams.value)
   }
-}
 
-function onTogglePsw() {
-  togglePasswordVisibility(pswInputRef.value, pswIconRef.value)
-}
+  function onTogglePsw() {
+    togglePasswordVisibility(pswInputRef.value, pswIconRef.value)
+  }
 
-onMounted(() => {
-  // Hide the custom icon on Edge which auto-adds its own toggle
-  initPasswordIconForEdge(pswIconRef.value)
-})
+  function handleConfirmQuery() {
+    const q = route.query || {}
+    const error = typeof q.error === 'string' ? q.error : undefined
+    const confirmError = typeof q.confirmError === 'string' ? q.confirmError : undefined
+    const confirmed = q.confirmed === '1'
+
+    if (error || confirmError) {
+      generateAlert('error', error || confirmError)
+      router.replace({ query: { ...q, error: undefined, confirmError: undefined } })
+    } else if (confirmed) {
+      generateAlert('success', 'Account confermato con successo! Ora puoi effettuare il login.')
+      router.replace({ query: { ...q, confirmed: undefined } })
+    }
+  }
+
+  onMounted(() => {
+    // Hide the custom icon on Edge which auto-adds its own toggle
+    initPasswordIconForEdge(pswIconRef.value)
+    handleConfirmQuery()
+  })
+
+  watch(
+    () => [route.query?.error, route.query?.confirmError, route.query?.confirmed],
+    () => handleConfirmQuery()
+  )
 </script>
