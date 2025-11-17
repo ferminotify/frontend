@@ -8,11 +8,9 @@
       <!-- Not connected to Telegram -->
       <div v-if="!isTelegramConnected">
         <p style="margin-bottom: 20px">Ricevi la notifica tramite messaggio su Telegram.</p>
-        <p>
-          Per essere notificat{{ userGenderLetter }} su Telegram, manda
-        </p>
+        <p>Per essere notificat{{ userGenderLetter }} su Telegram, manda</p>
         <p v-on:click="copy()" class="telegramCodeContainer">
-          <span class="material-symbols-outlined material-space-right" aria-hidden="true" style="cursor: pointer;">
+          <span class="material-symbols-outlined material-space-right" aria-hidden="true" style="cursor: pointer">
             content_copy
           </span>
           <span id="telegramCode">

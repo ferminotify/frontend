@@ -253,6 +253,10 @@
     outline-color: var(--on-surface-primary);
 }
 
+.dashboard-input:not(:disabled){
+    color: var(--on-surface);
+}
+
 .dashboard-edit-btn-container{
     height: 100%;
     width: 30%;
@@ -267,7 +271,6 @@
 }
 
 .dashboard-editing-btns button{
-    background: none;
 	color: inherit;
 	border: none;
 	padding: 0;
@@ -302,75 +305,4 @@
 .dashboard-select:focus{
     background: transparent;
     outline-color: var(--on-surface-primary);
-}
-
-.dashboard-toEdit-btns .lds-grid {
-	display: none;
-	position: relative;
-	width: 26.67px;
-	height: 26.67px;
-    margin: 1px 6px 0 6px;
-}
-
-.dashboard-toEdit-btns .lds-grid div {
-	position: absolute;
-	width: 5.33px;
-	height: 5.33px;
-	border-radius: 50%;
-	background: var(--on-surface);
-	animation: lds-grid 1.2s linear infinite;
-}
-
-.dashboard-toEdit-btns .lds-grid div:nth-child(1) {
-	top: 2.67px;
-	left: 2.67px;
-	animation-delay: 0s;
-}
-
-.dashboard-toEdit-btns .lds-grid div:nth-child(2) {
-	top: 2.67px;
-	left: 10.67px;
-	animation-delay: -0.4s;
-}
-
-.dashboard-toEdit-btns .lds-grid div:nth-child(3) {
-	top: 2.67px;
-	left: 18.67px;
-	animation-delay: -0.8s;
-}
-
-.dashboard-toEdit-btns .lds-grid div:nth-child(4) {
-	top: 10.67px;
-	left: 2.67px;
-	animation-delay: -0.4s;
-}
-
-.dashboard-toEdit-btns .lds-grid div:nth-child(5) {
-	top: 10.67px;
-	left: 10.67px;
-	animation-delay: -0.8s;
-}
-
-.dashboard-toEdit-btns .lds-grid div:nth-child(6) {
-	top: 10.67px;
-	left: 18.67px;
-	animation-delay: -1.2s;
-}
-
-.dashboard-toEdit-btns .lds-grid div:nth-child(7) {
-	top: 18.67px;
-	left: 2.67px;
-	animation-delay: -0.8s;
-}
-
-.dashboard-toEdit-btns .lds-grid div:nth-child(8) {
-	top: 18.67px;
-	left: 10.67px;
-	animation-delay: -1.2s;
-}
-
-.dashboard-toEdit-btns .lds-grid div:nth-child(9) {
-	top: 18.67px;
-	left: 18.67px;
-	animation-delay: -1.6s;
 }
