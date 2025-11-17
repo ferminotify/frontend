@@ -22,6 +22,8 @@
 
     <!-- User Info -->
     <UserInfo />
+
+    <Notifiche />
   </div>
 </template>
 
@@ -35,6 +37,7 @@
   import Settings from '@/components/dashboard/Settings.vue'
   import Telegram from '@/components/dashboard/Telegram.vue'
   import UserInfo from '@/components/dashboard/UserInfo.vue'
+  import Notifiche from '@/components/dashboard/Notifiche.vue'
   import { onMounted, ref, computed } from 'vue'
   import { useRouter } from 'vue-router'
   import { useUserStore } from '@/stores/user'

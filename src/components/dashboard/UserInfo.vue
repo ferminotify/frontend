@@ -105,8 +105,7 @@
             class="dashboard-select"
             name="gender"
             v-model="gender"
-            :disabled="!editing.gender.editing || editing.gender.loading"
-          >
+            :disabled="!editing.gender.editing || editing.gender.loading">
             <option id="F" value="F">Donna (F)</option>
             <option id="M" value="M">Uomo (M)</option>
             <option id="X" value="X">Altro (ǝ)</option>
@@ -127,8 +126,12 @@
               <a class="btn text" @click="editInfo('gender')"><span class="material-symbols-outlined">edit</span></a>
             </div>
             <div class="dashboard-editing-btns" v-if="editing.gender.editing && !editing.gender.loading">
-              <button class="btn text" @click.prevent="cancelEdit('gender')"><span class="material-symbols-outlined">close</span></button>
-              <button class="btn text" @click.prevent="saveEdit('gender')"><span class="material-symbols-outlined">check</span></button>
+              <button class="btn text" @click.prevent="cancelEdit('gender')">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+              <button class="btn text" @click.prevent="saveEdit('gender')">
+                <span class="material-symbols-outlined">check</span>
+              </button>
             </div>
           </div>
         </div>
@@ -144,8 +147,7 @@
             class="dashboard-input"
             disabled
             required />
-          <div class="dashboard-edit-btn-container">
-          </div>
+          <div class="dashboard-edit-btn-container"></div>
         </div>
       </div>
     </div>
