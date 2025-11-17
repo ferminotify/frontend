@@ -16,6 +16,9 @@
 
     <!-- Settings -->
     <Settings />
+
+    <!-- Telegram -->
+    <Telegram />
   </div>
 </template>
 
@@ -27,6 +30,7 @@
   import Eventi from '@/components/dashboard/Eventi.vue'
   import Title from '@/components/Title.vue'
   import Settings from '@/components/dashboard/Settings.vue'
+  import Telegram from '@/components/dashboard/Telegram.vue'
   import { onMounted, ref, computed } from 'vue'
   import { useRouter } from 'vue-router'
   import { useUserStore } from '@/stores/user'

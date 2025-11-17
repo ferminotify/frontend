@@ -241,7 +241,7 @@
             <label>Keyword</label>
           </div>
           <a id="submit-btn" class="btn filled addButton" @click="cercaEventi">
-            <span class="material-symbols-outlined" style="transform: translateY(0);">arrow_forward_ios</span>
+            <span class="material-symbols-outlined" style="transform: translateY(0)">arrow_forward_ios</span>
           </a>
         </div>
       </div>
@@ -326,7 +326,9 @@
     <div class="cercaEventi-filter-container">
       <div class="relative">
         <a class="btn flex-center" :class="filtersOpen ? 'filled' : 'outlined'" @click="toggleFilters">
-          <span class="material-symbols-outlined material-space-right" style="transform: translateY(0);">{{ filterIcon }}</span>
+          <span class="material-symbols-outlined material-space-right" style="transform: translateY(0)">
+            {{ filterIcon }}
+          </span>
           Filtri
         </a>
         <span

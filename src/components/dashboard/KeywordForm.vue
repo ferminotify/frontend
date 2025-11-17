@@ -60,8 +60,7 @@
           @after-leave="slideAfterLeave">
           <ul class="keywords-info" id="keywordsInfo" v-if="showKeywordsInfo">
             <li>
-              Aggiungi le parole chiave alla lista per essere notificat
-              <span class="user-gender-o-a"></span>
+              Aggiungi le parole chiave alla lista per essere notificat{{ userGenderLetter }}
               quando è presente un evento che la riguarda nel calendario giornaliero. Ti consigliamo di inserire la tua
               classe e il tuo cognome.
             </li>
@@ -95,6 +94,8 @@
   const keywordInput = ref('')
   const isSubmitting = ref(false)
   const showKeywordsInfo = ref(false)
+  // use centralized store getter for gender letter
+  const userGenderLetter = computed(() => store.genderLetter)
 
   function toggleKeywordEdit() {
     isEditing.value = !isEditing.value

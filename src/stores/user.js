@@ -4,6 +4,19 @@ import axios from 'axios'
 import { API_URL } from '@/utils/config'
 
 export const useUserStore = defineStore('user', {
+  getters: {
+    genderLetter: (state) => {
+      const g = state.user?.gender
+      if (!g) return 'ǝ'
+      if (g === 'M') return 'o'
+      if (g === 'F') return 'a'
+      return 'ǝ'
+    },
+    telegramConnected: (state) => {
+      const tg = state.user?.telegram || ''
+      return tg.length > 0 && tg.charAt(0) !== 'X'
+    },
+  },
   state: () => ({
     token: localStorage.getItem('token') || null,
     refreshToken: localStorage.getItem('refreshToken') || null,
@@ -29,7 +42,7 @@ export const useUserStore = defineStore('user', {
     },
 
     async fetchProfile() {
-      const res = await api.get(`${API_URL}/user/auth/profile`)
+      const res = await api.get(`${API_URL}/user/profile`)
       this.user = res.data
     },
 
@@ -63,9 +76,9 @@ export const useUserStore = defineStore('user', {
         return;
       }
       try {
-        await api.post(`${API_URL}/user/notification-preferences`, { "option": option })
+        await api.post(`${API_URL}/user/preferences/notification-preferences`, { "option": option })
         if (this.user) {
-          this.user = { ...this.user, notification_preferences: preferences }
+          this.user = { ...this.user, notification_preferences: option }
         }
       } catch (error) {
         console.error('Error updating notification preferences:', error);
@@ -73,14 +86,14 @@ export const useUserStore = defineStore('user', {
     },
 
     async toggleProbableNotifications() {
-      await api.post(`${API_URL}/user/toggle-probable-notifications`)
+      await api.post(`${API_URL}/user/preferences/toggle-probable-notifications`)
       if (this.user) {
         this.user = { ...this.user, include_similar_tags: !this.user.include_similar_tags }
       }
     },
 
     async updateNotificationTime(time, dayBefore) {
-      await api.post(`${API_URL}/user/notification-time`, { time, day: dayBefore })
+      await api.post(`${API_URL}/user/preferences/notification-time`, { time, day: dayBefore })
       if (this.user) {
         this.user = { ...this.user, notification_time: time, notification_day_before: dayBefore }
       }

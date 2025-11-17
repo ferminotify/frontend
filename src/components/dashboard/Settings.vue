@@ -9,7 +9,8 @@
       <!-- Notification Channels -->
       <div class="invioNotificheContainer impostazioni-sect" id="canali">
         <p style="padding-bottom: 10px" class="impostazioni-sect-title">
-          <span class="material-symbols-outlined">chat_bubble</span> Canali notifiche
+          <span class="material-symbols-outlined">chat_bubble</span>
+          Canali notifiche
         </p>
         <div class="checkNot-container sendEmail">
           Email
@@ -108,9 +109,15 @@
             </div>
             <div v-else-if="isSavingTime" class="dashboard-toEdit-btns flex-y-center">
               <div class="submit-lds-grid">
-                <div></div><div></div><div></div>
-                <div></div><div></div><div></div>
-                <div></div><div></div><div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
               </div>
             </div>
             <div v-else class="dashboard-editing-btns">
@@ -172,6 +179,17 @@
       loadUserPreferences()
     }
   })
+
+  // Watch for user data changes and reload preferences
+  watch(
+    () => store.user,
+    (newUser) => {
+      if (newUser) {
+        loadUserPreferences()
+      }
+    },
+    { immediate: true, deep: true }
+  )
 
   function loadTimepickerScript() {
     // Check if mdtimepicker is already loaded
@@ -260,9 +278,10 @@
 
   function loadUserPreferences() {
     const user = store.user
+    if (!user) return
 
     // Load notification preferences (0=none, 1=telegram, 2=email, 3=both)
-    const pref = user.notification_preferences || 0
+    const pref = user.notification_preferences ?? 0
     preferences.value = {
       email: pref === 2 || pref === 3,
       telegram: pref === 1 || pref === 3,
@@ -355,7 +374,7 @@
 
     try {
       isSavingTime.value = true
-      
+
       await store.updateNotificationTime(time, dayBefore)
 
       // Update local state
@@ -365,7 +384,7 @@
 
       // Exit edit mode on success
       isEditingTime.value = false
-      
+
       generateAlert('success', 'Orario aggiornato con successo!')
     } catch (err) {
       console.error('Failed to update notification time:', err)
@@ -395,7 +414,7 @@
   .impostazioni-sect-title .material-symbols-outlined {
     color: var(--on-surface-primary);
   }
-  .dashboard-toEdit-btns .btn{
+  .dashboard-toEdit-btns .btn {
     color: var(--on-surface);
   }
 </style>
