@@ -317,8 +317,6 @@
         await store.fetchProfile()
       }
 
-      console.log('last_login from profile:', store.user?.last_login, 'onboarding flag:', store.onboarding)
-
       // first login --> lightweight guided scroll (use backend-provided flag)
       if (store.onboarding) {
         await startOnboarding()
