@@ -133,6 +133,10 @@
       <span class="material-symbols-outlined" aria-hidden="true">logout</span>
       Logout
     </button>
+
+    <button class="btn filled" @click="subscribeUser">
+      Push notifications
+    </button>
   </div>
 </template>
 
@@ -142,6 +146,7 @@
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
   import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
+  import { subscribeUser } from "@/utils/push-notification.js";
 
   const store = useUserStore()
   const router = useRouter()
