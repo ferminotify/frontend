@@ -21,6 +21,7 @@ export const useUserStore = defineStore('user', {
     token: localStorage.getItem('token') || null,
     refreshToken: localStorage.getItem('refreshToken') || null,
     user: null,
+    firstLogin: false,
   }),
 
   actions: {
@@ -53,9 +54,11 @@ export const useUserStore = defineStore('user', {
       const res = await axios.post(`${API_URL}/user/auth/login`, { email, password })
       this.token = res.data.token
       this.refreshToken = res.data.refreshToken
+      this.onboarding = !!res.data.onboarding
       localStorage.setItem('token', this.token)
       localStorage.setItem('refreshToken', this.refreshToken)
       await this.fetchProfile()
+      return res.data
     },
 
     async refreshAccessToken() {

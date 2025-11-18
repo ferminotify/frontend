@@ -54,13 +54,9 @@
         <p style="font-size: 12px; color: var(--on-surface)">
           Ricevi notifiche anche delle variazioni dell'orario che potrebbero essere associate alle tue keyword.
         </p>
-        <p style="font-size: 12px; color: var(--on-surface)">
-          <span class="material-symbols-outlined">arrow_right_alt</span>
-          Esempio: con keyword
-          <code>5 CIN</code>
-          invia le variazioni sulla
-          <code>5CIIN</code>
-          .
+        <!-- prettier-ignore -->
+        <p style="font-size: 12px; color: var(--on-surface);">
+          <span class="material-symbols-outlined">arrow_right_alt</span>Esempio: con keyword<code>5 CIN</code> invia le variazioni sulla <code>5CIIN</code>.
         </p>
         <p style="font-size: 12px; color: var(--on-surface)">
           Utile per includere le variazioni con errori di battitura.

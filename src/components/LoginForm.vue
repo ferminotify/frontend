@@ -26,8 +26,8 @@
                 id="password"
                 ref="pswInputRef" />
               <label>Password</label>
-              <span id="PSWShowHideIcon" ref="pswIconRef" @click="onTogglePsw">
-                <span class="material-symbols-outlined" aria-hidden="true">visibility_off</span>
+              <span id="PSWShowHideIcon" @click="onTogglePsw">
+                <span class="material-symbols-outlined" aria-hidden="true" ref="pswIconRef">visibility_off</span>
               </span>
             </div>
             <p class="firstSubtitle">
