@@ -88,9 +88,12 @@
       <p>mail@fn.lkev.in</p>
       <p>
         <a href="https://www.instagram.com/ferminotify/" class="link">
-          <i class="fa-brands fa-instagram"></i>
+          <FontAwesomeIcon :icon="['fab', 'instagram']" style="color: var(--on-surface-primary)" />
           ferminotify
         </a>
+      </p>
+      <p>
+        <button class="btn text" v-on:click="startOnboarding()"><span class="material-symbols-outlined">play_circle</span> Onboarding</button>
       </p>
     </div>
   </div>
@@ -109,7 +112,7 @@
     background: rgba(20, 19, 20, 0.96);
     color: var(--on-surface);
     border: 1px solid var(--on-surface-variant);
-    border-radius: 12px;
+    border-radius: 25px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
     padding: 14px 16px;
     width: auto;
@@ -329,6 +332,7 @@
 
   // ensure scrolling is restored if the component is destroyed while onboarding
   import { onUnmounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   onUnmounted(() => {
     try {
       document.body.style.overflow = ''
