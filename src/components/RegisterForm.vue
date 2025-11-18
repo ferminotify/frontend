@@ -165,7 +165,10 @@
       // Call registration API via store
       const res = await userStore.register(data)
       resetLoading(submitBtnRef.value, btnParams.value)
-      generateAlert('success', res?.message || 'Ti abbiamo inviato una mail per confermare l\'account! (controlla anche lo SPAM).')
+      generateAlert(
+        'success',
+        res?.message || "Ti abbiamo inviato una mail per confermare l'account! (controlla anche lo SPAM)."
+      )
       await router.push({ name: 'login' })
     } catch (error) {
       const msg = error?.message || 'Si &egrave; verificato un errore. Riprova pi&ugrave; tardi.'

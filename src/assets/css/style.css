@@ -904,6 +904,7 @@ code,
     padding: 0 24px;
     box-sizing: border-box;
     margin-bottom: 78px; /* navbar height */
+    margin-left: 0;
   }
 }
 

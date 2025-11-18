@@ -10,7 +10,8 @@
   const userStore = useUserStore()
 
   onMounted(() => {
-    if (route.name === 'email-confirmation') { // url /user/auth/register/confirmation/:code
+    if (route.name === 'email-confirmation') {
+      // url /user/auth/register/confirmation/:code
       const code = route.params.code
       userStore
         .confirmEmail(code)
@@ -26,8 +27,6 @@
 </script>
 
 <template>
-  
-  <RegisterForm v-if="route.name === 'register' || route.path === '/register'" /> 
+  <RegisterForm v-if="route.name === 'register' || route.path === '/register'" />
   <LoginForm v-else />
-
 </template>

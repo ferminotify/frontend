@@ -40,7 +40,7 @@
           </a>
         </RouterLink>
 
-        <div class="sidebar-link sidebar-contatti">
+        <div class="sidebar-link sidebar-contatti sidebar-desktop">
           <a href="https://www.instagram.com/ferminotify/" target="_blank">
             <font-awesome-icon :icon="['fab', 'instagram']" />
           </a>
@@ -49,7 +49,7 @@
           </a>
         </div>
 
-        <div class="sidebar-link sidebar-menu" id="manu">
+        <!--div class="sidebar-link sidebar-menu" id="manu">
           <a class="hamburger">
             <span class="line"></span>
             <span class="line"></span>
@@ -70,7 +70,7 @@
             </ul>
           </div>
           <span class="sidebar-link-text">Menu</span>
-        </div>
+        </div-->
       </div>
     </div>
   </header>
