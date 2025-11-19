@@ -5,6 +5,7 @@ import HomeView from '../views/HomeView.vue'
 const LoginView = () => import('../views/LoginView.vue')
 const FaqView = () => import('../views/FaqView.vue')
 const DashboardView = () => import('../views/DashboardView.vue')
+const ResetPasswordView = () => import('../views/ResetPasswordView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,6 +32,12 @@ const router = createRouter({
       name: 'dashboard',
       component: DashboardView,
       meta: { title: 'Dashboard · Fermi Notify' },
+    },
+    {
+      path: '/password_reset',
+      name: 'password-reset',
+      component: ResetPasswordView,
+      meta: { title: 'Reset Password · Fermi Notify' },
     },
     {
       path: '/faq',
