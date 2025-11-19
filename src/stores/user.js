@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import api from '@/api/axios'
 import axios from 'axios'
 import { API_URL } from '@/utils/config'
+import '@/api/auth'
 
 export const useUserStore = defineStore('user', {
   getters: {
@@ -59,6 +60,15 @@ export const useUserStore = defineStore('user', {
       localStorage.setItem('refreshToken', this.refreshToken)
       await this.fetchProfile()
       return res.data
+    },
+    async requestPasswordReset(email) {
+      try{
+        const res = await axios.post(`${API_URL}/user/auth/request-change-password`, { email })
+        return res.data
+      } catch (err) {
+        const msg = err?.response?.data?.error || 'Errore durante la richiesta di reset della password'
+        throw new Error(msg)
+      }
     },
 
     async refreshAccessToken() {
@@ -136,7 +146,8 @@ export const useUserStore = defineStore('user', {
 
     async logout() {
       if (this.refreshToken) {
-        await axios.post(`${API_URL}/user/auth/logout`, { refreshToken: this.refreshToken })
+        // use the authenticated api instance so the access token (Bearer) is sent
+        await api.post(`${API_URL}/user/auth/logout`, { refreshToken: this.refreshToken })
       }
       this.token = null
       this.refreshToken = null

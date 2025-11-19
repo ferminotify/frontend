@@ -39,6 +39,15 @@ if (store.token) {
 }
 app.use(router)
 
+// notification
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js")
+      .then(() => console.log("Service Worker registered"))
+      .catch(err => console.error("SW registration failed:", err));
+  });
+}
+
 // Register FontAwesome component globally
 app.component('font-awesome-icon', FontAwesomeIcon)
 

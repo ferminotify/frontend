@@ -2,6 +2,8 @@
   import { computed } from 'vue'
   import { RouterLink, RouterView, useRoute } from 'vue-router'
   import { useUserStore } from '@/stores/user'
+  import { API_URL } from './utils/config'
+  console.log('API_URL:', API_URL)
 
   const route = useRoute()
   const user = useUserStore()
