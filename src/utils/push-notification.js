@@ -36,7 +36,7 @@ export async function subscribeUser(enable) {
 
     // Always resolve the backend VAPID public key first
     try {
-      const r = await fetch(`${API_URL}/push/public-key`);
+      const r = await fetch(`${API_URL}/user/push/public-key`);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const j = await r.json();
       VAPID_PUBLIC_KEY = j.key || '';
@@ -100,7 +100,7 @@ export async function subscribeUser(enable) {
     }
     const subPayload = subscription?.toJSON ? subscription.toJSON() : subscription;
     try {
-      const resp = await fetch(`${API_URL}/push/subscribe`, {
+      const resp = await fetch(`${API_URL}/user/push/subscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
