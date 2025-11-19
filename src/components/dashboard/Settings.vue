@@ -6,62 +6,6 @@
     </h2>
 
     <div class="impostazioni-container">
-      <!-- Notification Channels -->
-      <div class="invioNotificheContainer impostazioni-sect" id="canali">
-        <p style="padding-bottom: 10px" class="impostazioni-sect-title">
-          <span class="material-symbols-outlined">chat_bubble</span>
-          Canali notifiche
-        </p>
-        <div class="checkNot-container sendEmail">
-          Email
-          <label class="switch">
-            <input
-              type="checkbox"
-              v-model="preferences.email"
-              @change="updatePreferences"
-              class="checkbox"
-              id="sendEmail" />
-            <span class="slider round"></span>
-          </label>
-        </div>
-        <div v-if="hasTelegram" class="checkNot-container sendTelegram">
-          Telegram
-          <label class="switch">
-            <input
-              type="checkbox"
-              v-model="preferences.telegram"
-              @change="updatePreferences"
-              class="checkbox"
-              id="sendTelegram" />
-            <span class="slider round"></span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Probable Variations -->
-      <div class="impostazioni-sect invioNotificheContainer" id="variazioni" style="padding-bottom: 15px">
-        <p style="padding-bottom: 10px" class="impostazioni-sect-title">
-          <span class="material-symbols-outlined">notifications</span>
-          Variazioni dell'orario
-        </p>
-        <div class="checkNot-container sendEmail" style="display: flex; align-items: flex-start">
-          Invia variazioni probabili
-          <label class="switch">
-            <input id="sendSimilar" type="checkbox" v-model="includeSimilar" @change="toggleSimilar" class="checkbox" />
-            <span class="slider round"></span>
-          </label>
-        </div>
-        <p style="font-size: 12px; color: var(--on-surface)">
-          Ricevi notifiche anche delle variazioni dell'orario che potrebbero essere associate alle tue keyword.
-        </p>
-        <!-- prettier-ignore -->
-        <p style="font-size: 12px; color: var(--on-surface);">
-          <span class="material-symbols-outlined">arrow_right_alt</span>Esempio: con keyword<code>5 CIN</code> invia le variazioni sulla <code>5CIIN</code>.
-        </p>
-        <p style="font-size: 12px; color: var(--on-surface)">
-          Utile per includere le variazioni con errori di battitura.
-        </p>
-      </div>
 
       <!-- Notification Time -->
       <div
@@ -127,6 +71,94 @@
           </div>
         </div>
       </div>
+
+      <div class="invioNotificheContainer impostazioni-sect" id="canali">
+        <p style="padding-bottom: 10px" class="impostazioni-sect-title">
+          <span class="material-symbols-outlined">notifications</span>
+          Notifiche push
+        </p>
+        <div class="checkNot-container">
+          Attiva notifiche push
+          <label class="switch">
+            <input
+              type="checkbox"
+              v-model="preferences.push"
+              @change="toggleSubscribeUser"
+              class="checkbox"
+              id="pushNotification" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <div class="checkNot-container">
+          Invia le notifiche push
+          <select class="dashboard-select" v-model="a" style="width: fit-content;" :disabled="!pushEnabled">
+            <!-- TODO -->
+            <option value="false">All'aggiunta della variazione</option>
+            <option value="true">Insieme a email / telegram</option>
+          </select>
+        </div>
+         
+      </div>
+
+
+      <!-- Notification Channels -->
+      <div class="invioNotificheContainer impostazioni-sect" id="canali">
+        <p style="padding-bottom: 10px" class="impostazioni-sect-title">
+          <span class="material-symbols-outlined">chat_bubble</span>
+          Canali notifiche
+        </p>
+        <div class="checkNot-container sendEmail">
+          Email
+          <label class="switch">
+            <input
+              type="checkbox"
+              v-model="preferences.email"
+              @change="updatePreferences"
+              class="checkbox"
+              id="sendEmail" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <div v-if="hasTelegram" class="checkNot-container sendTelegram">
+          Telegram
+          <label class="switch">
+            <input
+              type="checkbox"
+              v-model="preferences.telegram"
+              @change="updatePreferences"
+              class="checkbox"
+              id="sendTelegram" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Probable Variations -->
+      <div class="impostazioni-sect invioNotificheContainer" id="variazioni" style="padding-bottom: 15px">
+        <p style="padding-bottom: 10px" class="impostazioni-sect-title">
+          <span class="material-symbols-outlined">bolt</span>
+          Variazioni dell'orario
+        </p>
+        <div class="checkNot-container sendEmail" style="display: flex; align-items: flex-start">
+          Invia variazioni probabili
+          <label class="switch">
+            <input id="sendSimilar" type="checkbox" v-model="includeSimilar" @change="toggleSimilar" class="checkbox" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <p style="font-size: 12px; color: var(--on-surface)">
+          Ricevi notifiche anche delle variazioni dell'orario che potrebbero essere associate alle tue keyword.
+        </p>
+        <!-- prettier-ignore -->
+        <p style="font-size: 12px; color: var(--on-surface);">
+          <span class="material-symbols-outlined">arrow_right_alt</span>Esempio: con keyword<code>5 CIN</code> invia le variazioni sulla <code>5CIIN</code>.
+        </p>
+        <p style="font-size: 12px; color: var(--on-surface)">
+          Utile per includere le variazioni con errori di battitura.
+        </p>
+      </div>
+
+
     </div>
 
     <button class="btn filled" style="margin-top: 30px" @click="onLogout" ref="logoutBtn">
@@ -134,9 +166,6 @@
       Logout
     </button>
 
-    <button class="btn filled" @click="subscribeUser">
-      Push notifications
-    </button>
   </div>
 </template>
 
@@ -157,6 +186,7 @@
   const notificationDay = ref('false')
   const isEditingTime = ref(false)
   const isSavingTime = ref(false)
+  const pushEnabled = ref(false)
   const timepickerInput = ref(null)
   const logoutBtn = ref(null)
   let logoutParams = null
@@ -178,6 +208,7 @@
 
     if (store.user) {
       loadUserPreferences()
+      loadUserPushSubscription()
     }
   })
 
@@ -191,6 +222,27 @@
     },
     { immediate: true, deep: true }
   )
+
+  function toggleSubscribeUser() {
+    try {
+      subscribeUser(preferences.value.push);
+      pushEnabled.value = preferences.value.push;
+    } catch (err) {
+      console.error('Failed to subscribe/unsubscribe user for push notifications:', err);
+      generateAlert('error', err.message || 'Si è verificato un errore. Riprova più tardi.'
+      );
+      // Revert on error
+      preferences.value.push = !preferences.value.push;
+    }
+  }
+
+  function loadUserPushSubscription() {
+    const user = store.user;
+    if (!user) return;
+
+    const hasSubscription = user.push_subscription || false; // TODO get from db
+    preferences.value.push = hasSubscription;
+  }
 
   function loadTimepickerScript() {
     // Check if mdtimepicker is already loaded
@@ -308,6 +360,8 @@
         window.mdtimepicker(timepickerInput.value, 'setValue', notificationTime.value)
       })
     }
+
+    pushEnabled.value = preferences.value.push;
   }
 
   async function updatePreferences() {

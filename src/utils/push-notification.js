@@ -3,11 +3,20 @@ import { API_URL } from './config.js';
 // Resolved at runtime from backend; fallback to env only if backend not reachable
 let VAPID_PUBLIC_KEY = '';
 
-export async function subscribeUser() {
+export async function subscribeUser(enable) {
+
+  if (!enable) {
+    const unsubscribed = await unsubscribeUser();
+    if (unsubscribed) {
+      localStorage.removeItem('vapidPublicKey');
+      console.log('User unsubscribed from push notifications');
+    }
+    return;
+  }
+  
   try {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      alert('Push notifications not supported in this browser.');
-      return;
+      throw new Error('Push notifications are not supported by this browser.');
     }
 
     // Ensure service worker is registered
@@ -16,15 +25,13 @@ export async function subscribeUser() {
       registration = await navigator.serviceWorker.register('/service-worker.js');
     } catch (e) {
       console.error('Service worker registration failed', e);
-      alert('Impossibile registrare il Service Worker.');
-      return;
+      throw new Error('Impossibile registrare il service worker per le notifiche push.');
     }
 
     // Request permission
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
-      alert('Permesso per le notifiche negato.');
-      return;
+      throw new Error('Permesso per le notifiche push negato.');
     }
 
     // Always resolve the backend VAPID public key first
@@ -41,8 +48,8 @@ export async function subscribeUser() {
     }
 
     if (!VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY.length < 80) {
-      alert('Chiave VAPID mancante o non valida.');
-      return;
+      console.error('[push] VAPID public key is not configured properly.');
+      throw new Error('Si è verificato un errore interno. Riprova più tardi.');
     }
 
     // If the stored key differs from backend key, unsubscribe to force re-subscription with the new key
@@ -62,8 +69,8 @@ export async function subscribeUser() {
       const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
       // Validate uncompressed P-256 public key: 65 bytes starting with 0x04
       if (!(appServerKey instanceof Uint8Array) || appServerKey.length !== 65 || appServerKey[0] !== 0x04) {
-        alert('Chiave VAPID non valida (dimensione errata).');
-        return;
+        console.error('[push] VAPID public key is not a valid uncompressed P-256 key.');
+        throw new Error('Si è verificato un errore interno. Riprova più tardi.');
       }
 
       try {
@@ -77,13 +84,13 @@ export async function subscribeUser() {
         const name = e?.name || 'Error';
         console.error('pushManager.subscribe failed:', e);
         if (name === 'NotAllowedError') {
-          alert('Permesso negato per le notifiche. Verifica le impostazioni del browser per questo sito.');
+          throw new Error('Permesso per le notifiche push negato.');
         } else if (name === 'AbortError') {
-          alert('Errore del servizio push del browser. Controlla che i servizi di push non siano bloccati (ad blocker/Brave/Chrome impostazioni) e riprova.');
+          throw new Error('Errore del servizio push del browser. Controlla che i servizi di push non siano bloccati (ad blocker/Brave/Chrome impostazioni) e riprova.');
         } else {
-          alert('Impossibile completare l\'iscrizione alle notifiche: ' + (e.message || name));
+          console.error('pushManager.subscribe failed:', e);
+          throw new Error('Impossibile completare l\'iscrizione alle notifiche: ' + (e.message || name));
         }
-        return;
       }
     }
     // Send subscription to backend
@@ -93,11 +100,11 @@ export async function subscribeUser() {
       body: JSON.stringify(subscription),
     });
 
-  console.log('User subscribed:', subscription);
-    alert('Notifiche push attivate!');
+    console.log('User subscribed:', subscription);
+    return subscription;
   } catch (err) {
     console.error('subscribeUser failed', err);
-    alert('Errore durante l\'attivazione delle notifiche: ' + (err?.message || err));
+    throw new Error("Si è verificato un errore interno. Riprova più tardi.");
   }
 }
 
