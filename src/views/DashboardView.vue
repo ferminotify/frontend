@@ -93,7 +93,10 @@
         </a>
       </p>
       <p>
-        <button class="btn text" v-on:click="startOnboarding()"><span class="material-symbols-outlined">play_circle</span> Onboarding</button>
+        <button class="btn text" v-on:click="startOnboarding()">
+          <span class="material-symbols-outlined">play_circle</span>
+          Onboarding
+        </button>
       </p>
     </div>
   </div>
@@ -330,7 +333,7 @@
 
   // ensure scrolling is restored if the component is destroyed while onboarding
   import { onUnmounted } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   onUnmounted(() => {
     try {
       document.body.style.overflow = ''
