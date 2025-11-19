@@ -3,26 +3,48 @@
     <img src="@/assets/icons/logo-long.svg" alt="Fermi Notify Logo" class="form-logo logo" />
     <div class="rounded-container" style="margin: 25px; width: min(100%, 475px)">
       <div class="rounded-inner">
-        <form
-          class="basic-form"
-          id="form"
-          method="POST"
-          onsubmit="loading(0)"
-          action="/user/request-change-password"
-          autocomplete="off">
-          <h1 class="firstTitle flex-center-x">Reset password</h1>
-          <div class="input-container">
-            <p class="firstSubtitle mb-10px">Inserisci la email che hai utilizzato per registrarti</p>
-            <div class="material-textfield">
-              <input placeholder="" type="email" required name="user_email" />
-              <label>Email</label>
-            </div>
-          </div>
-          <button class="btn filled submit-btn">Continua</button>
-        </form>
+        <Request v-if="step === 1" @next-step="onEmailSubmitted" />
+        <OTP v-else-if="step === 2" :email="savedEmail" @verified="onOtpVerified" />
+        <NewPassword v-else-if="step === 3" :email="savedEmail" :otp="savedOtp" @completed="onCompleted" />
       </div>
     </div>
   </div>
 </template>
 
-<style scoped src="@/assets/css/page.css"></style>
+<style src="@/assets/css/page.css"></style>
+
+<script setup>
+  import { ref } from 'vue'
+  import { useRouter } from 'vue-router'
+  import { generateAlert } from '@/utils/alertbanner.js'
+  import Request from './change-psw/Request.vue'
+  import OTP from './change-psw/OTP.vue'
+  import NewPassword from './change-psw/NewPassword.vue'
+
+  /*
+  STEPS:
+  1. email
+  2. OTP
+  3. new password
+  */
+  const router = useRouter()
+  const step = ref(1)
+  const savedEmail = ref('')
+  const savedOtp = ref('')
+
+  function onEmailSubmitted(email) {
+    savedEmail.value = email
+    step.value = 2
+  }
+
+  function onOtpVerified(otp) {
+    savedOtp.value = otp
+    step.value = 3
+  }
+
+  function onCompleted() {
+    // Show a success banner and send the user to login
+    generateAlert('success', 'Password cambiata con successo. Accedi con la nuova password.')
+    router.push({ name: 'login' })
+  }
+</script>

@@ -6,7 +6,6 @@
     </h2>
 
     <div class="impostazioni-container">
-
       <!-- Notification Time -->
       <div
         class="invioNotificheContainer impostazioni-sect"
@@ -91,15 +90,13 @@
         </div>
         <div class="checkNot-container">
           Invia le notifiche push
-          <select class="dashboard-select" v-model="a" style="width: fit-content;" :disabled="!pushEnabled">
+          <select class="dashboard-select" v-model="a" style="width: fit-content" :disabled="!pushEnabled">
             <!-- TODO -->
             <option value="false">All'aggiunta della variazione</option>
             <option value="true">Insieme a email / telegram</option>
           </select>
         </div>
-         
       </div>
-
 
       <!-- Notification Channels -->
       <div class="invioNotificheContainer impostazioni-sect" id="canali">
@@ -157,15 +154,12 @@
           Utile per includere le variazioni con errori di battitura.
         </p>
       </div>
-
-
     </div>
 
     <button class="btn filled" style="margin-top: 30px" @click="onLogout" ref="logoutBtn">
       <span class="material-symbols-outlined" aria-hidden="true">logout</span>
       Logout
     </button>
-
   </div>
 </template>
 
@@ -175,7 +169,7 @@
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
   import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
-  import { subscribeUser } from "@/utils/push-notification.js";
+  import { subscribeUser } from '@/utils/push-notification.js'
 
   const store = useUserStore()
   const router = useRouter()
@@ -225,23 +219,22 @@
 
   function toggleSubscribeUser() {
     try {
-      subscribeUser(preferences.value.push);
-      pushEnabled.value = preferences.value.push;
+      subscribeUser(preferences.value.push)
+      pushEnabled.value = preferences.value.push
     } catch (err) {
-      console.error('Failed to subscribe/unsubscribe user for push notifications:', err);
-      generateAlert('error', err.message || 'Si è verificato un errore. Riprova più tardi.'
-      );
+      console.error('Failed to subscribe/unsubscribe user for push notifications:', err)
+      generateAlert('error', err.message || 'Si è verificato un errore. Riprova più tardi.')
       // Revert on error
-      preferences.value.push = !preferences.value.push;
+      preferences.value.push = !preferences.value.push
     }
   }
 
   function loadUserPushSubscription() {
-    const user = store.user;
-    if (!user) return;
+    const user = store.user
+    if (!user) return
 
-    const hasSubscription = user.push_subscription || false; // TODO get from db
-    preferences.value.push = hasSubscription;
+    const hasSubscription = user.push_subscription || false // TODO get from db
+    preferences.value.push = hasSubscription
   }
 
   function loadTimepickerScript() {
@@ -361,7 +354,7 @@
       })
     }
 
-    pushEnabled.value = preferences.value.push;
+    pushEnabled.value = preferences.value.push
   }
 
   async function updatePreferences() {

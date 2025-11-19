@@ -40,6 +40,12 @@ const router = createRouter({
       meta: { title: 'Reset Password · Fermi Notify' },
     },
     {
+      path: '/password-otp',
+      name: 'password-otp',
+      component: ResetPasswordView,
+      meta: { title: 'OTP Password · Fermi Notify' },
+    },
+    {
       path: '/faq',
       name: 'faq',
       component: FaqView,
