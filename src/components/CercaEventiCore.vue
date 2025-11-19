@@ -55,6 +55,20 @@
       events.value.sort(compareEvents)
 
       console.log(events.value)
+
+      // if query param 'id' is provided, scroll to that event
+      const urlParams = new URLSearchParams(window.location.search)
+      const eventId = urlParams.get('id')
+      if (eventId) {
+        setTimeout(() => {
+          const el = document.getElementById(eventId)
+          if (el) {
+            const yOffset = -50
+            const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset
+            window.scrollTo({ top: y, behavior: 'smooth' })
+          }
+        }, 500)
+      }
     } catch (e) {
       console.error('Failed to fetch events', e)
       events.value = []
@@ -293,7 +307,7 @@
         <span>{{ getDateInfo(d).dateText }}</span>
       </h3>
       <div class="events-list" :id="`events-${d}-eventslist`">
-        <div v-for="(event, i) in eventsForDay(d)" :key="i" class="event" :class="eventClasses(event)">
+        <div v-for="(event, i) in eventsForDay(d)" :key="i" class="event" :class="eventClasses(event)" :id="event.uid">
           <p class="event-title">{{ displayTitle(event) }}</p>
           <div class="event-time">
             <p class="event-time-start">
