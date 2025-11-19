@@ -93,12 +93,27 @@ export async function subscribeUser(enable) {
         }
       }
     }
-    // Send subscription to backend
-    await fetch(`${API_URL}/push/subscribe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(subscription),
-    });
+    // Send subscription to backend with Bearer token so it can be linked to the authenticated user
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.warn('[push] No auth token found; subscription will not be associated with a user.');
+    }
+    const subPayload = subscription?.toJSON ? subscription.toJSON() : subscription;
+    try {
+      const resp = await fetch(`${API_URL}/push/subscribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(subPayload),
+      });
+      if (!resp.ok) {
+        console.error('[push] Failed to register push subscription on backend', resp.status);
+      }
+    } catch (e) {
+      console.error('[push] Network error sending subscription to backend', e);
+    }
 
     console.log('User subscribed:', subscription);
     return subscription;
