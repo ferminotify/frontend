@@ -88,10 +88,10 @@
             <span class="slider round"></span>
           </label>
         </div>
-        <div class="checkNot-container">
+        <div class="checkNot-container" v-show="preferences.push">
           Invia le notifiche push
-          <select class="dashboard-select" v-model="a" style="width: fit-content" :disabled="!pushEnabled">
-            <!-- TODO -->
+          <select class="dashboard-select" v-model="preferences.pushNotificationTime" @change="updatePushDeliveryMode" style="width: fit-content" :disabled="!preferences.push">
+            <!-- send_push_with_notifications -->
             <option value="false">All'aggiunta della variazione</option>
             <option value="true">Insieme a email / telegram</option>
           </select>
@@ -169,12 +169,12 @@
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
   import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
-  import { subscribeUser } from '@/utils/push-notification.js'
+  import { subscribeUser, setSendPushWithNotifications } from '@/stores/push.js'
 
   const store = useUserStore()
   const router = useRouter()
 
-  const preferences = ref({ email: false, telegram: false })
+  const preferences = ref({ email: false, telegram: false, push: false, pushNotificationTime: 'false' })
   const includeSimilar = ref(false)
   const notificationTime = ref('06:00')
   const notificationDay = ref('false')
@@ -199,11 +199,8 @@
   onMounted(() => {
     // Load mdtimepicker script
     loadTimepickerScript()
-
-    if (store.user) {
-      loadUserPreferences()
-      loadUserPushSubscription()
-    }
+    loadUserPreferences()
+    loadUserPushSubscription()
   })
 
   // Watch for user data changes and reload preferences
@@ -212,29 +209,81 @@
     (newUser) => {
       if (newUser) {
         loadUserPreferences()
+        loadUserPushSubscription()
       }
     },
     { immediate: true, deep: true }
   )
 
-  function toggleSubscribeUser() {
+  async function toggleSubscribeUser() {
+    const desired = preferences.value.push
     try {
-      subscribeUser(preferences.value.push)
-      pushEnabled.value = preferences.value.push
+      await subscribeUser(desired)
+      pushEnabled.value = desired
     } catch (err) {
       console.error('Failed to subscribe/unsubscribe user for push notifications:', err)
       generateAlert('error', err.message || 'Si è verificato un errore. Riprova più tardi.')
       // Revert on error
-      preferences.value.push = !preferences.value.push
+      preferences.value.push = !desired
+      pushEnabled.value = !desired
     }
   }
 
-  function loadUserPushSubscription() {
+  async function loadUserPushSubscription() {
     const user = store.user
     if (!user) return
 
-    const hasSubscription = user.push_subscription || false // TODO get from db
-    preferences.value.push = hasSubscription
+    const registration = await navigator.serviceWorker.getRegistration()
+    const sub = await registration?.pushManager.getSubscription()
+
+    const device_id = localStorage.getItem('device_id') || null
+
+    if (!sub) {
+      console.warn('No push subscription found on this device')
+      pushEnabled.value = false
+      preferences.value.push = false
+      return
+    }
+
+    // If a subscription exists but we don't have a device_id (e.g., storage cleared),
+    // force re-association by re-subscribing so backend gets the payload with a new device_id
+    if (!device_id) {
+      try {
+        await subscribeUser(true)
+        pushEnabled.value = true
+        preferences.value.push = true
+      } catch (e) {
+        console.warn('Failed to re-associate push subscription without device_id', e)
+        pushEnabled.value = false
+        preferences.value.push = false
+      }
+      return
+    }
+    // c'è l'iscrizione push --> controllo se l'endpoint in localStorage è ancora uguale (per browser che rigenera gli endpoint)
+    const storedEndpoint = localStorage.getItem('endpoint')
+    if (storedEndpoint !== sub.endpoint) {
+      console.warn('Push subscription endpoint has changed')
+      localStorage.setItem('endpoint', sub.endpoint)
+      await subscribeUser(true) // ensure backend knows latest endpoint
+    }
+
+    try {
+      const subs = user.push_subscription || []
+
+      const matched = Array.isArray(subs) && subs.find((s) => s && s.device_id === device_id)
+
+      if (matched) {
+        pushEnabled.value = true
+        preferences.value.push = true
+        preferences.value.pushNotificationTime = matched.send_push_with_notifications ? 'true' : 'false'
+      } else {
+        pushEnabled.value = false
+        preferences.value.push = false
+        preferences.value.pushNotificationTime = 'false'
+      }
+    } catch (err) {
+      console.error('Error checking push subscriptions for device:', err)
+    }
   }
 
   function loadTimepickerScript() {
@@ -353,8 +402,6 @@
         window.mdtimepicker(timepickerInput.value, 'setValue', notificationTime.value)
       })
     }
-
-    pushEnabled.value = preferences.value.push
   }
 
   async function updatePreferences() {
@@ -382,6 +429,18 @@
       generateAlert('error', 'Si è verificato un errore. Riprova più tardi.')
       // Revert on error
       includeSimilar.value = !includeSimilar.value
+    }
+  }
+
+  async function updatePushDeliveryMode() {
+    if (!preferences.value.push) return
+    const value = preferences.value.pushNotificationTime === 'true'
+    try {
+      await setSendPushWithNotifications(value)
+    } catch (err) {
+      console.error('Failed to update push delivery mode', err)
+      generateAlert('error', 'Errore aggiornando preferenza push.')
+      preferences.value.pushNotificationTime = value ? 'false' : 'true'
     }
   }
 
@@ -461,6 +520,9 @@
 <style scoped>
   .impostazioni-sect-title .material-symbols-outlined {
     color: var(--on-surface-primary);
+  }
+  .impostazioni-sect-title{
+    font-weight: 600;
   }
   .dashboard-toEdit-btns .btn {
     color: var(--on-surface);

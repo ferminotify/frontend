@@ -71,6 +71,9 @@
       </div>
     </div>
 
+    <!-- Push Devices -->
+    <PushDevices />
+
     <!-- User Info -->
     <UserInfo />
 
@@ -190,6 +193,7 @@
   import Telegram from '@/components/dashboard/Telegram.vue'
   import UserInfo from '@/components/dashboard/UserInfo.vue'
   import Notifiche from '@/components/dashboard/Notifiche.vue'
+  import PushDevices from '@/components/dashboard/PushDevices.vue'
   import { onMounted, ref, computed, nextTick } from 'vue'
   import { useUserStore } from '@/stores/user'
 

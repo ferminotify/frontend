@@ -1,4 +1,4 @@
-import { API_URL } from './config.js';
+import { API_URL } from '@/utils/config.js';
 
 // Resolved at runtime from backend; fallback to env only if backend not reachable
 let VAPID_PUBLIC_KEY = '';
@@ -9,6 +9,7 @@ export async function subscribeUser(enable) {
     const unsubscribed = await unsubscribeUser();
     if (unsubscribed) {
       localStorage.removeItem('vapidPublicKey');
+      localStorage.removeItem('endpoint');
       console.log('User unsubscribed from push notifications');
     }
     return;
@@ -80,6 +81,7 @@ export async function subscribeUser(enable) {
         });
         // Persist the key we used to subscribe
         localStorage.setItem('vapidPublicKey', VAPID_PUBLIC_KEY);
+        localStorage.setItem('endpoint', subscription.endpoint);
       } catch (e) {
         const name = e?.name || 'Error';
         console.error('pushManager.subscribe failed:', e);
@@ -98,7 +100,18 @@ export async function subscribeUser(enable) {
     if (!token) {
       console.warn('[push] No auth token found; subscription will not be associated with a user.');
     }
-    const subPayload = subscription?.toJSON ? subscription.toJSON() : subscription;
+    const deviceId = getDeviceId();
+    const userAgent = navigator.userAgent || 'unknown';
+
+    const json = subscription?.toJSON ? subscription.toJSON() : subscription; // some browser edge cases
+
+    const subPayload = {
+      endpoint: json.endpoint,
+      keys: json.keys,
+      device_id: deviceId,
+      user_agent: userAgent,
+    };
+
     try {
       const resp = await fetch(`${API_URL}/user/push/subscribe`, {
         method: 'POST',
@@ -108,11 +121,14 @@ export async function subscribeUser(enable) {
         },
         body: JSON.stringify(subPayload),
       });
+
       if (!resp.ok) {
         console.error('[push] Failed to register push subscription on backend', resp.status);
+        throw new Error('Si è verificato un errore interno. Riprova più tardi.');
       }
     } catch (e) {
       console.error('[push] Network error sending subscription to backend', e);
+      throw new Error('Si è verificato un errore interno. Riprova più tardi.');
     }
 
     console.log('User subscribed:', subscription);
@@ -137,6 +153,25 @@ export async function unsubscribeUser() {
     const sub = await registration.pushManager.getSubscription();
     if (!sub) return false;
     const success = await sub.unsubscribe();
+    // unsubscribe on backend
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const resp = await fetch(`${API_URL}/user/push/unsubscribe`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+        if (!resp.ok) {
+          console.error('[push] Failed to unregister push subscription on backend', resp.status);
+        }
+      } catch (e) {
+        console.error('[push] Network error sending unsubscription to backend', e);
+      }
+    }
     console.log('Push subscription revoked:', success);
     return success;
   } catch (e) {
@@ -144,5 +179,42 @@ export async function unsubscribeUser() {
     return false;
   }
 }
+
+function getDeviceId() {
+  let id = localStorage.getItem('device_id');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('device_id', id);
+  }
+  return id;
+}
+
+
+// Update whether push notifications should be sent together with other channels (email/telegram)
+// sendTogether: boolean
+export async function setSendPushWithNotifications(sendTogether) {
+  const token = localStorage.getItem('token');
+  if (!token) throw new Error('Utente non autenticato.');
+  const device_id = localStorage.getItem('device_id');
+  if (!device_id) throw new Error('Device non identificato.');
+  try {
+    const resp = await fetch(`${API_URL}/user/push/send-push-with-notifications`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ send_push_with_notifications: !!sendTogether, device_id }),
+    });
+    if (!resp.ok) {
+      throw new Error('Aggiornamento preferenza push fallito.');
+    }
+    return await resp.json();
+  } catch (e) {
+    console.error('[push] setSendPushWithNotifications error', e);
+    throw e;
+  }
+}
+
 
 export default subscribeUser;
