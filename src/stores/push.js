@@ -153,9 +153,56 @@ export async function unsubscribeUser() {
     const sub = await registration.pushManager.getSubscription();
     if (!sub) return false;
     const success = await sub.unsubscribe();
-    // unsubscribe on backend
+    // Try to remove server-side record. Prefer deletion by device_id (stable)
     const token = localStorage.getItem('token');
-    if (token) {
+    const device_id = localStorage.getItem('device_id');
+    if (token && device_id) {
+      try {
+        const delResp = await fetch(`${API_URL}/user/push/devices/${encodeURIComponent(device_id)}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!delResp.ok) {
+          // fallback to endpoint-based unsubscribe if device delete didn't work
+          console.warn('[push] delete by device_id failed, falling back to endpoint POST', delResp.status);
+          try {
+            const resp = await fetch(`${API_URL}/user/push/unsubscribe`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ endpoint: sub.endpoint }),
+            });
+            if (!resp.ok) console.error('[push] Failed to unregister push subscription on backend', resp.status);
+          } catch (e) {
+            console.error('[push] Network error sending unsubscription to backend (fallback)', e);
+          }
+        }
+      } catch (e) {
+        console.error('[push] Network error deleting push device by device_id', e);
+        // try fallback
+        if (token) {
+          try {
+            const resp = await fetch(`${API_URL}/user/push/unsubscribe`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ endpoint: sub.endpoint }),
+            });
+            if (!resp.ok) console.error('[push] Failed to unregister push subscription on backend', resp.status);
+          } catch (e2) {
+            console.error('[push] Network error sending unsubscription to backend (second fallback)', e2);
+          }
+        }
+      }
+    } else if (token) {
+      // No device_id available; try endpoint-based unsubscribe
       try {
         const resp = await fetch(`${API_URL}/user/push/unsubscribe`, {
           method: 'POST',
@@ -165,9 +212,7 @@ export async function unsubscribeUser() {
           },
           body: JSON.stringify({ endpoint: sub.endpoint }),
         });
-        if (!resp.ok) {
-          console.error('[push] Failed to unregister push subscription on backend', resp.status);
-        }
+        if (!resp.ok) console.error('[push] Failed to unregister push subscription on backend', resp.status);
       } catch (e) {
         console.error('[push] Network error sending unsubscription to backend', e);
       }
@@ -213,6 +258,42 @@ export async function setSendPushWithNotifications(sendTogether) {
   } catch (e) {
     console.error('[push] setSendPushWithNotifications error', e);
     throw e;
+  }
+}
+
+// Get all push devices for authenticated user
+export async function getPushDevices() {
+  const token = localStorage.getItem('token') || ''
+  try {
+    const resp = await fetch(`${API_URL}/user/push/devices`, {
+      headers: { Authorization: token ? `Bearer ${token}` : '' },
+    })
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+    const json = await resp.json()
+    if (!json.ok) throw new Error(json.error || 'Errore recupero dispositivi push')
+    return json.devices || []
+  } catch (e) {
+    console.error('[push] getPushDevices error', e)
+    throw e
+  }
+}
+
+// Delete a specific push device by device_id
+export async function deletePushDevice(deviceId) {
+  const token = localStorage.getItem('token') || ''
+  if (!deviceId) throw new Error('deviceId mancante')
+  try {
+    const resp = await fetch(`${API_URL}/user/push/devices/${encodeURIComponent(deviceId)}`, {
+      method: 'DELETE',
+      headers: { Authorization: token ? `Bearer ${token}` : '' },
+    })
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+    const json = await resp.json()
+    if (!json.ok) throw new Error(json.error || 'Errore eliminazione dispositivo push')
+    return json.deleted === true
+  } catch (e) {
+    console.error('[push] deletePushDevice error', e)
+    throw e
   }
 }
 

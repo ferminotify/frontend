@@ -38,8 +38,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { API_URL } from '@/utils/config.js'
 import { generateAlert } from '@/utils/alertbanner.js'
+import { getPushDevices, deletePushDevice } from '@/stores/push.js'
 
 const devices = ref([])
 const loadingDevices = ref(false)
@@ -48,22 +48,13 @@ const currentDeviceId = localStorage.getItem('device_id') || ''
 // no local editable state needed for per-device delivery mode (read-only)
 
 onMounted(() => {
-    fetchDevices()
+    loadDevices()
 })
 
-async function fetchDevices() {
+async function loadDevices() {
     loadingDevices.value = true
     try {
-        const token = localStorage.getItem('token')
-        const resp = await fetch(`${API_URL}/user/push/devices`, {
-            headers: {
-                Authorization: token ? `Bearer ${token}` : ''
-            }
-        })
-        if (!resp.ok) throw new Error('Impossibile recuperare i dispositivi.')
-        const json = await resp.json()
-        if (!json.ok) throw new Error(json.error || 'Errore sconosciuto.')
-        devices.value = json.devices || []
+        devices.value = await getPushDevices()
     } catch (e) {
         console.error('[push] fetchDevices error', e)
         generateAlert('error', e.message || 'Errore caricando i dispositivi.')
@@ -100,15 +91,12 @@ async function removeDevice(d) {
     if (!confirm('Rimuovere il dispositivo?')) return
     removing.value[d.device_id] = true
     try {
-        const token = localStorage.getItem('token')
-        const resp = await fetch(`${API_URL}/user/push/devices/${encodeURIComponent(d.device_id)}`, {
-            method: 'DELETE',
-            headers: { Authorization: token ? `Bearer ${token}` : '' }
-        })
-        if (!resp.ok) throw new Error('Errore nella rimozione del dispositivo.')
-        const json = await resp.json()
-        if (!json.ok) throw new Error(json.error || 'Errore sconosciuto.')
-        devices.value = devices.value.filter(x => x.device_id !== d.device_id)
+        const deleted = await deletePushDevice(d.device_id)
+        if (deleted) {
+            devices.value = devices.value.filter(x => x.device_id !== d.device_id)
+        } else {
+            throw new Error('Il dispositivo non è stato eliminato.')
+        }
     } catch (e) {
         console.error('[push] removeDevice error', e)
         generateAlert('error', e.message || 'Errore rimuovendo il dispositivo.')

@@ -92,7 +92,7 @@
           Invia le notifiche push
           <select class="dashboard-select" v-model="preferences.pushNotificationTime" @change="updatePushDeliveryMode" style="width: fit-content" :disabled="!preferences.push">
             <!-- send_push_with_notifications -->
-            <option value="false">All'aggiunta della variazione</option>
+            <option value="false" selected>All'aggiunta della variazione</option>
             <option value="true">Insieme a email / telegram</option>
           </select>
         </div>
@@ -169,7 +169,7 @@
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
   import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
-  import { subscribeUser, setSendPushWithNotifications } from '@/stores/push.js'
+  import { subscribeUser, setSendPushWithNotifications, getPushDevices } from '@/stores/push.js'
 
   const store = useUserStore()
   const router = useRouter()
@@ -267,11 +267,10 @@
       await subscribeUser(true) // ensure backend knows latest endpoint
     }
 
+    // Fetch device-specific push preferences from backend via store helper
     try {
-      const subs = user.push_subscription || []
-
-      const matched = Array.isArray(subs) && subs.find((s) => s && s.device_id === device_id)
-
+      const devices = await getPushDevices()
+      const matched = devices.find((d) => d.device_id === device_id)
       if (matched) {
         pushEnabled.value = true
         preferences.value.push = true
@@ -282,7 +281,12 @@
         preferences.value.pushNotificationTime = 'false'
       }
     } catch (err) {
-      console.error('Error checking push subscriptions for device:', err)
+      console.error('Error fetching push devices:', err)
+      // Fallback: keep previous state but ensure not enabled blindly
+      if (!pushEnabled.value) {
+        preferences.value.push = false
+        preferences.value.pushNotificationTime = 'false'
+      }
     }
   }
 
