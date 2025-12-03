@@ -12,6 +12,7 @@ import App from './App.vue'
 import router from './router'
 
 import { useUserStore } from '@/stores/user'
+import { subscribeUser } from '@/stores/push'
 
 // Font Awesome imports
 import { library, config } from '@fortawesome/fontawesome-svg-core'
@@ -43,7 +44,7 @@ app.use(router)
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js")
-      .then(() => console.log("Service Worker registered"))
+      .then(() => subscribeUser())
       .catch(err => console.error("SW registration failed:", err));
   });
 }

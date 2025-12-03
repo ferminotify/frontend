@@ -78,6 +78,9 @@
         </p>
         <div class="impostazioni-sect-content">
           <div class="checkNot-container">
+            <p style="font-size: 12px; color: var(--on-surface);">Le notifiche push possono disattivarsi automaticamente dopo un certo periodo di inattività per le impostazioni del browser.</p>
+          </div>
+          <div class="checkNot-container">
             Attiva notifiche push
             <label class="switch">
               <input
