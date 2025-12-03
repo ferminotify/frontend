@@ -1,5 +1,5 @@
 <script setup>
-  import { computed } from 'vue'
+  import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
   import { RouterLink, RouterView, useRoute } from 'vue-router'
   import { useUserStore } from '@/stores/user'
 
@@ -13,11 +13,47 @@
   const authTo = computed(() => (isLoggedIn.value ? '/dashboard' : '/login'))
   const authIcon = computed(() => (isLoggedIn.value ? 'space_dashboard' : 'login'))
   const authLabel = computed(() => (isLoggedIn.value ? 'Dashboard' : 'Accesso'))
+
+  // Mobile hide-on-scroll state
+  const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 600 : false)
+  const hideSidebarText = ref(false)
+  let prevScroll = typeof window !== 'undefined' ? window.pageYOffset : 0
+
+  function handleScroll() {
+    if (!isMobile.value) return
+    const currentScroll = window.pageYOffset
+    const atBottom = (window.innerHeight + window.pageYOffset) >= (document.body.offsetHeight - 1)
+    if (prevScroll > currentScroll || atBottom || currentScroll < 10) {
+      hideSidebarText.value = false
+    } else {
+      hideSidebarText.value = true
+    }
+    prevScroll = currentScroll
+  }
+
+  function handleResize() {
+    isMobile.value = window.innerWidth <= 600
+    if (!isMobile.value) {
+      hideSidebarText.value = false
+    }
+  }
+
+  onMounted(() => {
+    prevScroll = window.pageYOffset
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleResize)
+    handleResize()
+  })
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('scroll', handleScroll)
+    window.removeEventListener('resize', handleResize)
+  })
 </script>
 
 <template>
   <header>
-    <div class="sidebar">
+    <div class="sidebar" :class="{ compact: hideSidebarText, mobile: isMobile }">
       <div class="sidebar-inner">
         <RouterLink to="/" custom v-slot="{ href, navigate, isExactActive }">
           <a :href="href" @click="navigate" class="sidebar-link" id="cercaeventi" :class="{ active: isExactActive }">
@@ -81,3 +117,26 @@
     </main>
   </div>
 </template>
+
+<style scoped>
+/* Only apply when JS detects mobile layout to avoid clashing with global media rules */
+.sidebar.mobile .sidebar-inner {
+  transition: transform 300ms ease, box-shadow 180ms ease;
+}
+.sidebar.mobile .sidebar-link-text {
+  display: block;
+  max-height: 40px;
+  opacity: 1;
+  transition: max-height 300ms ease, opacity 300ms ease;
+  overflow: hidden;
+}
+.sidebar.mobile.compact .sidebar-link-text {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* keep default desktop behaviour untouched */
+.sidebar .sidebar-link-text {
+  transition: none;
+}
+</style>

@@ -374,19 +374,24 @@ code,
   position: fixed;
   flex-direction: column;
   height: 100%;
-  background: var(--surface-variant);
-  color: var(--on-surface-variant);
   font-weight: 500;
   overflow-y: auto;
   z-index: 100;
 }
 .sidebar-inner {
-  height: 100%;
-  width: 88px;
+  margin: 15px 0 15px 15px;
+  border-radius: 25px;
+  color: var(--on-surface-variant);
+  background-color: var(--surface-variant);
+  box-shadow: 0 10px 26px rgba(4, 18, 28, 0.14);
+  /* make width, gap and padding scale with viewport so the sidebar doesn't force awkward heights */
+  width: clamp(72px, 6.5vw, 120px);
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
   align-items: center;
+  gap: clamp(12px, 6vh, 80px);
+  padding: clamp(12px, 4vh, 56px) 0;
 }
 .sidebar-link {
   height: 20%;
@@ -858,15 +863,27 @@ code,
   .sidebar {
     transition: all 0.3s ease-in-out;
     bottom: 0;
-    height: 78px;
+    height: fit-content;
     width: 100%;
     flex-direction: row;
+    background: linear-gradient(to top, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0) 100%);
   }
   .sidebar-inner {
-    height: 100%;
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
+    gap: initial;
+     border-radius: 25px;
+     height: 100%;
+     /* make the inner container shrink slightly from the viewport edges
+       so it appears to 'float' on mobile. Use clamp() so margins scale
+       smoothly between a min and max value. Width is reduced by the
+       same horizontal gutters to avoid overflow. */
+     --side-gutter: clamp(8px, 3vw, 24px);
+     width: calc(100% - (2 * var(--side-gutter)));
+     flex-direction: row;
+     align-items: center;
+     margin: 0 var(--side-gutter) var(--side-gutter) var(--side-gutter);
+     padding: 15px 0;
+     box-shadow: 0 10px 26px rgba(4, 18, 28, 0.14);
+     transition: transform 0.18s ease, box-shadow 0.18s ease;
   }
   .sidebar-link {
     height: 100%;
