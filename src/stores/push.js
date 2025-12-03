@@ -396,5 +396,26 @@ export async function deletePushDevice(deviceId) {
   }
 }
 
+export async function updatePushDeviceInfo(deviceId, deviceInfo) {
+  const token = localStorage.getItem('token') || ''
+  if (!deviceId) throw new Error('deviceId mancante')
+  try {
+    const resp = await fetch(`${API_URL}/user/push/update-device-info`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+      body: JSON.stringify({ device_id: deviceId, device_info: deviceInfo }),
+    })
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+    const json = await resp.json()
+    if (!json.ok) throw new Error(json.error || 'Errore aggiornamento info dispositivo push')
+    return json.updated === true
+  } catch (e) {
+    console.error('[push] updatePushDeviceInfo error', e)
+    throw e
+  }
+}
 
 export default subscribeUser;
