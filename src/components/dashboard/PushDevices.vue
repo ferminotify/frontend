@@ -19,7 +19,7 @@
                 :class="{ current: d.device_id === currentDeviceId }"
             >
                 <div class="device-info">
-                    <p><strong>{{ getReadableAgent(d.user_agent) }}</strong></p>
+                    <p><strong>{{ d.device_info }}</strong></p>
                     <small>dal {{ formatDate(d.created_at) }}</small>
                     <small style="font-size:12px;color:var(--on-surface); display:flex; gap:6px">
                         <span class="material-symbols-outlined">schedule_send</span>
@@ -70,21 +70,6 @@ function formatDate(ts) {
     } catch {
         return ts
     }
-}
-
-function getReadableAgent(ua) {
-    if (!ua) return 'Sconosciuto'
-    // simple heuristics
-    const isChrome = ua.includes('Chrome') && !ua.includes('Edge')
-    const isFirefox = ua.includes('Firefox')
-    const isSafari = ua.includes('Safari') && !ua.includes('Chrome')
-    const osMatch = ua.match(/Windows|Linux|Mac OS X|Android|iPhone/)
-    const os = osMatch ? osMatch[0].replace('Mac OS X','macOS') : 'OS'
-    let browser = 'Browser'
-    if (isChrome) browser = 'Chrome'
-    else if (isFirefox) browser = 'Firefox'
-    else if (isSafari) browser = 'Safari'
-    return `${os} ${browser}`
 }
 
 async function removeDevice(d) {
