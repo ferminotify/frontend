@@ -55,7 +55,7 @@
 
 <script setup>
 import Modal from '@/components/common/Modal.vue'
-import { ref, onMounted, nextTick, createApp } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, createApp } from 'vue'
 import { generateAlert } from '@/utils/alertbanner.js'
 import { getPushDevices, deletePushDevice, updatePushDeviceInfo } from '@/stores/push.js'
 import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
@@ -71,6 +71,30 @@ const submitBtnRef = ref(null)
 
 onMounted(() => {
     loadDevices()
+})
+
+function onPushChanged(e) {
+    // Simply reload devices when push subscription state changes elsewhere
+    try {
+        // If the event provides an updated devices array, use it to avoid refetch
+        const payload = e?.detail || {}
+        if (payload.devices && Array.isArray(payload.devices)) {
+            devices.value = payload.devices
+            loadingDevices.value = false
+        } else {
+            loadDevices()
+        }
+    } catch (err) {
+        console.warn('Error reloading push devices after change event', err)
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('push:changed', onPushChanged)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('push:changed', onPushChanged)
 })
 
 async function loadDevices() {
@@ -235,6 +259,7 @@ async function removeDevice(d) {
     align-items: center;
     gap: 15px;
     font-weight: 600;
+    position: relative;
 }
 .device-info-input:focus{
     background: transparent;
@@ -248,8 +273,11 @@ async function removeDevice(d) {
     color: var(--on-primary);
     font-size: 0.75rem;
     font-weight: 600;
-    padding: 5px 10px;
-    border-radius: 12px;
+    padding: 6px 10px;
+    border-radius: 15px;
     text-align: center;
+    position: absolute;
+    left: calc(100% + 15px);
+    width: max-content;
 }
 </style>

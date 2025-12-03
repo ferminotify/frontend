@@ -93,7 +93,7 @@
             </label>
           </div>
           <div class="checkNot-container" v-show="preferences.push">
-            Invia le notifiche push
+            Invia
             <select class="dashboard-select" v-model="preferences.pushNotificationTime" @change="updatePushDeliveryMode" style="width: fit-content" :disabled="!preferences.push">
               <!-- send_push_with_notifications -->
               <option value="false" selected>All'aggiunta della variazione</option>
@@ -173,7 +173,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue'
+  import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
   import { useRouter } from 'vue-router'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
@@ -226,15 +226,46 @@
 
   async function toggleSubscribeUser() {
     const desired = preferences.value.push
+    // Optimistic UI: update the UI immediately so the toggle feels responsive
+    pushEnabled.value = desired
+    if (desired) {
+      preferences.value.pushNotificationTime = 'false'
+    }
+
     try {
       await subscribeUser(desired)
-      pushEnabled.value = desired
+      // Fetch updated device list once and include it in the event payload so
+      // other components can update their UI without issuing an extra fetch.
+      let updatedDevices = null
+      try {
+        updatedDevices = await getPushDevices()
+      } catch (e) {
+        // non-fatal: if we can't fetch devices here, other components will fallback to reloading
+        console.warn('Could not fetch updated push devices after subscribe/unsubscribe', e)
+        updatedDevices = null
+      }
+
+      // Notify other components (e.g., PushDevices.vue) to refresh device list
+      try {
+        const evt = new CustomEvent('push:changed', {
+          detail: {
+            action: desired ? 'added' : 'removed',
+            device_id: localStorage.getItem('device_id') || null,
+            endpoint: localStorage.getItem('endpoint') || null,
+            devices: updatedDevices,
+          },
+        })
+        window.dispatchEvent(evt)
+      } catch (e) {
+        console.warn('Could not dispatch push:changed event', e)
+      }
     } catch (err) {
       console.error('Failed to subscribe/unsubscribe user for push notifications:', err)
       generateAlert('error', err.message || 'Si è verificato un errore. Riprova più tardi.')
-      // Revert on error
+      // Revert optimistic change on error
       preferences.value.push = !desired
       pushEnabled.value = !desired
+      if (!pushEnabled.value) preferences.value.pushNotificationTime = 'false'
     }
   }
 
