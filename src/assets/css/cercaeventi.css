@@ -97,10 +97,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid var(--on-surface);
+  border-top: 1px solid var(--divider);
 }
 .events-container .event:last-child {
-  border-bottom: 1px solid var(--on-surface);
+  border-bottom: 1px solid var(--divider);
 }
 
 .event-past {

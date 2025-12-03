@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 import { API_URL } from '@/utils/config'
+import router from '@/router'
 
 const api = axios.create({
   baseURL: API_URL,
@@ -21,6 +22,8 @@ api.interceptors.response.use(
   async (error) => {
     const store = useUserStore()
     const originalRequest = error.config
+    // Prevent multiple redirect loops
+    if (!api._redirecting) api._redirecting = false
 
     // If token expired
     const status = error?.response?.status
@@ -31,8 +34,14 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${store.token}`
         return api(originalRequest)
       } catch (err) {
-        store.logout()
-        window.location.href = '/login'
+        if (!api._redirecting) {
+          api._redirecting = true
+          await store.logout()
+          // Use client-side navigation to avoid full-page reloads
+          router.push('/login').finally(() => {
+            api._redirecting = false
+          })
+        }
       }
     }
     return Promise.reject(error)

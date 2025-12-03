@@ -12,6 +12,7 @@ import App from './App.vue'
 import router from './router'
 
 import { useUserStore } from '@/stores/user'
+import { subscribeUser } from '@/stores/push'
 
 // Font Awesome imports
 import { library, config } from '@fortawesome/fontawesome-svg-core'
@@ -41,10 +42,27 @@ app.use(router)
 
 // notification
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/service-worker.js")
-      .then(() => console.log("Service Worker registered"))
-      .catch(err => console.error("SW registration failed:", err));
+  window.addEventListener("load", async () => {
+    try {
+      const registration = await navigator.serviceWorker.register("/service-worker.js");
+      try {
+        // Only call subscribeUser(true) when we don't already have a subscription
+        // or when the saved endpoint differs from the current one. This avoids
+        // overwriting user-edited `device_info` in the backend on every page load.
+        const existingSub = await registration.pushManager.getSubscription();
+        const storedEndpoint = localStorage.getItem('endpoint') || null;
+        if (!existingSub || (existingSub && existingSub.endpoint !== storedEndpoint)) {
+          await subscribeUser(true);
+        } else {
+          // nothing to do: keep existing subscription and backend record as-is
+          console.log('[push] Existing subscription matches stored endpoint — skipping subscribeUser');
+        }
+      } catch (e) {
+        console.warn('[push] Error checking push subscription after SW registration', e);
+      }
+    } catch (err) {
+      console.error("SW registration failed:", err);
+    }
   });
 }
 

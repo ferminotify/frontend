@@ -11,12 +11,12 @@
         class="invioNotificheContainer impostazioni-sect"
         id="orario"
         style="position: relative; padding-bottom: 10px">
-        <p style="padding-bottom: 10px; border-bottom: 1px solid var(--on-surface)" class="impostazioni-sect-title">
+        <p style="padding-bottom: 10px;" class="impostazioni-sect-title">
           <span class="material-symbols-outlined">schedule</span>
           Orario Daily Notification
         </p>
 
-        <div class="notTime" style="margin: 10px 0">
+        <div class="notTime impostazioni-sect-content" style="margin: 10px 0">
           <div class="giorno">
             <label for="day">Giorno</label>
             <div class="flex-y-center">
@@ -76,25 +76,30 @@
           <span class="material-symbols-outlined">notifications</span>
           Notifiche push
         </p>
-        <div class="checkNot-container">
-          Attiva notifiche push
-          <label class="switch">
-            <input
-              type="checkbox"
-              v-model="preferences.push"
-              @change="toggleSubscribeUser"
-              class="checkbox"
-              id="pushNotification" />
-            <span class="slider round"></span>
-          </label>
-        </div>
-        <div class="checkNot-container">
-          Invia le notifiche push
-          <select class="dashboard-select" v-model="a" style="width: fit-content" :disabled="!pushEnabled">
-            <!-- TODO -->
-            <option value="false">All'aggiunta della variazione</option>
-            <option value="true">Insieme a email / telegram</option>
-          </select>
+        <div class="impostazioni-sect-content">
+          <div class="checkNot-container">
+            <p style="font-size: 12px; color: var(--on-surface);">Le notifiche push possono disattivarsi automaticamente dopo un certo periodo di inattività per le impostazioni del browser.</p>
+          </div>
+          <div class="checkNot-container">
+            Attiva notifiche push
+            <label class="switch">
+              <input
+                type="checkbox"
+                v-model="preferences.push"
+                @change="toggleSubscribeUser"
+                class="checkbox"
+                id="pushNotification" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="checkNot-container" v-show="preferences.push">
+            Invia
+            <select class="dashboard-select" v-model="preferences.pushNotificationTime" @change="updatePushDeliveryMode" style="width: fit-content" :disabled="!preferences.push">
+              <!-- send_push_with_notifications -->
+              <option value="false" selected>All'aggiunta della variazione</option>
+              <option value="true">Insieme a email / telegram</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -104,29 +109,31 @@
           <span class="material-symbols-outlined">chat_bubble</span>
           Canali notifiche
         </p>
-        <div class="checkNot-container sendEmail">
-          Email
-          <label class="switch">
-            <input
-              type="checkbox"
-              v-model="preferences.email"
-              @change="updatePreferences"
-              class="checkbox"
-              id="sendEmail" />
-            <span class="slider round"></span>
-          </label>
-        </div>
-        <div v-if="hasTelegram" class="checkNot-container sendTelegram">
-          Telegram
-          <label class="switch">
-            <input
-              type="checkbox"
-              v-model="preferences.telegram"
-              @change="updatePreferences"
-              class="checkbox"
-              id="sendTelegram" />
-            <span class="slider round"></span>
-          </label>
+        <div class="impostazioni-sect-content">
+          <div class="checkNot-container sendEmail">
+            Email
+            <label class="switch">
+              <input
+                type="checkbox"
+                v-model="preferences.email"
+                @change="updatePreferences"
+                class="checkbox"
+                id="sendEmail" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div v-if="hasTelegram" class="checkNot-container sendTelegram">
+            Telegram
+            <label class="switch">
+              <input
+                type="checkbox"
+                v-model="preferences.telegram"
+                @change="updatePreferences"
+                class="checkbox"
+                id="sendTelegram" />
+              <span class="slider round"></span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -136,23 +143,25 @@
           <span class="material-symbols-outlined">bolt</span>
           Variazioni dell'orario
         </p>
-        <div class="checkNot-container sendEmail" style="display: flex; align-items: flex-start">
-          Invia variazioni probabili
-          <label class="switch">
-            <input id="sendSimilar" type="checkbox" v-model="includeSimilar" @change="toggleSimilar" class="checkbox" />
-            <span class="slider round"></span>
-          </label>
+        <div class="impostazioni-sect-content">
+          <div class="checkNot-container sendEmail" style="display: flex; align-items: flex-start">
+            Invia variazioni probabili
+            <label class="switch">
+              <input id="sendSimilar" type="checkbox" v-model="includeSimilar" @change="toggleSimilar" class="checkbox" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <p style="font-size: 12px; color: var(--on-surface)">
+            Ricevi notifiche anche delle variazioni dell'orario che potrebbero essere associate alle tue keyword.
+          </p>
+          <!-- prettier-ignore -->
+          <p style="font-size: 12px; color: var(--on-surface);">
+            <span class="material-symbols-outlined">arrow_right_alt</span>Esempio: con keyword<code>5 CIN</code> invia le variazioni sulla <code>5CIIN</code>.
+          </p>
+          <p style="font-size: 12px; color: var(--on-surface)">
+            Utile per includere le variazioni con errori di battitura.
+          </p>
         </div>
-        <p style="font-size: 12px; color: var(--on-surface)">
-          Ricevi notifiche anche delle variazioni dell'orario che potrebbero essere associate alle tue keyword.
-        </p>
-        <!-- prettier-ignore -->
-        <p style="font-size: 12px; color: var(--on-surface);">
-          <span class="material-symbols-outlined">arrow_right_alt</span>Esempio: con keyword<code>5 CIN</code> invia le variazioni sulla <code>5CIIN</code>.
-        </p>
-        <p style="font-size: 12px; color: var(--on-surface)">
-          Utile per includere le variazioni con errori di battitura.
-        </p>
       </div>
     </div>
 
@@ -164,17 +173,17 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue'
+  import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
   import { useRouter } from 'vue-router'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
   import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
-  import { subscribeUser } from '@/utils/push-notification.js'
+  import { subscribeUser, setSendPushWithNotifications, getPushDevices } from '@/stores/push.js'
 
   const store = useUserStore()
   const router = useRouter()
 
-  const preferences = ref({ email: false, telegram: false })
+  const preferences = ref({ email: false, telegram: false, push: false, pushNotificationTime: 'false' })
   const includeSimilar = ref(false)
   const notificationTime = ref('06:00')
   const notificationDay = ref('false')
@@ -199,11 +208,8 @@
   onMounted(() => {
     // Load mdtimepicker script
     loadTimepickerScript()
-
-    if (store.user) {
-      loadUserPreferences()
-      loadUserPushSubscription()
-    }
+    loadUserPreferences()
+    loadUserPushSubscription()
   })
 
   // Watch for user data changes and reload preferences
@@ -212,29 +218,116 @@
     (newUser) => {
       if (newUser) {
         loadUserPreferences()
+        loadUserPushSubscription()
       }
     },
     { immediate: true, deep: true }
   )
 
-  function toggleSubscribeUser() {
+  async function toggleSubscribeUser() {
+    const desired = preferences.value.push
+    // Optimistic UI: update the UI immediately so the toggle feels responsive
+    pushEnabled.value = desired
+    if (desired) {
+      preferences.value.pushNotificationTime = 'false'
+    }
+
     try {
-      subscribeUser(preferences.value.push)
-      pushEnabled.value = preferences.value.push
+      await subscribeUser(desired)
+      // Fetch updated device list once and include it in the event payload so
+      // other components can update their UI without issuing an extra fetch.
+      let updatedDevices = null
+      try {
+        updatedDevices = await getPushDevices()
+      } catch (e) {
+        // non-fatal: if we can't fetch devices here, other components will fallback to reloading
+        console.warn('Could not fetch updated push devices after subscribe/unsubscribe', e)
+        updatedDevices = null
+      }
+
+      // Notify other components (e.g., PushDevices.vue) to refresh device list
+      try {
+        const evt = new CustomEvent('push:changed', {
+          detail: {
+            action: desired ? 'added' : 'removed',
+            device_id: localStorage.getItem('device_id') || null,
+            endpoint: localStorage.getItem('endpoint') || null,
+            devices: updatedDevices,
+          },
+        })
+        window.dispatchEvent(evt)
+      } catch (e) {
+        console.warn('Could not dispatch push:changed event', e)
+      }
     } catch (err) {
       console.error('Failed to subscribe/unsubscribe user for push notifications:', err)
       generateAlert('error', err.message || 'Si è verificato un errore. Riprova più tardi.')
-      // Revert on error
-      preferences.value.push = !preferences.value.push
+      // Revert optimistic change on error
+      preferences.value.push = !desired
+      pushEnabled.value = !desired
+      if (!pushEnabled.value) preferences.value.pushNotificationTime = 'false'
     }
   }
 
-  function loadUserPushSubscription() {
+  async function loadUserPushSubscription() {
     const user = store.user
     if (!user) return
 
-    const hasSubscription = user.push_subscription || false // TODO get from db
-    preferences.value.push = hasSubscription
+    const registration = await navigator.serviceWorker.getRegistration()
+    const sub = await registration?.pushManager.getSubscription()
+
+    const device_id = localStorage.getItem('device_id') || null
+
+    if (!sub) {
+      console.warn('No push subscription found on this device')
+      pushEnabled.value = false
+      preferences.value.push = false
+      return
+    }
+
+    // If a subscription exists but we don't have a device_id (e.g., storage cleared),
+    // force re-association by re-subscribing so backend gets the payload with a new device_id
+    if (!device_id) {
+      try {
+        await subscribeUser(true)
+        pushEnabled.value = true
+        preferences.value.push = true
+      } catch (e) {
+        console.warn('Failed to re-associate push subscription without device_id', e)
+        pushEnabled.value = false
+        preferences.value.push = false
+      }
+      return
+    }
+    // c'è l'iscrizione push --> controllo se l'endpoint in localStorage è ancora uguale (per browser che rigenera gli endpoint)
+    const storedEndpoint = localStorage.getItem('endpoint')
+    if (storedEndpoint !== sub.endpoint) {
+      console.warn('Push subscription endpoint has changed')
+      localStorage.setItem('endpoint', sub.endpoint)
+      await subscribeUser(true) // ensure backend knows latest endpoint
+    }
+
+    // Fetch device-specific push preferences from backend via store helper
+    try {
+      const devices = await getPushDevices()
+      const matched = devices.find((d) => d.device_id === device_id)
+      if (matched) {
+        pushEnabled.value = true
+        preferences.value.push = true
+        preferences.value.pushNotificationTime = matched.send_push_with_notifications ? 'true' : 'false'
+      } else {
+        pushEnabled.value = false
+        preferences.value.push = false
+        preferences.value.pushNotificationTime = 'false'
+      }
+    } catch (err) {
+      console.error('Error fetching push devices:', err)
+      // Fallback: keep previous state but ensure not enabled blindly
+      if (!pushEnabled.value) {
+        preferences.value.push = false
+        preferences.value.pushNotificationTime = 'false'
+      }
+    }
   }
 
   function loadTimepickerScript() {
@@ -353,8 +446,6 @@
         window.mdtimepicker(timepickerInput.value, 'setValue', notificationTime.value)
       })
     }
-
-    pushEnabled.value = preferences.value.push
   }
 
   async function updatePreferences() {
@@ -382,6 +473,18 @@
       generateAlert('error', 'Si è verificato un errore. Riprova più tardi.')
       // Revert on error
       includeSimilar.value = !includeSimilar.value
+    }
+  }
+
+  async function updatePushDeliveryMode() {
+    if (!preferences.value.push) return
+    const value = preferences.value.pushNotificationTime === 'true'
+    try {
+      await setSendPushWithNotifications(value)
+    } catch (err) {
+      console.error('Failed to update push delivery mode', err)
+      generateAlert('error', 'Errore aggiornando preferenza push.')
+      preferences.value.pushNotificationTime = value ? 'false' : 'true'
     }
   }
 
@@ -462,7 +565,14 @@
   .impostazioni-sect-title .material-symbols-outlined {
     color: var(--on-surface-primary);
   }
+  .impostazioni-sect-title{
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
   .dashboard-toEdit-btns .btn {
     color: var(--on-surface);
+  }
+  .impostazioni-sect-content{
+    padding: 0 25px;
   }
 </style>
