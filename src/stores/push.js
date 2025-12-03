@@ -98,10 +98,84 @@ export async function subscribeUser(enable) {
     // Send subscription to backend with Bearer token so it can be linked to the authenticated user
     const token = localStorage.getItem('token');
     if (!token) {
-      console.warn('[push] No auth token found; subscription will not be associated with a user.');
+      console.error('[push] No auth token found; subscription will not be associated with a user.');
+      throw new Error('Utente non autenticato.');
     }
     const deviceId = getDeviceId();
-    const userAgent = navigator.userAgent || 'unknown';
+
+    // Try UAParser, otherwise fall back to a simple userAgent parser
+    let result = null
+    try {
+      if (typeof UAParser === 'function') {
+        const parser = new UAParser()
+        result = parser.getResult()
+      } else {
+        throw new Error('UAParser not available')
+      }
+    } catch (e) {
+      // Fallback: basic userAgent parsing
+      const ua = navigator.userAgent || ''
+      function fallbackParse(uaString) {
+        const ua = uaString || ''
+        const out = { device: 'Device', os: 'Unknown OS', osVersion: 'Unknown Version', browser: 'Unknown Browser' }
+
+        // Device hints
+        if (/iphone/i.test(ua)) out.device = 'iPhone'
+        else if (/ipad/i.test(ua)) out.device = 'iPad'
+        else if (/android/i.test(ua)) out.device = 'Android'
+        else out.device = 'Device'
+
+        // OS detection
+        let m
+        if ((m = ua.match(/Windows NT ([0-9._]+)/i))) {
+          out.os = 'Windows'
+          out.osVersion = m[1]
+        } else if ((m = ua.match(/Android ([0-9.]+)/i))) {
+          out.os = 'Android'
+          out.osVersion = m[1]
+        } else if ((m = ua.match(/iPhone OS ([0-9_]+)/i)) || (m = ua.match(/CPU OS ([0-9_]+)/i))) {
+          out.os = 'iOS'
+          out.osVersion = m[1].replace(/_/g, '.')
+        } else if ((m = ua.match(/Mac OS X ([0-9_]+)/i))) {
+          out.os = 'macOS'
+          out.osVersion = m[1].replace(/_/g, '.')
+        } else if (/linux/i.test(ua)) {
+          out.os = 'Linux'
+          out.osVersion = ''
+        }
+
+        // Browser detection (basic)
+        const browsers = [
+          { name: 'Edge', re: /Edg\/([0-9.]+)/i },
+          { name: 'Opera', re: /OPR\/([0-9.]+)/i },
+          { name: 'Chrome', re: /Chrome\/([0-9.]+)/i },
+          { name: 'Firefox', re: /Firefox\/([0-9.]+)/i },
+          { name: 'Safari', re: /Version\/([0-9.]+).*Safari/i },
+        ]
+        for (const b of browsers) {
+          const bm = ua.match(b.re)
+          if (bm) {
+            out.browser = `${b.name} ${bm[1] || ''}`.trim()
+            break
+          }
+        }
+
+        return out
+      }
+
+      result = { device: { model: fallbackParse(ua).device }, os: { name: fallbackParse(ua).os, version: fallbackParse(ua).osVersion }, browser: { name: fallbackParse(ua).browser } }
+    }
+
+    // Get Device Info
+    const device = (result && result.device && (result.device.model || result.device.type)) || ''
+    const os = (result && result.os && (result.os.name || result.os)) || 'OS Sconosciuto'
+    const osVersion = (result && result.os && (result.os.version || result.osVersion)) || ''
+    const browser = (result && result.browser && (result.browser.name || result.browser)) || 'Unknown Browser'
+
+    // Format the result. Omit device segment when device is empty.
+    const device_info = device && String(device).trim() !== ''
+      ? `${device} · ${os} ${osVersion} · ${browser}`
+      : `${os} ${osVersion} · ${browser}`
 
     const json = subscription?.toJSON ? subscription.toJSON() : subscription; // some browser edge cases
 
@@ -109,7 +183,7 @@ export async function subscribeUser(enable) {
       endpoint: json.endpoint,
       keys: json.keys,
       device_id: deviceId,
-      user_agent: userAgent,
+      device_info: device_info,
     };
 
     try {
@@ -135,7 +209,32 @@ export async function subscribeUser(enable) {
     return subscription;
   } catch (err) {
     console.error('subscribeUser failed', err);
-    throw new Error("Si è verificato un errore interno. Riprova più tardi.");
+    const raw = (err && (err.message || err.name)) || '';
+    const msg = String(raw).toLowerCase();
+
+    // Browser doesn't support push
+    if (
+      msg.includes('not supported') ||
+      msg.includes('notsupported') ||
+      msg.includes('push is not supported') ||
+      err?.name === 'NotSupportedError' ||
+      err?.name === 'UnsupportedError'
+    ) {
+      throw new Error('Le notifiche push non sono supportate da questo browser.');
+    }
+
+    // Permission denied or blocked
+    if (msg.includes('permission') || msg.includes('notallowed') || err?.name === 'NotAllowedError') {
+      throw new Error('Permesso per le notifiche push negato. Controlla le impostazioni del browser.');
+    }
+
+    // VAPID / key / subscription configuration errors
+    if (msg.includes('vapid') || msg.includes('public key') || msg.includes('uncompressed') || msg.includes('p-256')) {
+      throw new Error('Errore nella configurazione delle chiavi per le notifiche push. Riprova più tardi.');
+    }
+
+    // Fallback generic message
+    throw new Error('Si è verificato un errore interno. Riprova più tardi.');
   }
 }
 

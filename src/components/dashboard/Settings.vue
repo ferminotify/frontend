@@ -11,12 +11,12 @@
         class="invioNotificheContainer impostazioni-sect"
         id="orario"
         style="position: relative; padding-bottom: 10px">
-        <p style="padding-bottom: 10px; border-bottom: 1px solid var(--on-surface)" class="impostazioni-sect-title">
+        <p style="padding-bottom: 10px;" class="impostazioni-sect-title">
           <span class="material-symbols-outlined">schedule</span>
           Orario Daily Notification
         </p>
 
-        <div class="notTime" style="margin: 10px 0">
+        <div class="notTime impostazioni-sect-content" style="margin: 10px 0">
           <div class="giorno">
             <label for="day">Giorno</label>
             <div class="flex-y-center">
@@ -76,25 +76,27 @@
           <span class="material-symbols-outlined">notifications</span>
           Notifiche push
         </p>
-        <div class="checkNot-container">
-          Attiva notifiche push
-          <label class="switch">
-            <input
-              type="checkbox"
-              v-model="preferences.push"
-              @change="toggleSubscribeUser"
-              class="checkbox"
-              id="pushNotification" />
-            <span class="slider round"></span>
-          </label>
-        </div>
-        <div class="checkNot-container" v-show="preferences.push">
-          Invia le notifiche push
-          <select class="dashboard-select" v-model="preferences.pushNotificationTime" @change="updatePushDeliveryMode" style="width: fit-content" :disabled="!preferences.push">
-            <!-- send_push_with_notifications -->
-            <option value="false" selected>All'aggiunta della variazione</option>
-            <option value="true">Insieme a email / telegram</option>
-          </select>
+        <div class="impostazioni-sect-content">
+          <div class="checkNot-container">
+            Attiva notifiche push
+            <label class="switch">
+              <input
+                type="checkbox"
+                v-model="preferences.push"
+                @change="toggleSubscribeUser"
+                class="checkbox"
+                id="pushNotification" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="checkNot-container" v-show="preferences.push">
+            Invia le notifiche push
+            <select class="dashboard-select" v-model="preferences.pushNotificationTime" @change="updatePushDeliveryMode" style="width: fit-content" :disabled="!preferences.push">
+              <!-- send_push_with_notifications -->
+              <option value="false" selected>All'aggiunta della variazione</option>
+              <option value="true">Insieme a email / telegram</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -104,29 +106,31 @@
           <span class="material-symbols-outlined">chat_bubble</span>
           Canali notifiche
         </p>
-        <div class="checkNot-container sendEmail">
-          Email
-          <label class="switch">
-            <input
-              type="checkbox"
-              v-model="preferences.email"
-              @change="updatePreferences"
-              class="checkbox"
-              id="sendEmail" />
-            <span class="slider round"></span>
-          </label>
-        </div>
-        <div v-if="hasTelegram" class="checkNot-container sendTelegram">
-          Telegram
-          <label class="switch">
-            <input
-              type="checkbox"
-              v-model="preferences.telegram"
-              @change="updatePreferences"
-              class="checkbox"
-              id="sendTelegram" />
-            <span class="slider round"></span>
-          </label>
+        <div class="impostazioni-sect-content">
+          <div class="checkNot-container sendEmail">
+            Email
+            <label class="switch">
+              <input
+                type="checkbox"
+                v-model="preferences.email"
+                @change="updatePreferences"
+                class="checkbox"
+                id="sendEmail" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div v-if="hasTelegram" class="checkNot-container sendTelegram">
+            Telegram
+            <label class="switch">
+              <input
+                type="checkbox"
+                v-model="preferences.telegram"
+                @change="updatePreferences"
+                class="checkbox"
+                id="sendTelegram" />
+              <span class="slider round"></span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -136,23 +140,25 @@
           <span class="material-symbols-outlined">bolt</span>
           Variazioni dell'orario
         </p>
-        <div class="checkNot-container sendEmail" style="display: flex; align-items: flex-start">
-          Invia variazioni probabili
-          <label class="switch">
-            <input id="sendSimilar" type="checkbox" v-model="includeSimilar" @change="toggleSimilar" class="checkbox" />
-            <span class="slider round"></span>
-          </label>
+        <div class="impostazioni-sect-content">
+          <div class="checkNot-container sendEmail" style="display: flex; align-items: flex-start">
+            Invia variazioni probabili
+            <label class="switch">
+              <input id="sendSimilar" type="checkbox" v-model="includeSimilar" @change="toggleSimilar" class="checkbox" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <p style="font-size: 12px; color: var(--on-surface)">
+            Ricevi notifiche anche delle variazioni dell'orario che potrebbero essere associate alle tue keyword.
+          </p>
+          <!-- prettier-ignore -->
+          <p style="font-size: 12px; color: var(--on-surface);">
+            <span class="material-symbols-outlined">arrow_right_alt</span>Esempio: con keyword<code>5 CIN</code> invia le variazioni sulla <code>5CIIN</code>.
+          </p>
+          <p style="font-size: 12px; color: var(--on-surface)">
+            Utile per includere le variazioni con errori di battitura.
+          </p>
         </div>
-        <p style="font-size: 12px; color: var(--on-surface)">
-          Ricevi notifiche anche delle variazioni dell'orario che potrebbero essere associate alle tue keyword.
-        </p>
-        <!-- prettier-ignore -->
-        <p style="font-size: 12px; color: var(--on-surface);">
-          <span class="material-symbols-outlined">arrow_right_alt</span>Esempio: con keyword<code>5 CIN</code> invia le variazioni sulla <code>5CIIN</code>.
-        </p>
-        <p style="font-size: 12px; color: var(--on-surface)">
-          Utile per includere le variazioni con errori di battitura.
-        </p>
       </div>
     </div>
 
@@ -527,8 +533,12 @@
   }
   .impostazioni-sect-title{
     font-weight: 600;
+    font-size: 1.1rem;
   }
   .dashboard-toEdit-btns .btn {
     color: var(--on-surface);
+  }
+  .impostazioni-sect-content{
+    padding: 0 25px;
   }
 </style>

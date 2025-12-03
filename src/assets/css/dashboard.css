@@ -92,7 +92,6 @@
 .impostazioni-container .impostazioni-sect{
     break-inside: avoid;
     margin-bottom: 25px;
-    border-bottom: 1px solid var(--on-surface);
 }
 
 .user-info-container{
@@ -186,7 +185,6 @@
     display: flex;
     align-items: center;
     padding: 10px 0;
-    border-top: 1px solid var(--on-surface);
 }
 
 /* REPORT PROBLEM */
