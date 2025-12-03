@@ -259,7 +259,6 @@ async function removeDevice(d) {
     align-items: center;
     gap: 15px;
     font-weight: 600;
-    position: relative;
 }
 .device-info-input:focus{
     background: transparent;
@@ -273,11 +272,8 @@ async function removeDevice(d) {
     color: var(--on-primary);
     font-size: 0.75rem;
     font-weight: 600;
-    padding: 6px 10px;
+    padding: 5px 10px;
     border-radius: 15px;
     text-align: center;
-    position: absolute;
-    left: calc(100% + 15px);
-    width: max-content;
 }
 </style>
