@@ -254,7 +254,7 @@
   animation-delay: -1.6s;
 }
 
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 700px) {
   .cercaEventi-filter-container {
     width: 100%;
     display: flex;

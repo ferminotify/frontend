@@ -324,7 +324,7 @@ h1 {
   grid-template-columns: 1fr 1fr;
   place-items: center;
 }
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 700px) {
   .grid-center-2col {
     grid-template-columns: 1fr;
   }
@@ -440,6 +440,26 @@ code,
   cursor: pointer;
   color: var(--on-surface-variant);
 }
+.sidebar-contatti {
+  display: flex;
+  flex-direction: row !important;
+  justify-content: space-evenly;
+  align-items: center;
+  font-size: 16px;
+  height: 10%;
+}
+.sidebar-contatti a {
+  border-radius: 16px;
+  width: 56px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-contatti a:hover {
+  color: var(--on-surface-variant);
+  background-color: var(--surface-variant);
+}
 @media screen and (min-width: 1050px) {
   .sidebar-link.active{
     font-weight: 700;
@@ -458,18 +478,25 @@ code,
     color: var(--on-surface);
     font-variation-settings:
       'FILL' 1,
-      'wght' 600;
   }
   .sidebar-link.active {
     background: var(--primary);
     color: var(--on-primary);
   }
-  
+  .sidebar-contatti{
+    background-color: var(--surface) !important;
+  }
+  .sidebar-contatti:hover {
+    background: transparent !important;
+  }
 }
 /* sidebar #2 */
-@media screen and (min-width: 600px) and (max-width: 1049px) {
+@media screen and (min-width: 700px) and (max-width: 1049px) {
   :root{
     --sidebar-width: 120px;
+  }
+  .main{
+    padding: 0 8% 0 5% !important;
   }
   .sidebar {
     display: flex;
@@ -482,18 +509,18 @@ code,
   }
   .sidebar-inner {
     margin: 15px 0 15px 10px;
-    border-radius: 25px;
+    border-radius: calc(16px + 20px);
     color: var(--on-surface-variant);
     background-color: var(--surface-variant);
     box-shadow: 0 10px 26px rgba(4, 18, 28, 0.14);
     /* make width, gap and padding scale with viewport so the sidebar doesn't force awkward heights */
-    width: clamp(72px, 6.5vw, 120px);
+    width: calc(100% - 20px);
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
     gap: clamp(12px, 6vh, 80px);
-    padding: clamp(12px, 4vh, 56px) 10px;
+    padding: 20px 3px;
   }
   .sidebar-link {
     height: 20%;
@@ -548,19 +575,15 @@ code,
   .sidebar-contatti {
     display: flex;
     flex-direction: row !important;
-    justify-content: space-evenly;
     align-items: center;
     font-size: 16px;
     height: 10%;
+    gap: 15px;
   }
-}
-.sidebar-contatti {
-  display: flex;
-  flex-direction: row !important;
-  justify-content: space-evenly;
-  align-items: center;
-  font-size: 16px;
-  height: 10%;
+  .sidebar-contatti a{
+    width: auto;
+    height: auto;
+  }
 }
 
 .main-container {
@@ -574,7 +597,7 @@ code,
 }
 
 .main {
-  padding: 0 7%;
+  padding: 0 8% 0 5%;
   max-width: 980px;
   width: 100%;
   display: flex;
@@ -869,8 +892,8 @@ code,
 
 /**********/
 
-@media only screen and (max-width: 600px) {
-  .hamburger {
+  @media only screen and (max-width: 700px) {
+    .hamburger {
     display: flex;
     z-index: 10000;
     flex-direction: column;
