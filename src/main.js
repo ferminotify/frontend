@@ -49,10 +49,10 @@ if ("serviceWorker" in navigator) {
         // Only call subscribeUser(true) when we don't already have a subscription
         // or when the saved endpoint differs from the current one. This avoids
         // overwriting user-edited `device_info` in the backend on every page load.
-        const existingSub = await registration.pushManager.getSubscription();
         const storedEndpoint = localStorage.getItem('endpoint') || null;
-        if (!existingSub || (existingSub && existingSub.endpoint !== storedEndpoint)) {
-          await subscribeUser(true);
+        if (!existingSub) {
+          const existingSub = await registration.pushManager.getSubscription();
+          if(existingSub && existingSub.endpoint !== storedEndpoint) await subscribeUser(true);
         } else {
           // nothing to do: keep existing subscription and backend record as-is
           console.log('[push] Existing subscription matches stored endpoint — skipping subscribeUser');
