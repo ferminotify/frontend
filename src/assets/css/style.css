@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Source+Code+Pro:wght@500&display=swap');
 
+:root {
+  --sidebar-width: clamp(180px, 20vw, 275px);
+}
+
 * {
   font-family: 'Montserrat', sans-serif;
 }
@@ -377,31 +381,24 @@ code,
   font-weight: 500;
   overflow-y: auto;
   z-index: 100;
+  width: var(--sidebar-width);
 }
 .sidebar-inner {
-  margin: 15px 0 15px 15px;
-  border-radius: 25px;
   color: var(--on-surface-variant);
-  background-color: var(--surface-variant);
   box-shadow: 0 10px 26px rgba(4, 18, 28, 0.14);
-  /* make width, gap and padding scale with viewport so the sidebar doesn't force awkward heights */
-  width: clamp(72px, 6.5vw, 120px);
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
-  align-items: center;
-  gap: clamp(12px, 6vh, 80px);
-  padding: clamp(12px, 4vh, 56px) 0;
+  margin: 50px 0 0 20px;
 }
 .sidebar-link {
+  border-radius: 999px;
   height: 20%;
-  width: 80px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-direction: column;
   text-align: center;
   font-size: 12px;
+  padding: 15px 20px;
 }
 .sidebar-link .sidebar-icon {
   margin-bottom: 4px;
@@ -411,6 +408,7 @@ code,
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.2s cubic-bezier(0.75, 0.25, 0.05, 0.75);
 }
 .sidebar-link:hover .sidebar-icon {
   background: var(--surface-variant-hover-bg);
@@ -442,6 +440,120 @@ code,
   cursor: pointer;
   color: var(--on-surface-variant);
 }
+@media screen and (min-width: 1050px) {
+  .sidebar-link.active{
+    font-weight: 700;
+  }
+  .sidebar-link{
+    font-weight: 600;
+    gap: 10px;
+    transition: background-color 200ms cubic-bezier(0.2, 0, 0, 1), color 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .sidebar-link .sidebar-icon{
+    width: unset !important;
+    height: unset !important;
+  }
+  .sidebar-link:hover {
+    background: var(--surface-variant-hover-bg);
+    color: var(--on-surface);
+    font-variation-settings:
+      'FILL' 1,
+      'wght' 600;
+  }
+  .sidebar-link.active {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+  
+}
+/* sidebar #2 */
+@media screen and (min-width: 600px) and (max-width: 1049px) {
+  :root{
+    --sidebar-width: 120px;
+  }
+  .sidebar {
+    display: flex;
+    position: fixed;
+    flex-direction: column;
+    height: 100%;
+    font-weight: 500;
+    overflow-y: auto;
+    z-index: 100;
+  }
+  .sidebar-inner {
+    margin: 15px 0 15px 10px;
+    border-radius: 25px;
+    color: var(--on-surface-variant);
+    background-color: var(--surface-variant);
+    box-shadow: 0 10px 26px rgba(4, 18, 28, 0.14);
+    /* make width, gap and padding scale with viewport so the sidebar doesn't force awkward heights */
+    width: clamp(72px, 6.5vw, 120px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    gap: clamp(12px, 6vh, 80px);
+    padding: clamp(12px, 4vh, 56px) 10px;
+  }
+  .sidebar-link {
+    height: 20%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    font-size: 12px;
+    padding: 0;
+  }
+  .sidebar-link .sidebar-icon {
+    margin-bottom: 4px;
+    border-radius: 16px;
+    width: 56px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sidebar-link:hover .sidebar-icon {
+    background: var(--surface-variant-hover-bg);
+    font-variation-settings:
+      'FILL' 1,
+      'wght' 600;
+  }
+  .sidebar-link:hover {
+    color: var(--on-surface);
+  }
+  .sidebar-link.active {
+    color: var(--on-surface-primary);
+  }
+  .sidebar-link.active .sidebar-icon {
+    color: var(--on-primary);
+    background: var(--primary);
+  }
+  .sidebar-link span.material-symbols-outlined {
+    margin-bottom: 4px;
+    border-radius: 16px;
+    width: 56px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sidebar a {
+    text-decoration: none;
+    cursor: pointer;
+    color: var(--on-surface-variant);
+  }
+  .sidebar-contatti {
+    display: flex;
+    flex-direction: row !important;
+    justify-content: space-evenly;
+    align-items: center;
+    font-size: 16px;
+    height: 10%;
+  }
+}
 .sidebar-contatti {
   display: flex;
   flex-direction: row !important;
@@ -462,13 +574,13 @@ code,
 }
 
 .main {
-  padding: 0 15%;
+  padding: 0 7%;
   max-width: 980px;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-left: 88px;
+  margin-left: var(--sidebar-width);
 }
 .main .material-symbols-outlined {
   font-size: inherit;
@@ -884,8 +996,10 @@ code,
      padding: 15px 0;
      box-shadow: 0 10px 26px rgba(4, 18, 28, 0.14);
      transition: transform 0.18s ease, box-shadow 0.18s ease;
+     background-color: var(--surface-variant);
   }
   .sidebar-link {
+    padding: 0;
     height: 100%;
     width: 80px;
     display: flex;
