@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import api from '@/api/axios'
 import axios from 'axios'
 import { API_URL } from '@/utils/config'
-import '@/api/auth'
 
 export const useUserStore = defineStore('user', {
   getters: {
@@ -52,12 +51,10 @@ export const useUserStore = defineStore('user', {
       }
     },
     async login(email, password) {
-      const res = await axios.post(`${API_URL}/user/auth/login`, { email, password })
-      this.token = res.data.token
-      this.refreshToken = res.data.refreshToken
+      const res = await axios.post(`${API_URL}/user/auth/login`, { email, password }) // POST login endpoint
+      this.token = res.data.token // JWT token 1h
       this.onboarding = !!res.data.onboarding
       localStorage.setItem('token', this.token)
-      localStorage.setItem('refreshToken', this.refreshToken)
       await this.fetchProfile()
       return res.data
     },
@@ -72,9 +69,7 @@ export const useUserStore = defineStore('user', {
     },
 
     async refreshAccessToken() {
-      const res = await axios.post(`${API_URL}/user/auth/refresh_token`, {
-        refreshToken: this.refreshToken,
-      })
+      const res = await axios.post(`${API_URL}/user/auth/refresh_token`, {}, { withCredentials: true }) // send cookies
       this.token = res.data.token
       localStorage.setItem('token', this.token)
     },

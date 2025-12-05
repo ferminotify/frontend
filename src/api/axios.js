@@ -3,6 +3,8 @@ import { useUserStore } from '@/stores/user'
 import { API_URL } from '@/utils/config'
 import router from '@/router'
 
+axios.defaults.withCredentials = true; // send cookies with requests
+
 const api = axios.create({
   baseURL: API_URL,
 })

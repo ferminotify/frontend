@@ -31,7 +31,7 @@
               </span>
             </div>
             <p class="firstSubtitle">
-              <a href="/password_reset" class="link">Password dimenticata?</a>
+              <RouterLink to="/password_reset" class="link">Password dimenticata?</RouterLink>
             </p>
           </div>
           <button class="btn filled submit-btn" ref="submitBtnRef">Accedi</button>

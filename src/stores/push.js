@@ -1,4 +1,5 @@
 import { API_URL } from '@/utils/config.js';
+import api from '@/api/axios'
 
 // Resolved at runtime from backend; fallback to env only if backend not reachable
 let VAPID_PUBLIC_KEY = '';
@@ -187,19 +188,7 @@ export async function subscribeUser(enable) {
     };
 
     try {
-      const resp = await fetch(`${API_URL}/user/push/subscribe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(subPayload),
-      });
-
-      if (!resp.ok) {
-        console.error('[push] Failed to register push subscription on backend', resp.status);
-        throw new Error('Si è verificato un errore interno. Riprova più tardi.');
-      }
+      await api.post('/user/push/subscribe', subPayload);
     } catch (e) {
       console.error('[push] Network error sending subscription to backend', e);
       throw new Error('Si è verificato un errore interno. Riprova più tardi.');
@@ -257,26 +246,13 @@ export async function unsubscribeUser() {
     const device_id = localStorage.getItem('device_id');
     if (token && device_id) {
       try {
-        const delResp = await fetch(`${API_URL}/user/push/devices/${encodeURIComponent(device_id)}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!delResp.ok) {
+        const delResp = await api.delete(`/user/push/devices/${encodeURIComponent(device_id)}`);
+        if (!delResp || delResp.status >= 400) {
           // fallback to endpoint-based unsubscribe if device delete didn't work
-          console.warn('[push] delete by device_id failed, falling back to endpoint POST', delResp.status);
+          console.warn('[push] delete by device_id failed, falling back to endpoint POST', delResp?.status);
           try {
-            const resp = await fetch(`${API_URL}/user/push/unsubscribe`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ endpoint: sub.endpoint }),
-            });
-            if (!resp.ok) console.error('[push] Failed to unregister push subscription on backend', resp.status);
+            const resp = await api.post('/user/push/unsubscribe', { endpoint: sub.endpoint });
+            if (!resp || resp.status >= 400) console.error('[push] Failed to unregister push subscription on backend', resp?.status);
           } catch (e) {
             console.error('[push] Network error sending unsubscription to backend (fallback)', e);
           }
@@ -286,15 +262,8 @@ export async function unsubscribeUser() {
         // try fallback
         if (token) {
           try {
-            const resp = await fetch(`${API_URL}/user/push/unsubscribe`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ endpoint: sub.endpoint }),
-            });
-            if (!resp.ok) console.error('[push] Failed to unregister push subscription on backend', resp.status);
+            const resp = await api.post('/user/push/unsubscribe', { endpoint: sub.endpoint });
+            if (!resp || resp.status >= 400) console.error('[push] Failed to unregister push subscription on backend', resp?.status);
           } catch (e2) {
             console.error('[push] Network error sending unsubscription to backend (second fallback)', e2);
           }
@@ -303,15 +272,8 @@ export async function unsubscribeUser() {
     } else if (token) {
       // No device_id available; try endpoint-based unsubscribe
       try {
-        const resp = await fetch(`${API_URL}/user/push/unsubscribe`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ endpoint: sub.endpoint }),
-        });
-        if (!resp.ok) console.error('[push] Failed to unregister push subscription on backend', resp.status);
+        const resp = await api.post('/user/push/unsubscribe', { endpoint: sub.endpoint });
+        if (!resp || resp.status >= 400) console.error('[push] Failed to unregister push subscription on backend', resp?.status);
       } catch (e) {
         console.error('[push] Network error sending unsubscription to backend', e);
       }
@@ -341,34 +303,21 @@ export async function setSendPushWithNotifications(sendTogether) {
   if (!token) throw new Error('Utente non autenticato.');
   const device_id = localStorage.getItem('device_id');
   if (!device_id) throw new Error('Device non identificato.');
-  try {
-    const resp = await fetch(`${API_URL}/user/push/send-push-with-notifications`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ send_push_with_notifications: !!sendTogether, device_id }),
-    });
-    if (!resp.ok) {
-      throw new Error('Aggiornamento preferenza push fallito.');
+    try {
+      const resp = await api.post('/user/push/send-push-with-notifications', { send_push_with_notifications: !!sendTogether, device_id });
+      return resp.data;
+    } catch (e) {
+      console.error('[push] setSendPushWithNotifications error', e);
+      throw e;
     }
-    return await resp.json();
-  } catch (e) {
-    console.error('[push] setSendPushWithNotifications error', e);
-    throw e;
-  }
 }
 
 // Get all push devices for authenticated user
 export async function getPushDevices() {
   const token = localStorage.getItem('token') || ''
   try {
-    const resp = await fetch(`${API_URL}/user/push/devices`, {
-      headers: { Authorization: token ? `Bearer ${token}` : '' },
-    })
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
-    const json = await resp.json()
+    const resp = await api.get('/user/push/devices')
+    const json = resp.data
     if (!json.ok) throw new Error(json.error || 'Errore recupero dispositivi push')
     return json.devices || []
   } catch (e) {
@@ -382,12 +331,8 @@ export async function deletePushDevice(deviceId) {
   const token = localStorage.getItem('token') || ''
   if (!deviceId) throw new Error('deviceId mancante')
   try {
-    const resp = await fetch(`${API_URL}/user/push/devices/${encodeURIComponent(deviceId)}`, {
-      method: 'DELETE',
-      headers: { Authorization: token ? `Bearer ${token}` : '' },
-    })
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
-    const json = await resp.json()
+    const resp = await api.delete(`/user/push/devices/${encodeURIComponent(deviceId)}`)
+    const json = resp.data
     if (!json.ok) throw new Error(json.error || 'Errore eliminazione dispositivo push')
     return json.deleted === true
   } catch (e) {
@@ -400,16 +345,8 @@ export async function updatePushDeviceInfo(deviceId, deviceInfo) {
   const token = localStorage.getItem('token') || ''
   if (!deviceId) throw new Error('deviceId mancante')
   try {
-    const resp = await fetch(`${API_URL}/user/push/update-device-info`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token ? `Bearer ${token}` : '',
-      },
-      body: JSON.stringify({ device_id: deviceId, device_info: deviceInfo }),
-    })
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
-    const json = await resp.json()
+    const resp = await api.post('/user/push/update-device-info', { device_id: deviceId, device_info: deviceInfo })
+    const json = resp.data
     if (!json.ok) throw new Error(json.error || 'Errore aggiornamento info dispositivo push')
     return json.updated === true
   } catch (e) {
