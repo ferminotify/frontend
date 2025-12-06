@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#141314",
   "theme_color": "#004a77",
-  "description": "Fermi Notify è un servizio non ufficiale creato dagli studenti dell'IS E. Fermi Mantova per cercare variazioni giornaliere e ricevere notifiche per essere sempre aggiornati.",
+  "description": "Fermi Notify è un servizio non ufficiale dell'IS E. Fermi Mantova creato dagli studenti per cercare variazioni giornaliere e ricevere notifiche per essere sempre aggiornati.",
   "icons": [
     {
       "src": "/icons/icon-192.png",
