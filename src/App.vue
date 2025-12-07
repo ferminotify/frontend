@@ -5,50 +5,114 @@
 
   const route = useRoute()
   const user = useUserStore()
+
   const isLoggedIn = computed(() => !!user.token)
   const isDashboard = computed(() => route.path.startsWith('/dashboard'))
-  const isAuthActive = computed(() => {
-    return isLoggedIn.value ? isDashboard.value : route.path === '/login' || route.path === '/register'
-  })
+  const isAuthActive = computed(() =>
+    isLoggedIn.value
+      ? isDashboard.value
+      : route.path === '/login' || route.path === '/register'
+  )
   const authTo = computed(() => (isLoggedIn.value ? '/dashboard' : '/login'))
   const authIcon = computed(() => (isLoggedIn.value ? 'space_dashboard' : 'login'))
   const authLabel = computed(() => (isLoggedIn.value ? 'Dashboard' : 'Accesso'))
 
   // Mobile hide-on-scroll state
-  const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 600 : false)
+  const isMobile = ref(typeof window !== 'undefined' && window.innerWidth <= 600)
   const hideSidebarText = ref(false)
   let prevScroll = typeof window !== 'undefined' ? window.pageYOffset : 0
 
-  function handleScroll() {
+  // PWA install state
+  const deferredPrompt = ref(null)
+  const isStandalone = ref(false)
+
+  const handleScroll = () => {
     if (!isMobile.value) return
     const currentScroll = window.pageYOffset
-    const atBottom = (window.innerHeight + window.pageYOffset) >= (document.body.offsetHeight - 1)
-    if (prevScroll > currentScroll || atBottom || currentScroll < 10) {
-      hideSidebarText.value = false
-    } else {
-      hideSidebarText.value = true
-    }
+    const atBottom =
+      window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 1
+
+    hideSidebarText.value = !(prevScroll > currentScroll || atBottom || currentScroll < 10)
     prevScroll = currentScroll
   }
 
-  function handleResize() {
+  const handleResize = () => {
     isMobile.value = window.innerWidth <= 600
-    if (!isMobile.value) {
-      hideSidebarText.value = false
-    }
+    if (!isMobile.value) hideSidebarText.value = false
+  }
+
+  const beforeInstallHandler = (e) => {
+    e.preventDefault()
+    deferredPrompt.value = e
+    console.log('[pwa] beforeinstallprompt captured')
+  }
+
+  const appInstalledHandler = () => {
+    deferredPrompt.value = null
+    isStandalone.value = true
+    console.log('[pwa] appinstalled')
+  }
+
+  const checkStandalone = () => {
+    if (typeof window === 'undefined') return
+    const displayModeStandalone =
+      window.matchMedia?.('(display-mode: standalone)').matches
+    const iosStandalone = window.navigator?.standalone === true
+    isStandalone.value = !!(displayModeStandalone || iosStandalone)
   }
 
   onMounted(() => {
+    if (typeof window === 'undefined') return
+
     prevScroll = window.pageYOffset
     window.addEventListener('scroll', handleScroll, { passive: true })
     window.addEventListener('resize', handleResize)
     handleResize()
+
+    checkStandalone()
+    window.addEventListener('beforeinstallprompt', beforeInstallHandler)
+    window.addEventListener('appinstalled', appInstalledHandler)
   })
 
   onBeforeUnmount(() => {
+    if (typeof window === 'undefined') return
+
     window.removeEventListener('scroll', handleScroll)
     window.removeEventListener('resize', handleResize)
+    window.removeEventListener('beforeinstallprompt', beforeInstallHandler)
+    window.removeEventListener('appinstalled', appInstalledHandler)
   })
+
+  // Trigger the PWA install prompt (fallbacks to navigation)
+  const installApp = async (navigate, event) => {
+    if (deferredPrompt.value) {
+      event?.preventDefault()
+      try {
+        deferredPrompt.value.prompt()
+        const { outcome } = await deferredPrompt.value.userChoice
+        console.log(
+          `[pwa] user ${outcome === 'accepted' ? 'accepted' : 'dismissed'} the install prompt`
+        )
+      } catch (err) {
+        console.warn('[pwa] error prompting install', err)
+      } finally {
+        deferredPrompt.value = null
+      }
+    } else if (isStandalone.value) {
+      // app is already installed: try to focus/open the existing app window (IDK if this works)
+      if (window && window.location && window.location.origin) {
+        const url = '/'
+        // For most platforms, clicking the icon opens the app;
+        // here we just ensure we're on the root of the app.
+        if (window.location.pathname !== url) {
+          window.location.href = url
+        }
+      }
+    } else {
+      // no install prompt available and not standalone: fallback to navigate to /app route
+      navigate()
+    }
+  }
 </script>
 
 <template>
@@ -73,6 +137,13 @@
           <a :href="href" @click="navigate" class="sidebar-link" id="faq" :class="{ active: isExactActive }">
             <span class="material-symbols-outlined sidebar-icon">help_center</span>
             <span class="sidebar-link-text">FAQ</span>
+          </a>
+        </RouterLink>
+
+        <RouterLink v-if="!isStandalone" to="/app" custom v-slot="{ href, navigate, isExactActive }">
+          <a :href="href" @click="installApp(navigate, $event)" class="sidebar-link" id="app" :class="{ active: isExactActive }">
+            <span class="material-symbols-outlined sidebar-icon">download</span>
+            <span class="sidebar-link-text">Installa l'app</span>
           </a>
         </RouterLink>
 
