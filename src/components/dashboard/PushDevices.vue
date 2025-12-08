@@ -101,11 +101,84 @@ async function loadDevices() {
     loadingDevices.value = true
     try {
         devices.value = await getPushDevices()
+        // After fetching devices, verify current device subscription state
+        // and remove DB record if push subscription is not active for this device.
+        try {
+            await verifyAndCleanupCurrentDevice()
+        } catch (e) {
+            console.warn('[push] verifyAndCleanupCurrentDevice error', e)
+        }
     } catch (e) {
         console.error('[push] fetchDevices error', e)
         generateAlert('error', e.message || 'Errore caricando i dispositivi.')
     } finally {
         loadingDevices.value = false
+    }
+}
+
+// Check whether the current device still has an active push subscription
+// If not active (no registration/subscription or endpoint mismatch) delete
+// the corresponding DB record for this device_id.
+async function verifyAndCleanupCurrentDevice() {
+    if (!currentDeviceId) return
+    // find current device record returned by backend
+    const deviceRecord = (devices.value || []).find(x => x.device_id === currentDeviceId)
+    if (!deviceRecord) return
+
+    try {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            // Browser no longer supports push → remove server record
+            await attemptDeleteCurrentDevice('browser-no-push')
+            return
+        }
+
+        const registration = await navigator.serviceWorker.getRegistration()
+        if (!registration) {
+            // No service worker registered for this scope → remove server record
+            await attemptDeleteCurrentDevice('no-service-worker')
+            return
+        }
+
+        const subscription = await registration.pushManager.getSubscription()
+        // stored endpoint (used when subscribing)
+        const storedEndpoint = localStorage.getItem('endpoint') || ''
+
+        if (!subscription) {
+            // no active subscription in the browser
+            await attemptDeleteCurrentDevice('no-subscription')
+            return
+        }
+
+        const subJson = subscription && typeof subscription.toJSON === 'function' ? subscription.toJSON() : subscription
+        if (storedEndpoint && subJson.endpoint && storedEndpoint !== subJson.endpoint) {
+            // endpoint changed or mismatch — treat as inactive/stale and remove DB record
+            await attemptDeleteCurrentDevice('endpoint-mismatch')
+            return
+        }
+
+        // subscription appears active and matches stored endpoint — nothing to do
+        return
+    } catch (e) {
+        console.error('[push] verify current subscription failed', e)
+        // don't throw further — we don't want to break UI loading
+    }
+}
+
+async function attemptDeleteCurrentDevice(reason) {
+    try {
+        const deleted = await deletePushDevice(currentDeviceId)
+        if (deleted) {
+            // remove from list shown in UI
+            devices.value = devices.value.filter(x => x.device_id !== currentDeviceId)
+            // clear local stored subscription metadata but keep device_id (so it stays stable)
+            localStorage.removeItem('vapidPublicKey')
+            localStorage.removeItem('endpoint')
+            console.log('[push] Removed current device due to:', reason)
+        } else {
+            console.warn('[push] Server reported device not deleted for reason:', reason)
+        }
+    } catch (e) {
+        console.error('[push] attemptDeleteCurrentDevice error', e)
     }
 }
 
