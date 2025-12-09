@@ -1,5 +1,5 @@
 <template>
-    <div class="modal-out">
+    <div :class="['modal-out', { 'modal-out--visible': modalVisible }]">
         <div :class="['modal', { 'modal--visible': modalVisible }]" role="dialog" aria-modal="true" @keydown.esc.prevent="onCancel" ref="modalRef" tabindex="-1">
             <h1 class="modal-title">{{ title }}</h1>
 
@@ -145,11 +145,15 @@ const modalRef = ref(null)
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0);
     display: flex;
     align-items: flex-end;
     justify-content: center;
     z-index: 999;
+    transition: background-color 200ms ease-in;
+}
+.modal-out.modal-out--visible {
+    background-color: rgba(0, 0, 0, 0.8);
 }
 .modal {
     display: flex;
@@ -160,8 +164,7 @@ const modalRef = ref(null)
     width: fit-content;
     max-width: 800px;
     padding: 35px 50px;
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
+    border-radius: 15px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 1000;
     min-width: 250px;
@@ -170,6 +173,7 @@ const modalRef = ref(null)
     overflow-y: auto;
     color: var(--on-surface);
     transform: translateY(100%);
+    margin-bottom: 10px;
     opacity: 0;
     transition: transform 320ms cubic-bezier(.2,.9,.2,1), opacity 200ms ease-in;
 }

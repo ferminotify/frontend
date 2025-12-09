@@ -268,7 +268,7 @@ async function removeDevice(d) {
     const confirmed = await new Promise((resolve) => {
         const modal = createApp(Modal, {
             title: 'Conferma rimozione dispositivo',
-            subject: `Rimuovere ${d.device_info}?`,
+            subject: `Rimuovere ${d.device_info} dalle notifiche push?`,
             confirmLabel: 'Rimuovi',
             cancelLabel: 'Annulla',
             onConfirm: () => {
