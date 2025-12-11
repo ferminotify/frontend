@@ -1,16 +1,16 @@
 <template>
-  <section class="rounded-container">
-    <div class="rounded-inner">
-      <h1>FAQ</h1>
-      <p class="mb-10px">Domande frequenti.</p>
-      <ul>
-        <li>Come funziona il filtro eventi?</li>
-        <li>Come cambio tema?</li>
-      </ul>
-    </div>
-  </section>
+  <Title title="FAQ" subtitle="Scopri come funziona Fermi Notify." />
+  <TagIntro />
+  <Status />
+  <SlickSliderPresentation />
 </template>
 
 <script setup>
-  // Expand with real content later
+  import Title from '@/components/Title.vue';
+  import TagIntro from '@/components/TagIntro.vue';
+  import Status from '@/components/Status.vue';
+  import SlickSliderPresentation from '@/components/SlickSliderPresentation.vue';
 </script>
+
+<style scoped src="@/assets/css/page.css"></style>
+<style scoped src="@/assets/css/faq.css"></style>
