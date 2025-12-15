@@ -23,7 +23,7 @@ export function loading(target) {
     btn.innerHTML =
       "<div class='submit-lds-grid'><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>"
   } catch (e) {
-    // eslint-disable-next-line no-console
+     
     console.error('loading() failed', e)
   }
 }
@@ -52,7 +52,7 @@ export function resetLoading(target, params) {
     btn.style.height = params.height
     btn.innerHTML = params.html
   } catch (e) {
-    // eslint-disable-next-line no-console
+     
     console.error('resetLoading() failed', e)
   }
 }

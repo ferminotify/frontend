@@ -88,7 +88,7 @@ function waitForTransitionEnd(el, timeout = 500) {
 // orchestrate closing: scroll modal down, play slide-down, then emit
 async function startClose(action) {
     try {
-        const el = modalRef && modalRef.value
+        const el = modalRef.value && modalRef.value
         // start slide-down animation immediately so UI feels responsive
         modalVisible.value = false
         // optionally jump-scroll the modal content to bottom (no smooth) so it doesn't retain odd position
@@ -116,7 +116,7 @@ onMounted(() => {
         modalVisible.value = true
         // focus the dialog so it receives keyboard events and is announced by screen readers
         try {
-            if (modalRef && modalRef.value && typeof modalRef.value.focus === 'function') {
+            if (modalRef.value && modalRef.value && typeof modalRef.value.focus === 'function') {
                 modalRef.value.focus()
             }
         } catch (e) {
@@ -124,9 +124,9 @@ onMounted(() => {
         }
         // ensure the modal container scrolls to top so only modal content moves
         try {
-            if (modalRef && modalRef.value && typeof modalRef.value.scrollTo === 'function') {
+            if (modalRef.value && modalRef.value && typeof modalRef.value.scrollTo === 'function') {
                 modalRef.value.scrollTo({ top: 0, behavior: 'smooth' })
-            } else if (modalRef && modalRef.value) {
+            } else if (modalRef.value && modalRef.value) {
                 modalRef.value.scrollTop = 0
             }
         } catch (e) {

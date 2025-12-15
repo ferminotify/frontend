@@ -82,10 +82,10 @@
 	  // eslint-disable-next-line es/no-global-this -- safe
 	  check(typeof globalThis == 'object' && globalThis) ||
 	  check(typeof window == 'object' && window) ||
-	  // eslint-disable-next-line no-restricted-globals -- safe
+	   
 	  check(typeof self == 'object' && self) ||
 	  check(typeof commonjsGlobal == 'object' && commonjsGlobal) ||
-	  // eslint-disable-next-line no-new-func -- fallback
+	   
 	  (function () { return this; })() || Function('return this')();
   
 	var objectGetOwnPropertyDescriptor = {};
@@ -798,7 +798,7 @@
 	};
   
 	// add fake Function#toString for correct work wrapped methods / constructors with methods like LoDash isNative
-	// eslint-disable-next-line no-extend-native -- required
+	 
 	Function.prototype.toString = makeBuiltIn$1(function toString() {
 	  return isCallable$b(this) && getInternalState$2(this).source || inspectSource$1(this);
 	}, 'toString');
@@ -852,7 +852,7 @@
 	// https://tc39.es/ecma262/#sec-tointegerorinfinity
 	var toIntegerOrInfinity$4 = function (argument) {
 	  var number = +argument;
-	  // eslint-disable-next-line no-self-compare -- NaN check
+	   
 	  return number !== number || number === 0 ? 0 : trunc(number);
 	};
   
@@ -899,10 +899,10 @@
 		var index = toAbsoluteIndex$1(fromIndex, length);
 		var value;
 		// Array#includes uses SameValueZero equality algorithm
-		// eslint-disable-next-line no-self-compare -- NaN check
+		 
 		if (IS_INCLUDES && el != el) while (length > index) {
 		  value = O[index++];
-		  // eslint-disable-next-line no-self-compare -- NaN check
+		   
 		  if (value != value) return true;
 		// Array#indexOf ignores holes, Array#includes - not
 		} else for (;length > index; index++) {
@@ -2505,7 +2505,7 @@
 	var arrayMethodIsStrict$1 = function (METHOD_NAME, argument) {
 	  var method = [][METHOD_NAME];
 	  return !!method && fails$1(function () {
-		// eslint-disable-next-line no-useless-call -- required for testing
+		 
 		method.call(null, argument || function () { return 1; }, 1);
 	  });
 	};
@@ -2631,7 +2631,7 @@
 	  iteratorWithReturn[ITERATOR$1] = function () {
 		return this;
 	  };
-	  // eslint-disable-next-line es/no-array-from, no-throw-literal -- required for testing
+	  // eslint-disable-next-line es/no-array-from -- required for testing
 	  Array.from(iteratorWithReturn, function () { throw 2; });
 	} catch (error) { /* empty */ }
   
@@ -2716,7 +2716,7 @@
 	  throw $TypeError("Can't set " + $String(argument) + ' as a prototype');
 	};
   
-	/* eslint-disable no-proto -- safe */
+	 
   
 	var uncurryThisAccessor = functionUncurryThisAccessor;
 	var anObject = anObject$f;

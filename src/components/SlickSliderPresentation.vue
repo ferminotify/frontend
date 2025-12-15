@@ -153,7 +153,7 @@ export default {
         try {
             await import(/* @vite-ignore */ '../utils/slick.min.js');
         } catch (err) {
-            // eslint-disable-next-line no-console
+             
             console.error('Failed to load slick plugin:', err);
             return;
         }
@@ -161,7 +161,7 @@ export default {
         this.$nextTick(() => {
             const $cards = $(this.$el).find('.slideshow-cards');
             if (!$cards || typeof $cards.slick !== 'function') {
-                // eslint-disable-next-line no-console
+                 
                 console.warn('Slick plugin not available on jQuery');
                 return;
             }
