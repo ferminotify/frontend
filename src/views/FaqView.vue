@@ -15,24 +15,28 @@
   import TagIntro from '@/components/TagIntro.vue'
   import Status from '@/components/Status.vue'
   import FaqSections from '@/components/FaqSections.vue'
+  import { FAQ_TABS } from '@/utils/config.js'
 
   const router = useRouter()
   const FAQ_ROUTE_NAME = 'faq'
   const FAQ_ROUTE_PATH = '/faq'
+
+  // Scroll offset constants for better readability and maintainability
+  const CONTAINER_SCROLL_OFFSET = 100
+  const SECTION_SCROLL_OFFSET = 75
 
   onMounted(async () => {
     // Replicate legacy EJS behavior: read `page` and `s` params, scroll to container/section, then clean URL
     const params = new URLSearchParams(window.location.search)
     const page = params.get('page')
     const section = params.get('s')
-    const validPages = ['generali', 'configurazione', 'privacy']
 
-    if (page && validPages.includes(page)) {
+    if (page && FAQ_TABS.includes(page)) {
       // Wait for FaqSections to render and react to route.query.page (it watches the route)
       await nextTick()
       const container = document.getElementById(`${page}Container`)
       if (container) {
-        const scroll = container.getBoundingClientRect().top + window.scrollY - 100
+        const scroll = container.getBoundingClientRect().top + window.scrollY - CONTAINER_SCROLL_OFFSET
         window.scrollTo({ top: scroll, behavior: 'smooth' })
       }
     }
@@ -42,7 +46,7 @@
       await nextTick()
       const elem = document.getElementById(section)
       if (elem) {
-        const scroll = elem.getBoundingClientRect().top + window.scrollY - 75
+        const scroll = elem.getBoundingClientRect().top + window.scrollY - SECTION_SCROLL_OFFSET
         window.scrollTo({ top: scroll, behavior: 'smooth' })
       }
     }

@@ -121,7 +121,7 @@ export default {
                 tooltip.classList.add('invisible');
             });
         } else {
-            console.error('Aucun élément Tooltip ciblé. Enjambement!');
+            console.error('Nessun elemento Tooltip trovato. Si salta!');
         }
 
         // collect domains
