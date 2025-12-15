@@ -19,6 +19,10 @@
 
   const router = useRouter()
 
+  // Scroll offset constants for better readability and maintainability
+  const CONTAINER_SCROLL_OFFSET = 100
+  const SECTION_SCROLL_OFFSET = 75
+
   onMounted(async () => {
     // Replicate legacy EJS behavior: read `page` and `s` params, scroll to container/section, then clean URL
     const params = new URLSearchParams(window.location.search)
@@ -30,7 +34,7 @@
       await nextTick()
       const container = document.getElementById(`${page}Container`)
       if (container) {
-        const scroll = container.getBoundingClientRect().top + window.scrollY - 100
+        const scroll = container.getBoundingClientRect().top + window.scrollY - CONTAINER_SCROLL_OFFSET
         window.scrollTo({ top: scroll, behavior: 'smooth' })
       }
     }
@@ -40,7 +44,7 @@
       await nextTick()
       const elem = document.getElementById(section)
       if (elem) {
-        const scroll = elem.getBoundingClientRect().top + window.scrollY - 75
+        const scroll = elem.getBoundingClientRect().top + window.scrollY - SECTION_SCROLL_OFFSET
         window.scrollTo({ top: scroll, behavior: 'smooth' })
       }
     }
