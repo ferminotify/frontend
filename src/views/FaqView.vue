@@ -18,6 +18,8 @@
   import { FAQ_TABS } from '@/utils/config.js'
 
   const router = useRouter()
+  const FAQ_ROUTE_NAME = 'faq'
+  const FAQ_ROUTE_PATH = '/faq'
 
   // Scroll offset constants for better readability and maintainability
   const CONTAINER_SCROLL_OFFSET = 100
@@ -50,12 +52,12 @@
     }
 
     // Remove query params from URL (replace state without navigation)
-    // Prefer router.replace when available to keep SPA state consistent
-    if (router && typeof router.replace === 'function') {
-      router.replace({ path: '/faq' })
-    } else {
+    try {
+      // Prefer router.replace when available to keep SPA state consistent
+      router.replace({ name: FAQ_ROUTE_NAME })
+    } catch (e) {
       // Fallback to history.replaceState
-      history.replaceState({}, document.title, '/faq')
+      history.replaceState({}, document.title, FAQ_ROUTE_PATH)
     }
   })
 </script>
