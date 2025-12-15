@@ -129,9 +129,16 @@ export default {
                 tooltip.classList.add('invisible');
             };
 
-            document.addEventListener('mouseover', this.handleMouseOver);
-            document.addEventListener('mousemove', this.handleMouseMove);
-            document.addEventListener('mouseout', this.handleMouseOut);
+            // Only add listeners if they haven't been added yet
+            if (this.handleMouseOver) {
+                document.addEventListener('mouseover', this.handleMouseOver);
+            }
+            if (this.handleMouseMove) {
+                document.addEventListener('mousemove', this.handleMouseMove);
+            }
+            if (this.handleMouseOut) {
+                document.addEventListener('mouseout', this.handleMouseOut);
+            }
         } else {
             console.error('Aucun élément Tooltip ciblé. Enjambement!');
         }
