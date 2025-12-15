@@ -1,11 +1,12 @@
 body{
-	overflow-x: hidden;
 }
+
 .slider-container {
 	position: relative;
 	width: 100% !important;
 	max-width: 1920px;
 	margin: 0 auto;
+	overflow-x: hidden;
 }
 
 .slick-track:after,
