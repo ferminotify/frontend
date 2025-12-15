@@ -31,7 +31,7 @@ export function initPasswordIconForEdge(iconElOrId) {
       if (iconEl) iconEl.style.display = 'none'
     }
   } catch (e) {
-    // eslint-disable-next-line no-console
+     
     console.warn('initPasswordIconForEdge failed', e)
   }
 }

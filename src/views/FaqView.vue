@@ -17,6 +17,8 @@
   import FaqSections from '@/components/FaqSections.vue'
 
   const router = useRouter()
+  const FAQ_ROUTE_NAME = 'faq'
+  const FAQ_ROUTE_PATH = '/faq'
 
   onMounted(async () => {
     // Replicate legacy EJS behavior: read `page` and `s` params, scroll to container/section, then clean URL
@@ -48,10 +50,10 @@
     // Remove query params from URL (replace state without navigation)
     try {
       // Prefer router.replace when available to keep SPA state consistent
-      router.replace({ name: 'faq' })
+      router.replace({ name: FAQ_ROUTE_NAME })
     } catch (e) {
       // Fallback to history.replaceState
-      history.replaceState({}, document.title, '/faq')
+      history.replaceState({}, document.title, FAQ_ROUTE_PATH)
     }
   })
 </script>
