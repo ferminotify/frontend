@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
+import { FAQ_TABS } from '@/utils/config.js'
 
 const route = useRoute()
 
@@ -23,8 +24,7 @@ onMounted(() => {
 
 	// Initialize active tab from query param (?page=generali|configurazione|privacy)
 	const page = route.query.page
-	const validTabs = ['generali', 'configurazione', 'privacy']
-	if (typeof page === 'string' && validTabs.includes(page)) {
+	if (typeof page === 'string' && FAQ_TABS.includes(page)) {
 		activeTab.value = page
 	}
 
