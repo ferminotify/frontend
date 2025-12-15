@@ -72,6 +72,14 @@
 <script>
 export default {
     name: 'Status',
+    data() {
+        return {
+            animationFrameId: null,
+            handleMouseOver: null,
+            handleMouseMove: null,
+            handleMouseOut: null
+        };
+    },
     mounted() {
         const tooltip = this.$refs.tooltip;
 
@@ -86,20 +94,20 @@ export default {
                 tooltipY += (mouseY - tooltipY) * 0.17;
                 tooltip.style.top = tooltipY + 'px';
                 tooltip.style.left = tooltipX + 'px';
-                requestAnimationFrame(updateTooltipPosition);
+                this.animationFrameId = requestAnimationFrame(updateTooltipPosition);
             };
 
-            requestAnimationFrame(updateTooltipPosition);
+            this.animationFrameId = requestAnimationFrame(updateTooltipPosition);
 
-            document.addEventListener('mouseover', (e) => {
+            this.handleMouseOver = (e) => {
                 if (e.target.hasAttribute('title')) {
                     const title = e.target.getAttribute('title');
                     e.target.setAttribute('data-original-title', title);
                     e.target.removeAttribute('title');
                 }
-            });
+            };
 
-            document.addEventListener('mousemove', (e) => {
+            this.handleMouseMove = (e) => {
                 mouseY = e.clientY + window.scrollY - 30;
                 mouseX = e.clientX - 85;
 
@@ -110,16 +118,27 @@ export default {
                 } else {
                     tooltip.classList.add('invisible');
                 }
-            });
+            };
 
-            document.addEventListener('mouseout', (e) => {
+            this.handleMouseOut = (e) => {
                 if (e.target.hasAttribute('data-original-title')) {
                     const title = e.target.getAttribute('data-original-title');
                     e.target.setAttribute('title', title);
                     e.target.removeAttribute('data-original-title');
                 }
                 tooltip.classList.add('invisible');
-            });
+            };
+
+            // Only add listeners if they haven't been added yet
+            if (this.handleMouseOver) {
+                document.addEventListener('mouseover', this.handleMouseOver);
+            }
+            if (this.handleMouseMove) {
+                document.addEventListener('mousemove', this.handleMouseMove);
+            }
+            if (this.handleMouseOut) {
+                document.addEventListener('mouseout', this.handleMouseOut);
+            }
         } else {
             console.error('Nessun elemento Tooltip trovato. Si salta!');
         }
@@ -156,6 +175,23 @@ export default {
             else if (response.status === 'idle') this.setStatus('service-notifier-backup', 'idle');
             else this.setStatus('service-notifier-backup', 'active');
         }).catch(() => this.setStatus('service-notifier-backup', 'na'));
+    },
+    beforeUnmount() {
+        // Cancel animation frame to prevent it from running after unmount
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+        }
+
+        // Remove event listeners to prevent memory leaks
+        if (this.handleMouseOver) {
+            document.removeEventListener('mouseover', this.handleMouseOver);
+        }
+        if (this.handleMouseMove) {
+            document.removeEventListener('mousemove', this.handleMouseMove);
+        }
+        if (this.handleMouseOut) {
+            document.removeEventListener('mouseout', this.handleMouseOut);
+        }
     },
     methods: {
         setStatus(id, status) {
