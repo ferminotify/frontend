@@ -1,3 +1,4 @@
+<!-- WIP -->
 <template>
     <div id="ComeFunzionaContainer">
         <div class="slider-container slideshow-box-hp" id="ComeFunziona">
