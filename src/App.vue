@@ -148,10 +148,10 @@
         </RouterLink>
 
         <div class="sidebar-link sidebar-contatti sidebar-desktop">
-          <a href="https://www.instagram.com/ferminotify/" target="_blank">
+          <a href="https://www.instagram.com/ferminotify/" target="_blank" rel="noopener noreferrer">
             <font-awesome-icon :icon="['fab', 'instagram']" />
           </a>
-          <a href="https://github.com/ferminotify" target="_blank">
+          <a href="https://github.com/ferminotify" target="_blank" rel="noopener noreferrer">
             <font-awesome-icon :icon="['fab', 'github']" />
           </a>
         </div>
