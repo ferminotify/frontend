@@ -15,6 +15,7 @@
   import TagIntro from '@/components/TagIntro.vue'
   import Status from '@/components/Status.vue'
   import FaqSections from '@/components/FaqSections.vue'
+  import { FAQ_TABS } from '@/utils/config.js'
 
   const router = useRouter()
 
@@ -23,9 +24,8 @@
     const params = new URLSearchParams(window.location.search)
     const page = params.get('page')
     const section = params.get('s')
-    const validPages = ['generali', 'configurazione', 'privacy']
 
-    if (page && validPages.includes(page)) {
+    if (page && FAQ_TABS.includes(page)) {
       // Wait for FaqSections to render and react to route.query.page (it watches the route)
       await nextTick()
       const container = document.getElementById(`${page}Container`)
