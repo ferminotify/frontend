@@ -46,10 +46,10 @@
     }
 
     // Remove query params from URL (replace state without navigation)
-    try {
-      // Prefer router.replace when available to keep SPA state consistent
-      router.replace({ name: 'faq' })
-    } catch (e) {
+    // Prefer router.replace when available to keep SPA state consistent
+    if (router && typeof router.replace === 'function') {
+      router.replace({ path: '/faq' })
+    } else {
       // Fallback to history.replaceState
       history.replaceState({}, document.title, '/faq')
     }
