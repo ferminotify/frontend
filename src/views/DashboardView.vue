@@ -126,6 +126,18 @@
   }
   .onboarding-card.settings {
     transform: translateY(-100px); /* logout btn */
+    /* Ensure card stays within viewport on mobile */
+    max-height: calc(100vh - 20px);
+    overflow-y: auto;
+  }
+  /* On mobile, if the card would be pushed below viewport, clamp it to bottom of screen */
+  @media (max-width: 768px) {
+    .onboarding-card.settings {
+      bottom: 10px;
+      top: auto;
+      transform: none;
+      position: fixed;
+    }
   }
   .onboarding-card.start {
     /* position the start card slightly below the top element */
