@@ -1,6 +1,6 @@
 <template>
   <div class="section" id="faq-view">
-    <Title title="FAQ" subtitle="Scopri come funziona Fermi Notify." />
+    <Title title="FAQ" subtitle="Scopri come funziona Fermi Notify." :showVideo="true" />
     <TagIntro />
     <Status />
     <FaqSections />
@@ -64,3 +64,8 @@
 
 <style src="@/assets/css/page.css"></style>
 <style src="@/assets/css/faq.css"></style>
+<style scoped>
+.firstTitle, .firstSubtitle {
+  color: #fff;
+}
+</style>

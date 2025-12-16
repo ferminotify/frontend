@@ -1,6 +1,6 @@
 <template>
   <div class="rounded-container title-with-video">
-    <div class="video-bg">
+    <div v-if="showVideo" class="video-bg">
       <video class="bg-video" autoplay muted loop playsinline>
         <source :src="bgVideo" type="video/mp4" />
       </video>
@@ -20,6 +20,7 @@
   defineProps({
     title: String,
     subtitle: String,
+    showVideo: { type: Boolean, default: false },
   })
 </script>
 
@@ -51,10 +52,5 @@
   position: relative;
   z-index: 1;
   padding: 2rem;
-}
-
-/* Keep existing typography rules but ensure text sits above the video */
-.firstTitle, .firstSubtitle {
-  color: #fff;
 }
 </style>
