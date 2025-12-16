@@ -26,6 +26,16 @@
   // PWA install state
   const deferredPrompt = ref(null)
   const isStandalone = ref(false)
+  const showBigAlert = ref(false)
+
+  function closeBigAlert() {
+    try {
+      localStorage.setItem('hide_alert_new_app_beta_251216', 'true')
+    } catch (e) {
+      /* ignore */
+    }
+    showBigAlert.value = false
+  }
 
   const handleScroll = () => {
     if (!isMobile.value) return
@@ -73,6 +83,20 @@
     checkStandalone()
     window.addEventListener('beforeinstallprompt', beforeInstallHandler)
     window.addEventListener('appinstalled', appInstalledHandler)
+    // show the big alert once unless the user previously closed it
+    try {
+      const hidden = localStorage.getItem('hide_alert_new_app_beta_251216')
+      showBigAlert.value = hidden !== 'true'
+    } catch (e) {
+      showBigAlert.value = true
+    }
+
+    // expose closeBigAlert globally so inline handlers won't throw
+    try {
+      window.closeBigAlert = closeBigAlert
+    } catch (e) {
+      /* ignore */
+    }
   })
 
   onBeforeUnmount(() => {
@@ -86,6 +110,7 @@
     try {
       if (window.startPwaInstall) delete window.startPwaInstall
       if (window.openPwaApp) delete window.openPwaApp
+      if (window.closeBigAlert) delete window.closeBigAlert
     } catch (e) {
       /* ignore */
     }
@@ -284,6 +309,28 @@
   <div class="main-container">
     <main class="main">
       <RouterView />
+
+      <div v-if="showBigAlert" class="bigalert" id="alert_new_app_beta_251216">
+        <div class="bigalert-inner">
+          <div class="two-container" style="padding-bottom: 0.83em;">
+            <h2 style="margin: 0;">Stai usando la nuova App! <span class="badge">beta</span></h2>
+            <button @click="closeBigAlert" class="btn text" style="font-size: 1.5em;">&times;</button>
+          </div>
+          <h4 style="margin: 0; padding-bottom: 10px;">Novità</h4>
+          <ul style="padding-bottom: 10px; margin: 0">
+            <li><b>App</b>: installa la nuova App di Fermi Notify sul tuo dispositivo!</li>
+            <li><b>Notifiche Push</b>: visita la dashboard per attivare le notifiche push!</li>
+          </ul>
+          <p style="padding-bottom: 10px;" class="primary-text"><span class="material-symbols-outlined">info</span> La nuova app è in beta testing.</p>
+          <p style="padding-bottom: 10px;">Se riscontri problemi o hai suggerimenti, contattaci su Instagram
+            <a class="link" href="https://www.instagram.com/ferminotify/" ><font-awesome-icon :icon="['fab', 'instagram']" ></font-awesome-icon> ferminotify</a>.</p>
+          <p>Puoi usare la vecchia App su <a class="link" href="https://node.fn.lkev.in">node.fn.lkev.in</a>.</p>
+          <div class="actions">
+            <a class="btn outlined" href="https://github.com/ferminotify/frontend" target="_blank" rel="noopener noreferrer"><font-awesome-icon :icon="['fab', 'github']" ></font-awesome-icon> Open source</a>
+            <button @click="closeBigAlert" class="btn filled">Chiudi</button>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 </template>
@@ -308,5 +355,62 @@
 /* keep default desktop behaviour untouched */
 .sidebar .sidebar-link-text {
   transition: none;
+}
+
+
+.bigalert{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.bigalert-inner{
+  max-width: 760px;
+  width: 75%;
+  padding: 25px 35px;
+  border-radius: 25px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  background-color: var(--surface);
+  color: #fff;
+  line-height: 1.5;
+  font-size: 16px;
+}
+.bigalert-inner p{
+  text-align: justify;
+}
+.two-container{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bigalert .badge{
+  background-color: var(--primary);
+  color: var(--on-primary);
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.5em;
+}
+.bigalert .actions{
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 15px 0;
+}
+.bigalert .actions .btn{
+  line-height: initial;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media screen and (max-width: 400px) {
+  .bigalert .btn{
+    padding: 10px 15px;
+  }
 }
 </style>
