@@ -166,7 +166,8 @@ onBeforeUnmount(() => {
 					<span class="primary-text">formattazione</span> della keyword, dev'essere uguale a quella scritta nel calendario giornaliero (<code>4CIIN</code>, non "4 CIIN" o "4CIN")!
 				</p>
 				<p class="answer answer-staccato">
-					Consiglio: aggiungi la tua <span class="primary-text">classe</span> per ricevere le notifiche riguardanti la classe (come una sostituzione o un cambio aula), puoi aggiungere anche:<br>
+					Consiglio: aggiungi la tua <span class="primary-text">classe</span> per ricevere le notifiche riguardanti la classe (come una sostituzione o un cambio aula), puoi aggiungere anche:
+				</p>
 				<ul style="line-height: 1.5em; ">
 					<li>
 						il tuo <span class="primary-text">cognome</span> per le notifiche riguardanti solo te (come la prenotazione di un aula);
@@ -175,7 +176,6 @@ onBeforeUnmount(() => {
 						il nome di un <span class="primary-text">corso</span> che segui per le notifiche riguardanti le attivit&agrave; extrascolastiche (es. <i>Corso FUSION</i>).
 					</li>
 				</ul>
-				</p>
 			</div>
 
 			<div class="question">
@@ -205,8 +205,9 @@ onBeforeUnmount(() => {
 				<h3>5. Come cambio l'orario di invio delle Daily Notification?</h3>
 				<p class="answer">
 					La Daily Notification viene inviata di default alle <span class="primary-text">6:00</span> del giorno stesso delle variazioni dell'orario (es. <u>marted&igrave;</u> <i>Entrata posticipata</i>
-					<i class="fa-solid fa-arrow-right"></i> notifica alle 6:00 di <u>marted&igrave;</u>).<br>
+					<i class="fa-solid fa-arrow-right"></i> notifica alle 6:00 di <u>marted&igrave;</u>).
 					Puoi cambiare l'orario di invio delle Daily Notification e impostarla nei seguenti modi:
+				</p>
 				<ul style="line-height: 1.5em; ">
 					<li style="margin: 10px 0">
 						Alla <span class="primary-text">mattina</span> tra le <span class="primary-text">00:00</span> e le <span class="primary-text">8:10</span> in cui verranno raggruppati le tutte variazioni del giorno (es. <u>luned&igrave;</u>
@@ -217,6 +218,7 @@ onBeforeUnmount(() => {
 						<i class="fa-solid fa-arrow-right"></i> notifica alle 19:30 di <u>domenica</u>).
 					</li>
 				</ul>
+				<p class="answer">
 					Tutte le variazioni aggiunte dopo l'orario specificato (negli esempi, dopo le 6:30 e le 19:30) verranno inviati come Last Minute Notification all'istante in cui vengono individuate nel calendario giornaliero.<br>
 					Per cambiare l'orario di invio delle Daily Notification, vai nella <a href="/dashboard" class="link">Dashboard</a> e seleziona l'orario desiderato.
 				</p>
