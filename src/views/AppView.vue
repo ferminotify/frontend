@@ -1,4 +1,5 @@
 <template>
+    <div class="section" id="app-view">
     <section class="rounded-container">
         <div class="rounded-inner">
         <h1>Installa l'app (WIP)</h1>
@@ -10,4 +11,5 @@
         <p>Scarica l'APK</p>
         </div>
     </section>
+    </div>
 </template>

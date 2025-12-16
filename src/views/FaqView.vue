@@ -1,16 +1,66 @@
 <template>
-  <section class="rounded-container">
-    <div class="rounded-inner">
-      <h1>FAQ</h1>
-      <p class="mb-10px">Domande frequenti.</p>
-      <ul>
-        <li>Come funziona il filtro eventi?</li>
-        <li>Come cambio tema?</li>
-      </ul>
-    </div>
-  </section>
+  <div class="section" id="faq-view">
+    <Title title="FAQ" subtitle="Scopri come funziona Fermi Notify." />
+    <TagIntro />
+    <Status />
+    <FaqSections />
+  </div>
 </template>
 
 <script setup>
-  // Expand with real content later
+  import { onMounted, nextTick } from 'vue'
+  import { useRouter } from 'vue-router'
+
+  import Title from '@/components/Title.vue'
+  import TagIntro from '@/components/TagIntro.vue'
+  import Status from '@/components/Status.vue'
+  import FaqSections from '@/components/FaqSections.vue'
+  import { FAQ_TABS } from '@/utils/config.js'
+
+  const router = useRouter()
+  const FAQ_ROUTE_NAME = 'faq'
+  const FAQ_ROUTE_PATH = '/faq'
+
+  // Scroll offset constants for better readability and maintainability
+  const CONTAINER_SCROLL_OFFSET = 100
+  const SECTION_SCROLL_OFFSET = 75
+
+  onMounted(async () => {
+    // Replicate legacy EJS behavior: read `page` and `s` params, scroll to container/section, then clean URL
+    const params = new URLSearchParams(window.location.search)
+    const page = params.get('page')
+    const section = params.get('s')
+
+    if (page && FAQ_TABS.includes(page)) {
+      // Wait for FaqSections to render and react to route.query.page (it watches the route)
+      await nextTick()
+      const container = document.getElementById(`${page}Container`)
+      if (container) {
+        const scroll = container.getBoundingClientRect().top + window.scrollY - CONTAINER_SCROLL_OFFSET
+        window.scrollTo({ top: scroll, behavior: 'smooth' })
+      }
+    }
+
+    if (section) {
+      // Scroll to named section (offset similar to legacy code)
+      await nextTick()
+      const elem = document.getElementById(section)
+      if (elem) {
+        const scroll = elem.getBoundingClientRect().top + window.scrollY - SECTION_SCROLL_OFFSET
+        window.scrollTo({ top: scroll, behavior: 'smooth' })
+      }
+    }
+
+    // Remove query params from URL (replace state without navigation)
+    try {
+      // Prefer router.replace when available to keep SPA state consistent
+      router.replace({ name: FAQ_ROUTE_NAME })
+    } catch (e) {
+      // Fallback to history.replaceState
+      history.replaceState({}, document.title, FAQ_ROUTE_PATH)
+    }
+  })
 </script>
+
+<style src="@/assets/css/page.css"></style>
+<style src="@/assets/css/faq.css"></style>
