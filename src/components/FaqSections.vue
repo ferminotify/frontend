@@ -2,6 +2,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { FAQ_TABS } from '@/utils/config.js'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 const route = useRoute()
 
@@ -134,12 +135,10 @@ onBeforeUnmount(() => {
 					Nel caso in cui l'evento che ti riguarda venga pubblicato in qualsiasi momento prima del giorno stesso, ti arriver&agrave; una notifica <i>Daily Notification</i> che racchiude tutti gli eventi in programma.<br>
 					Le Daily Notification vengono inviate di default alle <span class="primary-text">6:00</span> del giorno stesso delle variazioni dell'orario.<br>
 					Puoi cambiare l'orario di invio delle Daily Notification nella
-					<a href="/dashboard" class="link">Dashboard</a>. Maggiori informazioni nella sezione
-					<a href="/faq?page=configurazione" class="link">Configurazione</a>.
+					<a href="/dashboard" class="link">Dashboard</a>. Maggiori informazioni nella sezione <a href="/faq?page=configurazione" class="link">Configurazione</a>.
 				</p>
 				<p class="answer answer-staccato">
-					Nel caso in cui l'evento che ti riguarda venga pubblicato la Daily Notification (come una sostituzione dell'ultimo minuto), riceverai la notifica <i>Last Minute Notification</i>
-					<span class="primary-text">all'istante</span>.
+					Nel caso in cui l'evento che ti riguarda venga pubblicato la Daily Notification (come una sostituzione dell'ultimo minuto), riceverai la notifica <i>Last Minute Notification</i> <span class="primary-text">all'istante</span>.
 				</p>
 			</div>
 
@@ -317,7 +316,7 @@ onBeforeUnmount(() => {
 			<p style="margin: 10px 0;">Per supporto o informazioni, contatta:</p>
 			<div class="flex-center" style="gap: 10px">
 				<a class="btn outlined flex-center" href="https://www.instagram.com/ferminotify/"
-					><i class="fa-brands fa-instagram material-space-right"></i> ferminotify</a
+					><FontAwesomeIcon icon="fa-brands fa-instagram" class="material-space-right" /> ferminotify</a
 				>
 				<!--
 				<a class="btn outlined flex-center" href="mailto:ferminotify@gmail.com"><span class="material-symbols-outlined material-space-right">mail</span> ferminotify@gmail.com</a>
