@@ -1,6 +1,6 @@
 <template>
   <div class="section" id="faq-view">
-    <Title title="FAQ" subtitle="Scopri come funziona Fermi Notify." :showVideo="true" />
+    <Title title="FAQ" subtitle="Scopri come funziona Fermi Notify." :showVideo="'faq'" />
     <TagIntro />
     <Status />
     <FaqSections />

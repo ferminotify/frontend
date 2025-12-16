@@ -2,6 +2,7 @@
   import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
   import { RouterLink, RouterView, useRoute } from 'vue-router'
   import { useUserStore } from '@/stores/user'
+  import { generateAlert } from '@/utils/alertbanner.js'
 
   const route = useRoute()
   const user = useUserStore()
@@ -81,6 +82,13 @@
     window.removeEventListener('resize', handleResize)
     window.removeEventListener('beforeinstallprompt', beforeInstallHandler)
     window.removeEventListener('appinstalled', appInstalledHandler)
+    // clean up global helpers
+    try {
+      if (window.startPwaInstall) delete window.startPwaInstall
+      if (window.openPwaApp) delete window.openPwaApp
+    } catch (e) {
+      /* ignore */
+    }
   })
 
   // Trigger the PWA install prompt (fallbacks to navigation)
@@ -99,7 +107,8 @@
         deferredPrompt.value = null
       }
     } else if (isStandalone.value) {
-      // app is already installed: try to focus/open the existing app window (IDK if this works)
+      // app is already installed: inform the user and try to focus/open the existing app window
+      generateAlert('info', 'App già installata')
       if (window && window.location && window.location.origin) {
         const url = '/'
         // For most platforms, clicking the icon opens the app;
@@ -111,6 +120,96 @@
     } else {
       // no install prompt available and not standalone: fallback to navigate to /app route
       navigate()
+    }
+  }
+
+  // expose simple global helpers so other views/components can trigger the install/open flow
+  if (typeof window !== 'undefined') {
+    window.startPwaInstall = async () => {
+      // If the app is already installed, just show an info alert and try to focus/open it.
+      if (isStandalone.value) {
+        try {
+          generateAlert('info', 'App già installata')
+        } catch (e) {
+          // ignore UI alert failures
+        }
+
+        try {
+          if ('serviceWorker' in navigator) {
+            const message = { type: 'focus-client', url: '/' }
+            if (navigator.serviceWorker.controller) {
+              navigator.serviceWorker.controller.postMessage(message)
+              return
+            }
+            const regFocus = await navigator.serviceWorker.getRegistration()
+            if (regFocus && regFocus.active) {
+              regFocus.active.postMessage(message)
+              return
+            }
+          }
+        } catch (err) {
+          console.warn('[pwa] could not message service worker to focus app', err)
+        }
+
+        window.location.href = '/'
+        return
+      }
+
+      if (deferredPrompt.value) {
+        try {
+          deferredPrompt.value.prompt()
+          const { outcome } = await deferredPrompt.value.userChoice
+          console.log(
+            `[pwa] user ${outcome === 'accepted' ? 'accepted' : 'dismissed'} the install prompt`
+          )
+        } catch (err) {
+          console.warn('[pwa] error prompting install', err)
+        } finally {
+          deferredPrompt.value = null
+        }
+        return
+      }
+
+      // try to message the service worker to focus an existing client or open one
+      try {
+        if ('serviceWorker' in navigator) {
+          const message = { type: 'focus-client', url: '/' }
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage(message)
+            return
+          }
+          const reg = await navigator.serviceWorker.getRegistration()
+          if (reg && reg.active) {
+            reg.active.postMessage(message)
+            return
+          }
+        }
+      } catch (err) {
+        console.warn('[pwa] could not message service worker', err)
+      }
+
+      // fallback navigation
+      window.location.href = '/app'
+    }
+
+    window.openPwaApp = async () => {
+      try {
+        if ('serviceWorker' in navigator) {
+          const message = { type: 'focus-client', url: '/' }
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage(message)
+            return
+          }
+          const reg = await navigator.serviceWorker.getRegistration()
+          if (reg && reg.active) {
+            reg.active.postMessage(message)
+            return
+          }
+        }
+      } catch (err) {
+        console.warn('[pwa] could not message service worker', err)
+      }
+      window.location.href = '/'
     }
   }
 </script>

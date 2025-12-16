@@ -1,11 +1,11 @@
 <template>
   <div class="rounded-container title-with-video">
-    <div v-if="showVideo" class="video-bg">
-      <video class="bg-video" autoplay muted loop playsinline>
-        <source :src="bgVideo" type="video/mp4" />
-      </video>
-      <div class="video-overlay"></div>
-    </div>
+      <div v-if="videoSrc" class="video-bg">
+        <video class="bg-video" autoplay muted loop playsinline>
+          <source :src="videoSrc" type="video/mp4" />
+        </video>
+        <div class="video-overlay"></div>
+      </div>
 
     <div class="rounded-inner">
       <h1 class="firstTitle">{{ title }}</h1>
@@ -15,12 +15,20 @@
 </template>
 
 <script setup>
-  import bgVideo from '@/assets/img/bg/Google_Mio_UsingMaterial_2400x3200.mp4'
+  import { computed } from 'vue'
+  import bgVideoFaq from '@/assets/img/bg/Google_Mio_UsingMaterial_2400x3200.mp4'
+  import bgVideoApp from '@/assets/img/bg/Google_Mio_DevelopInputOutput_1080x1080.mp4'
 
-  defineProps({
+  const props = defineProps({
     title: String,
     subtitle: String,
-    showVideo: { type: Boolean, default: false },
+    showVideo: { type: String, default: null },
+  })
+
+  const videoSrc = computed(() => {
+    if (props.showVideo === 'faq') return bgVideoFaq
+    if (props.showVideo === 'app') return bgVideoApp
+    return null
   })
 </script>
 
