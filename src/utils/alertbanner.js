@@ -43,13 +43,28 @@ export function generateAlert(type, msg) {
     const banner = document.createElement('p')
     banner.classList.add('alertbanner', typeToClass(type))
 
-    const safeMsg = escapeHtml(msg)
     const iconName = typeToMaterialIcon(type)
 
-    banner.innerHTML = `
-        <span class="material-symbols-outlined" style="margin-right: 6px; transform: translateY(0px);">${iconName}</span>
-        <span>${safeMsg}
-    `
+    // Render content depending on msg type:
+    // - string: escaped text (default)
+    // - { html: string }: treat as safe HTML and insert directly
+    // - { node: Node }: append the provided DOM node
+    const iconHtml = `<span class="material-symbols-outlined" style="margin-right: 6px; transform: translateY(0px);">${iconName}</span>`
+
+    if (msg && typeof msg === 'object') {
+      if (msg.node && msg.node instanceof Node) {
+        banner.innerHTML = iconHtml
+        banner.appendChild(msg.node)
+      } else if (typeof msg.html === 'string') {
+        banner.innerHTML = iconHtml + `<span>${msg.html}</span>`
+      } else {
+        const safeMsg = escapeHtml(String(msg))
+        banner.innerHTML = iconHtml + `<span>${safeMsg}</span>`
+      }
+    } else {
+      const safeMsg = escapeHtml(msg)
+      banner.innerHTML = iconHtml + `<span>${safeMsg}</span>`
+    }
 
     // Append after DOM is ready if needed
     const append = () => {

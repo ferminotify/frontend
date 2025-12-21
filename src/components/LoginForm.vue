@@ -85,10 +85,9 @@
         console.error('Login network error:', error)
         generateAlert('error', 'Impossibile contattare il server. Controlla la connessione e riprova.')
       } else if (status === 404) {
-        generateAlert(
-          'error',
-          `Non ci sono utenti registrati con l'email ${email.value}. Crea un account <a href="/register">qui</a>.`
-        )
+        generateAlert('error', {
+          html: `Non ci sono utenti registrati con l'email ${email.value}. Crea un account <a href="/register" style="text-decoration: underline">qui</a>.`
+        })
       } else if (status === 401) {
         generateAlert('error', 'La password non è corretta.')
       } else if (backendMsg) {
