@@ -3,6 +3,9 @@
     <Title title="FAQ" subtitle="Scopri come funziona Fermi Notify." :showVideo="'faq'" />
     <TagIntro />
     <Status />
+    <!-- FAQ Carousel -->
+    <SlickSliderPresentation />
+     
     <FaqSections />
   </div>
 </template>
@@ -15,6 +18,7 @@
   import TagIntro from '@/components/TagIntro.vue'
   import Status from '@/components/Status.vue'
   import FaqSections from '@/components/FaqSections.vue'
+  import SlickSliderPresentation from '@/components/SlickSliderPresentation.vue'
   import { FAQ_TABS } from '@/utils/config.js'
 
   const router = useRouter()
