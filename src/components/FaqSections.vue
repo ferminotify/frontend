@@ -259,7 +259,7 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>2. Trattamento dei dati</h3>
 				<p class="answer">
-					I dati forniti sono accessibili esclusivamente al team interno di Fermi Notify, composto da persone fisiche presenti a <a href="/credits" class="link">questa pagina</a>. Collaboratori esterni e strumenti citati come "Extra" non hanno
+					I dati forniti sono accessibili esclusivamente al team interno di Fermi Notify, composto da persone fisiche presenti a <a href="/team" class="link">questa pagina</a>. Collaboratori esterni e strumenti citati come "Extra" non hanno
 					accesso ai dati sensibili degli utenti. L'impiego dell'intelligenza artificiale (OpenAI ChatGPT, Google Gemini e GitHub Copilot) è limitato al supporto tecnico e allo sviluppo.
 				</p>
 			</div>
@@ -325,7 +325,7 @@ onBeforeUnmount(() => {
 				<a class="btn text flex-center" @click="copy('ferminotify@gmail.com')"><span class="material-symbols-outlined">content_copy</span></a>
 				-->
 			</div>
-			<a href="/credits" class="btn filled flex-center" style="margin-top: 10px;">Team</a>
+			<a href="/team" class="btn filled flex-center" style="margin-top: 10px;">Team</a>
 		</div>
 	</section>
 </template>

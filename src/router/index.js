@@ -8,6 +8,7 @@ const DashboardView = () => import('../views/DashboardView.vue')
 const ResetPasswordView = () => import('../views/ResetPasswordView.vue')
 const AppView = () => import('../views/AppView.vue')
 const SupportersView = () => import('../views/SupportersView.vue')
+const TeamView = () => import('../views/TeamView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -70,6 +71,12 @@ const router = createRouter({
       name: 'supporters',
       component: SupportersView,
       meta: { title: 'Sostenitori · Fermi Notify' },
+    },
+    {
+      path: '/team',
+      name: 'team',
+      component: TeamView,
+      meta: { title: 'Team · Fermi Notify' },
     }
   ],
 })

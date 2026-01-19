@@ -37,6 +37,11 @@ const getRandomOffset = () => {
     return (Math.random() - 0.5) * 60;
 };
 
+const getRandomRotation = () => {
+    // Random slight rotation between -3 and 3 degrees
+    return (Math.random() - 0.5) * 6;
+};
+
 const getBubbleSize = (coffees, maxCoffees) => {
     // Scale bubble size based on donation amount
     const minSize = 140;
@@ -134,6 +139,7 @@ onMounted(() => {
         .map((donator, index) => ({
             ...donator,
             offsetX: getRandomOffset(),
+            rotation: getRandomRotation(),
             size: getBubbleSize(donator.coffees, maxCoffees),
             delay: index * 0.1,
             dragX: 0,
@@ -173,6 +179,7 @@ onUnmounted(() => {
             :class="{ 'is-dragged': donator.isDragged }"
             :style="{
                 '--offset-x': donator.offsetX + '%',
+                '--rotation': donator.rotation + 'deg',
                 '--bubble-size': donator.size + 'px',
                 '--animation-delay': donator.delay + 's',
                 '--drag-x': donator.dragX + 'px',
@@ -234,9 +241,10 @@ onUnmounted(() => {
     --mouse-y: 50%;
     --drag-x: 0px;
     --drag-y: 0px;
+    --rotation: 0deg;
     
     position: relative;
-    transform: translateX(var(--offset-x));
+    transform: translateX(var(--offset-x)) rotate(var(--rotation));
     min-width: var(--bubble-size);
     max-width: 90vw;
     padding: 20px 25px;
@@ -260,7 +268,7 @@ onUnmounted(() => {
 
 .bubble.is-dragged {
     position: absolute;
-    transform: translate(var(--drag-x), var(--drag-y));
+    transform: translate(var(--drag-x), var(--drag-y)) rotate(var(--rotation));
     left: 0;
     top: 0;
     animation: none;
@@ -274,11 +282,11 @@ onUnmounted(() => {
         0 20px 60px rgba(0, 0, 0, 0.25),
         0 8px 20px rgba(var(--primary-rgb, 99, 102, 241), 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transform: translateX(var(--offset-x)) scale(1.08);
+    transform: translateX(var(--offset-x)) rotate(var(--rotation)) scale(1.08);
 }
 
 .bubble.is-dragged.dragging {
-    transform: translate(var(--drag-x), var(--drag-y)) scale(1.05);
+    transform: translate(var(--drag-x), var(--drag-y)) rotate(var(--rotation)) scale(1.05);
     transform-origin: center center;
 }
 
@@ -372,11 +380,11 @@ onUnmounted(() => {
 @keyframes floatIn {
     0% {
         opacity: 0;
-        transform: translateX(var(--offset-x)) translateY(30px) scale(0.8);
+        transform: translateX(var(--offset-x)) rotate(var(--rotation)) translateY(30px) scale(0.8);
     }
     100% {
         opacity: 1;
-        transform: translateX(var(--offset-x)) translateY(0) scale(1);
+        transform: translateX(var(--offset-x)) rotate(var(--rotation)) translateY(0) scale(1);
     }
 }
 
