@@ -7,6 +7,7 @@ const FaqView = () => import('../views/FaqView.vue')
 const DashboardView = () => import('../views/DashboardView.vue')
 const ResetPasswordView = () => import('../views/ResetPasswordView.vue')
 const AppView = () => import('../views/AppView.vue')
+const SupportersView = () => import('../views/SupportersView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -65,9 +66,9 @@ const router = createRouter({
       meta: { title: "Installa l'app · Fermi Notify" },
     },
     {
-      path: '/donators',
-      name: 'donators',
-      component: () => import('../views/DonatorsView.vue'),
+      path: '/supporters',
+      name: 'supporters',
+      component: SupportersView,
       meta: { title: 'Sostenitori · Fermi Notify' },
     }
   ],

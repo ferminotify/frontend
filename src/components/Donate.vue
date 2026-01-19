@@ -1,5 +1,12 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, defineProps } from 'vue';
+
+defineProps({
+    hideDonators: {
+        type: Boolean,
+        default: false
+    }
+});
 
 const bubbleRef = ref(null);
 
@@ -80,7 +87,7 @@ onMounted(() => {
             </a>
         </div>
         <p class="donate-support"><b>e supporta il progetto!</b></p>
-        <router-link class="btn outlined" to="/donators">
+        <router-link v-if="!hideDonators" class="btn outlined" to="/supporters">
             Donatori ❤️
         </router-link>
         </div>
@@ -95,7 +102,7 @@ onMounted(() => {
     
     position: relative;
     display: inline-block;
-    padding: 40px;
+    padding: 50px;
     background: linear-gradient(135deg, 
         rgba(var(--primary-rgb, 99, 102, 241), 0.15) 0%, 
         rgba(var(--primary-rgb, 99, 102, 241), 0.05) 100%);
@@ -109,6 +116,7 @@ onMounted(() => {
     overflow: hidden;
     transition: box-shadow 0.3s ease, transform 0.3s ease;
     margin-bottom: 30px;
+    z-index: 10;
 }
 
 .donate-bubble:hover {

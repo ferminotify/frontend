@@ -1,5 +1,4 @@
 <script setup>
-import Title from '@/components/Title.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
 
 const donators = ref([
@@ -159,7 +158,6 @@ onUnmounted(() => {
 </script>
 
 <template>
-<Title title="Sostenitori di Fermi Notify" subtitle="GRAZIE ❤️" />
 <div class="bubbles-container" ref="containerRef">
     <div 
         v-for="(donator, index) in sortedDonators" 
@@ -219,7 +217,6 @@ onUnmounted(() => {
     flex-direction: column;
     align-items: center;
     gap: 25px;
-    margin-top: 40px;
     padding: 20px;
     min-height: 60vh;
     position: relative;
