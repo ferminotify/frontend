@@ -20,9 +20,9 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 // Prevent the core from auto-injecting CSS since we import it explicitly above
 config.autoAddCss = false
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faInstagram, faGithub } from '@fortawesome/free-brands-svg-icons'
+import { faInstagram, faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 // Add icons to library
-library.add(faInstagram, faGithub)
+library.add(faInstagram, faGithub, faXTwitter)
 
 // Create the Vue app
 const app = createApp(App)

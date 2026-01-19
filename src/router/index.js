@@ -63,6 +63,12 @@ const router = createRouter({
       name: 'app',
       component: AppView,
       meta: { title: "Installa l'app · Fermi Notify" },
+    },
+    {
+      path: '/donators',
+      name: 'donators',
+      component: () => import('../views/DonatorsView.vue'),
+      meta: { title: 'Sostenitori · Fermi Notify' },
     }
   ],
 })
