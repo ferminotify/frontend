@@ -1,36 +1,60 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useBubbleDrag } from '@/composables/useBubbleDrag';
+import '@/assets/css/bubbles.css';
+import router from '@/router';
 
-const teamMembers = ref([
+const coreTeam = ref([
     {
         name: 'Liu Kevin',
         roles: ['📆 Project Management', '💻 Code', '🎨 Design', '🚇 Hosting'],
-        email: 'cliu@fermimn.edu.it'
+        instagram: 'https://instagram.com/kev1nl1u',
+        github: 'https://github.com/kev1nl1u'
     },
     {
         name: 'Sirico Davide',
         roles: ['💻 Code', '🚇 Hosting'],
-        email: 'dsirico@fermimn.edu.it'
-    },
+        instagram: 'https://www.instagram.com/davidesirico05/',
+        github: 'https://github.com/DavideSirico'
+    }
+]);
+
+const createdByTeam = ref([
     {
         name: 'Bini Matteo',
-        roles: ['💻 Code', '👀 Code Review'],
-        email: 'binim@fermimn.edu.it'
+        roles: ['📆 Project Management', '💻 Code', '👀 Code Review'],
+        instagram: 'https://www.instagram.com/matteobini_/',
+        github: 'https://github.com/MatteoBini'
+    },
+    {
+        name: 'Liu Kevin',
+        roles: ['💻 Code', '🎨 Design'],
+        instagram: 'https://instagram.com/kev1nl1u',
+        github: 'https://github.com/kev1nl1u'
+    },
+    {
+        name: 'Sirico Davide',
+        roles: ['💻 Code'],
+        instagram: 'https://www.instagram.com/davidesirico05/',
+        github: 'https://github.com/DavideSirico'
     },
     {
         name: 'Casari Simone',
         roles: ['💼 Business', '🎨 Design'],
-        email: 'scasari@fermimn.edu.it'
-    },
-    {
-        name: 'Rastelli Francesco',
-        roles: ['⚠️ Testing'],
-        email: 'frastelli@fermimn.edu.it'
+        instagram: 'https://www.instagram.com/simonecasari_/',
+        github: 'https://github.com/SimoneCasari'
     },
     {
         name: 'Tardiani Simone',
         roles: ['💻 Code'],
-        email: 'stardiani@fermimn.edu.it'
+        instagram: 'https://www.instagram.com/simone_tardiani/',
+        github: 'https://github.com/Captniz'
+    },
+    {
+        name: 'Rastelli Francesco',
+        roles: ['⚠️ Testing'],
+        instagram: 'https://www.instagram.com/francescoo_rastellii/',
+        github: 'https://github.com/franchecco'
     }
 ]);
 
@@ -38,12 +62,14 @@ const externalCollaborators = ref([
     {
         name: 'Malinverno Tommaso',
         roles: ['💻 Code'],
-        email: 'tmalinverno@fermimn.edu.it'
+        instagram: 'https://www.instagram.com/tommaso_malinverno/',
+        github: 'https://github.com/lampaDario1543'
     },
     {
         name: 'Tellaroli Alberto',
         roles: ['🔃 Miscellaneous'],
-        email: 'atellaroli@fermimn.edu.it'
+        instagram: 'https://www.instagram.com/albertotellarolii/',
+        github: 'https://github.com/zAnimus'
     }
 ]);
 
@@ -65,170 +91,86 @@ const extraCredits = ref([
     }
 ]);
 
-const showExtra = ref(false);
-
-// Processed members with random offsets
-const processedTeam = ref([]);
+const processedCore = ref([]);
+const processedCreatedBy = ref([]);
 const processedExternal = ref([]);
 const processedExtra = ref([]);
-const bubbleRefs = ref([]);
+const bubbleRefs = ref({});
 const containerRef = ref(null);
+const showExtra = ref(false);
 
-// Dragging state
-const dragging = ref(null);
-const dragOffset = ref({ x: 0, y: 0 });
-const dragSection = ref(null); // 'team', 'external', or 'extra'
+const { 
+    getRandomOffset, 
+    getRandomRotation, 
+    handleMouseMove, 
+    startDrag, 
+    setupDragListeners 
+} = useBubbleDrag(containerRef, bubbleRefs);
 
-const getRandomOffset = () => {
-    // Random offset between -15% and 15% for subtle movement
-    return (Math.random() - 0.5) * 30;
-};
-
-const getRandomRotation = () => {
-    // Random slight rotation between -3 and 3 degrees
-    return (Math.random() - 0.5) * 6;
-};
-
-const processMember = (member, index) => ({
+const processMember = (member, index, total) => ({
     ...member,
-    offsetX: getRandomOffset(),
-    offsetY: getRandomOffset(),
-    rotation: getRandomRotation(),
+    offsetX: getRandomOffset(30),
+    offsetY: getRandomOffset(30),
+    rotation: getRandomRotation(6),
     delay: index * 0.08,
+    zIndex: total - index,
     dragX: 0,
-    dragY: 0,
-    isDragged: false,
-    originalHeight: 0,
-    zIndex: 50
+    dragY: 0
 });
 
-// Mouse light effect
-const handleMouseMove = (event, bubble) => {
-    if (!bubble) return;
-    const rect = bubble.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    bubble.style.setProperty('--mouse-x', `${x}px`);
-    bubble.style.setProperty('--mouse-y', `${y}px`);
+const getList = (section) => {
+    if (section === 'core') return processedCore;
+    if (section === 'createdBy') return processedCreatedBy;
+    if (section === 'external') return processedExternal;
+    return processedExtra;
 };
 
-// Drag functions
-const startDrag = (event, index, section) => {
-    // Don't start drag if clicking on a link
-    if (event.target.tagName === 'A' || event.target.closest('a')) return;
-    
-    event.preventDefault();
-    dragging.value = index;
-    dragSection.value = section;
-    
-    const bubble = bubbleRefs.value[`${section}-${index}`];
-    if (!bubble || !containerRef.value) return;
-    
-    const rect = bubble.getBoundingClientRect();
-    const containerRect = containerRef.value.getBoundingClientRect();
-    
-    const clientX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
-    const clientY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
-    
-    dragOffset.value = {
-        x: clientX - rect.left,
-        y: clientY - rect.top
-    };
-    
-    const list = section === 'team' ? processedTeam : section === 'external' ? processedExternal : processedExtra;
-    
-    if (!list.value[index].isDragged) {
-        list.value[index].originalHeight = rect.height;
-        // Position relative to container
-        list.value[index].dragX = rect.left - containerRect.left;
-        list.value[index].dragY = rect.top - containerRect.top;
-        list.value[index].isDragged = true;
-    }
-    
-    // Calculate z-index based on vertical position (higher on page = bigger z-index)
-    const maxZ = 10000;
-    list.value[index].zIndex = Math.max(50, maxZ - Math.floor(rect.top + window.scrollY));
-    
-    bubble.classList.add('dragging');
+const onStartDrag = (event, index, section) => {
+    startDrag(event, index, getList(section), section);
 };
 
-const onDrag = (event) => {
-    if (dragging.value === null || !dragSection.value || !containerRef.value) return;
-    
-    const bubble = bubbleRefs.value[`${dragSection.value}-${dragging.value}`];
-    if (!bubble) return;
-    
-    const clientX = event.type === 'touchmove' ? event.touches[0].clientX : event.clientX;
-    const clientY = event.type === 'touchmove' ? event.touches[0].clientY : event.clientY;
-    
-    const containerRect = containerRef.value.getBoundingClientRect();
-    
-    // Position relative to container
-    const newX = clientX - containerRect.left - dragOffset.value.x;
-    const newY = clientY - containerRect.top - dragOffset.value.y;
-    
-    const list = dragSection.value === 'team' ? processedTeam : dragSection.value === 'external' ? processedExternal : processedExtra;
-    list.value[dragging.value].dragX = newX;
-    list.value[dragging.value].dragY = newY;
-};
-
-const endDrag = () => {
-    if (dragging.value !== null && dragSection.value) {
-        const bubble = bubbleRefs.value[`${dragSection.value}-${dragging.value}`];
-        if (bubble) {
-            bubble.classList.remove('dragging');
-        }
-    }
-    dragging.value = null;
-    dragSection.value = null;
-};
+let cleanupListeners = null;
 
 onMounted(() => {
-    processedTeam.value = teamMembers.value.map(processMember);
-    processedExternal.value = externalCollaborators.value.map((m, i) => processMember(m, i + teamMembers.value.length));
-    processedExtra.value = extraCredits.value.map((m, i) => processMember(m, i));
+    processedCore.value = coreTeam.value.map((m, i) => processMember(m, i, coreTeam.value.length));
+    processedCreatedBy.value = createdByTeam.value.map((m, i) => processMember(m, i, createdByTeam.value.length));
+    processedExternal.value = externalCollaborators.value.map((m, i) => processMember(m, i, externalCollaborators.value.length));
+    processedExtra.value = extraCredits.value.map((m, i) => processMember(m, i, extraCredits.value.length));
     
-    // Global mouse/touch events for dragging
-    window.addEventListener('mousemove', onDrag);
-    window.addEventListener('mouseup', endDrag);
-    window.addEventListener('touchmove', onDrag, { passive: false });
-    window.addEventListener('touchend', endDrag);
+    cleanupListeners = setupDragListeners(getList);
 });
 
 onUnmounted(() => {
-    window.removeEventListener('mousemove', onDrag);
-    window.removeEventListener('mouseup', endDrag);
-    window.removeEventListener('touchmove', onDrag);
-    window.removeEventListener('touchend', endDrag);
+    if (cleanupListeners) cleanupListeners();
 });
 </script>
 
 <template>
 <div class="team-container" ref="containerRef">
-    <!-- Main Team -->
+    <!-- Core Team -->
+    <h2 class="section-subtitle">Core</h2>
+    <p class="section-description">Sviluppatori e mantenitori attuali</p>
     <div class="bubbles-grid">
         <div 
-            v-for="(member, index) in processedTeam" 
+            v-for="(member, index) in processedCore" 
             :key="member.name"
             class="bubble-wrapper"
-            :style="member.isDragged ? { '--placeholder-height': member.originalHeight + 'px' } : {}"
         >
             <div 
-                :ref="el => bubbleRefs[`team-${index}`] = el"
+                :ref="el => bubbleRefs[`core-${index}`] = el"
                 class="bubble"
-                :class="{ 'is-dragged': member.isDragged }"
                 :style="{
                     '--offset-x': member.offsetX + '%',
                     '--offset-y': member.offsetY + '%',
                     '--rotation': member.rotation + 'deg',
                     '--animation-delay': member.delay + 's',
+                    '--z-index': member.zIndex,
                     '--drag-x': member.dragX + 'px',
-                    '--drag-y': member.dragY + 'px',
-                    '--z-index': member.zIndex
+                    '--drag-y': member.dragY + 'px'
                 }"
-                @mousemove="handleMouseMove($event, bubbleRefs[`team-${index}`])"
-                @mousedown="startDrag($event, index, 'team')"
-                @touchstart="startDrag($event, index, 'team')"
+                @mousemove="handleMouseMove($event, index, 'core')"
+                @mousedown="onStartDrag($event, index, 'core')"
+                @touchstart="onStartDrag($event, index, 'core')"
             >
                 <div class="bubble-glow"></div>
                 <div class="bubble-content">
@@ -236,9 +178,58 @@ onUnmounted(() => {
                     <div class="roles">
                         <p v-for="role in member.roles" :key="role" class="role">{{ role }}</p>
                     </div>
-                    <a v-if="member.email" class="link email-link" :href="'mailto:' + member.email">
-                        <span class="material-symbols-outlined">mail</span>
-                    </a>
+                    <div class="social-links">
+                        <a v-if="member.instagram" class="link social-link" :href="member.instagram" target="_blank" rel="noopener noreferrer">
+                            <font-awesome-icon :icon="['fab', 'instagram']" />
+                        </a>
+                        <a v-if="member.github" class="link social-link" :href="member.github" target="_blank" rel="noopener noreferrer">
+                            <font-awesome-icon :icon="['fab', 'github']" />
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Created By Team -->
+    <h2 class="section-subtitle">Creato da</h2>
+    <p class="section-description">Chi c'era al giorno 1 e il loro ruolo precedente</p>
+    <div class="bubbles-grid">
+        <div 
+            v-for="(member, index) in processedCreatedBy" 
+            :key="member.name"
+            class="bubble-wrapper"
+        >
+            <div 
+                :ref="el => bubbleRefs[`createdBy-${index}`] = el"
+                class="bubble bubble-inactive"
+                :style="{
+                    '--offset-x': member.offsetX + '%',
+                    '--offset-y': member.offsetY + '%',
+                    '--rotation': member.rotation + 'deg',
+                    '--animation-delay': member.delay + 's',
+                    '--z-index': member.zIndex,
+                    '--drag-x': member.dragX + 'px',
+                    '--drag-y': member.dragY + 'px'
+                }"
+                @mousemove="handleMouseMove($event, index, 'createdBy')"
+                @mousedown="onStartDrag($event, index, 'createdBy')"
+                @touchstart="onStartDrag($event, index, 'createdBy')"
+            >
+                <div class="bubble-glow"></div>
+                <div class="bubble-content">
+                    <h3 class="name">{{ member.name }}</h3>
+                    <div class="roles">
+                        <p v-for="role in member.roles" :key="role" class="role">{{ role }}</p>
+                    </div>
+                    <div class="social-links">
+                        <a v-if="member.instagram" class="link social-link" :href="member.instagram" target="_blank" rel="noopener noreferrer">
+                            <font-awesome-icon :icon="['fab', 'instagram']" />
+                        </a>
+                        <a v-if="member.github" class="link social-link" :href="member.github" target="_blank" rel="noopener noreferrer">
+                            <font-awesome-icon :icon="['fab', 'github']" />
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -251,24 +242,22 @@ onUnmounted(() => {
             v-for="(member, index) in processedExternal" 
             :key="member.name"
             class="bubble-wrapper"
-            :style="member.isDragged ? { '--placeholder-height': member.originalHeight + 'px' } : {}"
         >
             <div 
                 :ref="el => bubbleRefs[`external-${index}`] = el"
-                class="bubble bubble-small"
-                :class="{ 'is-dragged': member.isDragged }"
+                class="bubble bubble-small bubble-inactive"
                 :style="{
                     '--offset-x': member.offsetX + '%',
                     '--offset-y': member.offsetY + '%',
                     '--rotation': member.rotation + 'deg',
                     '--animation-delay': member.delay + 's',
+                    '--z-index': member.zIndex,
                     '--drag-x': member.dragX + 'px',
-                    '--drag-y': member.dragY + 'px',
-                    '--z-index': member.zIndex
+                    '--drag-y': member.dragY + 'px'
                 }"
-                @mousemove="handleMouseMove($event, bubbleRefs[`external-${index}`])"
-                @mousedown="startDrag($event, index, 'external')"
-                @touchstart="startDrag($event, index, 'external')"
+                @mousemove="handleMouseMove($event, index, 'external')"
+                @mousedown="onStartDrag($event, index, 'external')"
+                @touchstart="onStartDrag($event, index, 'external')"
             >
                 <div class="bubble-glow"></div>
                 <div class="bubble-content">
@@ -276,18 +265,28 @@ onUnmounted(() => {
                     <div class="roles">
                         <p v-for="role in member.roles" :key="role" class="role">{{ role }}</p>
                     </div>
-                    <a v-if="member.email" class="link email-link" :href="'mailto:' + member.email">
-                        <span class="material-symbols-outlined">mail</span>
-                    </a>
+                    <div class="social-links">
+                        <a v-if="member.instagram" class="link social-link" :href="member.instagram" target="_blank" rel="noopener noreferrer">
+                            <font-awesome-icon :icon="['fab', 'instagram']" />
+                        </a>
+                        <a v-if="member.github" class="link social-link" :href="member.github" target="_blank" rel="noopener noreferrer">
+                            <font-awesome-icon :icon="['fab', 'github']" />
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="supporters">
+        <router-link to="/supporters" class="btn outlined">
+            I nostri sostenitori ☕
+        </router-link>
+    </div>
 
     <!-- Extra Credits Toggle -->
     <div class="extra-toggle">
-        <button class="btn outlined" @click="showExtra = !showExtra">
-            {{ showExtra ? 'Less' : 'More' }}
+        <button :class="['btn', showExtra ? 'filled' : 'outlined']" @click="showExtra = !showExtra">
+            <span class="btn-label">{{ showExtra ? 'Nascondi' : 'Altro' }}</span>
         </button>
     </div>
 
@@ -300,24 +299,22 @@ onUnmounted(() => {
                     v-for="(member, index) in processedExtra" 
                     :key="member.name"
                     class="bubble-wrapper"
-                    :style="member.isDragged ? { '--placeholder-height': member.originalHeight + 'px' } : {}"
                 >
                     <div 
                         :ref="el => bubbleRefs[`extra-${index}`] = el"
                         class="bubble bubble-small"
-                        :class="{ 'is-dragged': member.isDragged }"
                         :style="{
                             '--offset-x': member.offsetX + '%',
                             '--offset-y': member.offsetY + '%',
                             '--rotation': member.rotation + 'deg',
                             '--animation-delay': member.delay + 's',
+                            '--z-index': member.zIndex,
                             '--drag-x': member.dragX + 'px',
-                            '--drag-y': member.dragY + 'px',
-                            '--z-index': member.zIndex
+                            '--drag-y': member.dragY + 'px'
                         }"
-                        @mousemove="handleMouseMove($event, bubbleRefs[`extra-${index}`])"
-                        @mousedown="startDrag($event, index, 'extra')"
-                        @touchstart="startDrag($event, index, 'extra')"
+                        @mousemove="handleMouseMove($event, index, 'extra')"
+                        @mousedown="onStartDrag($event, index, 'extra')"
+                        @touchstart="onStartDrag($event, index, 'extra')"
                     >
                         <div class="bubble-glow"></div>
                         <div class="bubble-content">
@@ -358,109 +355,55 @@ onUnmounted(() => {
 }
 
 .bubble-wrapper {
-    min-height: var(--placeholder-height, 0);
-    display: flex;
-    justify-content: center;
     align-items: start;
 }
 
 .bubble {
-    --mouse-x: 50%;
-    --mouse-y: 50%;
-    --drag-x: 0px;
-    --drag-y: 0px;
-    
-    position: relative;
-    transform: translate(var(--offset-x), var(--offset-y)) rotate(var(--rotation));
-    padding: 20px 25px;
-    background: linear-gradient(135deg, 
-        rgba(var(--primary-rgb, 99, 102, 241), 0.15) 0%, 
-        rgba(var(--primary-rgb, 99, 102, 241), 0.05) 100%);
-    border: 2px solid rgba(var(--primary-rgb, 99, 102, 241), 0.3);
-    border-radius: 24px;
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.1),
-        0 2px 8px rgba(var(--primary-rgb, 99, 102, 241), 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    animation: floatIn 0.6s ease-out backwards;
-    animation-delay: var(--animation-delay);
-    transition: box-shadow 0.3s ease;
-    overflow: hidden;
-    cursor: grab;
-    user-select: none;
     width: fit-content;
+    touch-action: none;
+    overflow: visible;
+    background: linear-gradient(135deg, 
+        rgba(0, 74, 119, 0.2) 0%, 
+        rgba(0, 74, 119, 0.1) 100%);
+    border: 2px solid rgba(0, 74, 119, 0.4);
 }
 
-.bubble.is-dragged {
-    position: absolute;
-    transform: rotate(var(--rotation));
-    left: var(--drag-x);
-    top: var(--drag-y);
-    animation: none;
-    margin: 0;
-    z-index: var(--z-index, 50);
+.bubble:not(.bubble-inactive) .name {
+    color: var(--on-primary, #c2e7ff);
 }
 
-.bubble.dragging {
-    cursor: grabbing;
-    z-index: 100;
-    box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.25),
-        0 8px 20px rgba(var(--primary-rgb, 99, 102, 241), 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transform: translate(var(--offset-x), var(--offset-y)) rotate(var(--rotation)) scale(1.05);
+.bubble:not(.bubble-inactive) .role {
+    color: var(--on-primary, #c2e7ff);
 }
 
-.bubble.is-dragged.dragging {
-    transform: rotate(var(--rotation)) scale(1.05);
-    transform-origin: center center;
+.bubble:hover:not(.bubble-inactive) {
+    background: linear-gradient(135deg, 
+        rgba(18, 86, 128, 0.25) 0%, 
+        rgba(18, 86, 128, 0.15) 100%);
+    border-color: rgba(18, 86, 128, 0.5);
 }
 
-.bubble:hover {
-    box-shadow: 
-        0 12px 40px rgba(0, 0, 0, 0.15),
-        0 4px 12px rgba(var(--primary-rgb, 99, 102, 241), 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-/* Mouse-following glow effect */
-.bubble-glow {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 22px;
+.bubble:not(.bubble-inactive) .bubble-glow {
     background: radial-gradient(
         circle 120px at var(--mouse-x) var(--mouse-y),
-        rgba(var(--primary-rgb, 99, 102, 241), 0.4) 0%,
+        rgba(0, 74, 119, 0.35) 0%,
         transparent 70%
     );
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
 }
 
-.bubble:hover .bubble-glow {
-    opacity: 1;
+.bubble.bubble-inactive {
+    background: linear-gradient(135deg, 
+        rgba(251, 188, 4, 0.12) 0%, 
+        rgba(251, 188, 4, 0.06) 100%);
+    border: 2px solid rgba(251, 188, 4, 0.3);
 }
 
-.bubble-content {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    text-align: center;
-}
-
-.name {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--on-surface, #fff);
+.bubble.bubble-inactive .bubble-glow {
+    background: radial-gradient(
+        circle 120px at var(--mouse-x) var(--mouse-y),
+        rgba(251, 188, 4, 0.25) 0%,
+        transparent 70%
+    );
 }
 
 .roles {
@@ -474,6 +417,36 @@ onUnmounted(() => {
     font-size: 0.85rem;
     opacity: 0.85;
     line-height: 1.4;
+}
+
+.social-links {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.9;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-size: 1.3rem;
+    color: var(--on-primary, #c2e7ff);
+    text-decoration: none;
+    pointer-events: auto;
+}
+
+.social-link:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+.bubble.bubble-inactive .social-link {
+    color: rgba(251, 188, 4, 0.9);
 }
 
 .email-link {
@@ -500,10 +473,28 @@ onUnmounted(() => {
     color: var(--on-surface, #fff);
 }
 
+.section-description {
+    text-align: center;
+    margin: 0 0 20px 0;
+    color: var(--on-surface, #ddd);
+    opacity: 0.9;
+}
+
+.supporters {
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+}
+
 .extra-toggle {
     display: flex;
     justify-content: center;
     padding: 25px 0;
+}
+
+/* Button variants for More/Altro toggle */
+.btn {
+    transition: background-color 220ms ease, color 220ms ease, transform 160ms ease, box-shadow 220ms ease;
 }
 
 .extra-section {
@@ -520,17 +511,6 @@ onUnmounted(() => {
 .slide-leave-to {
     opacity: 0;
     transform: translateY(-10px);
-}
-
-@keyframes floatIn {
-    0% {
-        opacity: 0;
-        transform: translate(var(--offset-x), calc(var(--offset-y) + 30px)) rotate(var(--rotation)) scale(0.8);
-    }
-    100% {
-        opacity: 1;
-        transform: translate(var(--offset-x), var(--offset-y)) rotate(var(--rotation)) scale(1);
-    }
 }
 
 /* Responsive */
@@ -557,13 +537,6 @@ onUnmounted(() => {
     
     .bubbles-grid-small {
         grid-template-columns: 1fr;
-    }
-    
-    .bubble {
-        --offset-x: calc(var(--offset-x) * 0.3) !important;
-        --offset-y: calc(var(--offset-y) * 0.3) !important;
-        --rotation: calc(var(--rotation) * 0.5) !important;
-        padding: 15px 20px;
     }
     
     .name {

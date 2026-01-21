@@ -332,6 +332,13 @@
           </a>
         </RouterLink>
 
+        <RouterLink to="/team" custom v-slot="{ href, navigate, isExactActive }">
+          <a :href="href" @click="navigate" class="sidebar-link sidebar-desktop" id="team" :class="{ active: isExactActive }">
+            <span class="material-symbols-outlined sidebar-icon">group</span>
+            <span class="sidebar-link-text">Team</span>
+          </a>
+        </RouterLink>
+
         <div class="sidebar-link sidebar-contatti sidebar-desktop">
           <a href="https://www.instagram.com/ferminotify/" target="_blank" rel="noopener noreferrer">
             <font-awesome-icon :icon="['fab', 'instagram']" />
@@ -357,6 +364,11 @@
               <li>
                 <RouterLink to="/supporters" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">favorite</span> Supporta
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink to="/team" class="sidebar-menu-link" @click="closeMenu">
+                  <span class="material-symbols-outlined">group</span> Team
                 </RouterLink>
               </li>
               <li>
