@@ -5,5 +5,7 @@
 
 <template>
   <CercaEventi />
+  <div style="text-align: center;">
   <Donate />
+  </div>
 </template>

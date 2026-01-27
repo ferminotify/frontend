@@ -1,5 +1,5 @@
 <script setup>
-  import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+  import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
   import { RouterLink, RouterView, useRoute } from 'vue-router'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
@@ -17,6 +17,70 @@
   const authTo = computed(() => (isLoggedIn.value ? '/dashboard' : '/login'))
   const authIcon = computed(() => (isLoggedIn.value ? 'space_dashboard' : 'login'))
   const authLabel = computed(() => (isLoggedIn.value ? 'Dashboard' : 'Accesso'))
+
+  // Sliding indicator state
+  const sidebarInner = ref(null)
+  const indicatorStyle = ref({})
+  const indicatorReady = ref(false)
+
+  const updateIndicator = (initialLoad = false) => {
+    if (!sidebarInner.value) return
+    const activeEl = sidebarInner.value.querySelector('.sidebar-link.active')
+    if (activeEl) {
+      const parentRect = sidebarInner.value.getBoundingClientRect()
+      // On mobile/tablet (<=1049px), target just the icon; on desktop target the whole link
+      const isMobileOrTablet = window.innerWidth <= 1049
+      const targetEl = isMobileOrTablet ? activeEl.querySelector('.sidebar-icon') : activeEl
+      if (!targetEl) {
+        indicatorStyle.value = { opacity: 0 }
+        return
+      }
+      const targetRect = targetEl.getBoundingClientRect()
+      
+      if (initialLoad) {
+        // First set position with scale 0, then animate to scale 1
+        indicatorStyle.value = {
+          top: `${targetRect.top - parentRect.top}px`,
+          left: `${targetRect.left - parentRect.left}px`,
+          width: `${targetRect.width}px`,
+          height: `${targetRect.height}px`,
+          opacity: 1,
+          borderRadius: isMobileOrTablet ? '16px' : '999px',
+          transform: 'scale(0)',
+          transition: 'none'
+        }
+        // Trigger reflow, then animate
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            indicatorStyle.value = {
+              ...indicatorStyle.value,
+              transform: 'scale(1)',
+              transition: 'transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1)'
+            }
+            nextTick(() => {
+              indicatorReady.value = true
+            })
+          })
+        })
+      } else {
+        indicatorStyle.value = {
+          top: `${targetRect.top - parentRect.top}px`,
+          left: `${targetRect.left - parentRect.left}px`,
+          width: `${targetRect.width}px`,
+          height: `${targetRect.height}px`,
+          opacity: 1,
+          borderRadius: isMobileOrTablet ? '16px' : '999px',
+          transform: 'scale(1)'
+        }
+      }
+    } else {
+      indicatorStyle.value = { opacity: 0 }
+    }
+  }
+
+  watch(() => route.path, () => {
+    nextTick(updateIndicator)
+  })
 
   // Mobile hide-on-scroll state
   const isMobile = ref(typeof window !== 'undefined' && window.innerWidth <= 600)
@@ -104,6 +168,7 @@
   const handleResize = () => {
     isMobile.value = window.innerWidth <= 600
     if (!isMobile.value) hideSidebarText.value = false
+    nextTick(updateIndicator)
   }
 
   const beforeInstallHandler = (e) => {
@@ -151,6 +216,9 @@
     } catch (e) {
       /* ignore */
     }
+
+    // Initialize indicator position without transition (small delay to ensure DOM is ready)
+    setTimeout(() => updateIndicator(true), 50)
   })
 
   onBeforeUnmount(() => {
@@ -295,10 +363,11 @@
 
 <template>
   <header>
-    <div class="sidebar" :class="{ compact: hideSidebarText, mobile: isMobile }">
-      <div class="sidebar-inner">
+    <div class="sidebar" :class="{ compact: hideSidebarText, mobile: isMobile }" style="padding-right: 6px; /* padding for bounce animation */">
+      <div class="sidebar-inner" ref="sidebarInner">
+        <div class="sidebar-indicator" :style="indicatorStyle"></div>
         <RouterLink to="/" custom v-slot="{ href, navigate, isExactActive }">
-          <a :href="href" @click="navigate" class="sidebar-link" id="cercaeventi" :class="{ active: isExactActive }">
+          <a :href="href" @click="navigate" class="sidebar-link" id="cercaeventi" :class="{ active: isExactActive }" >
             <span class="material-symbols-outlined sidebar-icon">search</span>
             <span class="sidebar-link-text">Cerca Eventi</span>
           </a>
@@ -391,8 +460,13 @@
 
   <div class="main-container">
     <main class="main">
-      <RouterView />
-
+      <RouterView v-slot="{ Component, route: viewRoute }">
+        <Transition appear mode="out-in" name="fade-up">
+          <div :key="viewRoute.path">
+            <component :is="Component" />
+          </div>
+        </Transition>
+      </RouterView>
       <div v-if="showBigAlert" class="bigalert" id="alert_new_app_beta_251216">
         <div class="bigalert-inner">
           <div class="two-container" style="padding-bottom: 0.83em;">
@@ -414,11 +488,38 @@
           </div>
         </div>
       </div>
+      
     </main>
   </div>
 </template>
 
 <style scoped>
+/* Sliding indicator for active sidebar link */
+.sidebar-indicator {
+  position: absolute;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: top 0.5s cubic-bezier(0.34, 1.4, 0.64, 1),
+              left 0.5s cubic-bezier(0.34, 1.4, 0.64, 1),
+              width 0.5s cubic-bezier(0.34, 1.4, 0.64, 1),
+              height 0.5s cubic-bezier(0.34, 1.4, 0.64, 1),
+              transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1),
+              border-radius 0.3s ease,
+              opacity 0.3s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.sidebar-inner {
+  position: relative;
+}
+
+.sidebar-link {
+  position: relative;
+  z-index: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Only apply when JS detects mobile layout to avoid clashing with global media rules */
 .sidebar.mobile .sidebar-inner {
   transition: transform 300ms ease, box-shadow 180ms ease;
@@ -445,7 +546,7 @@
   display: none;
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 700px) {
   .sidebar-desktop {
     display: none !important;
   }

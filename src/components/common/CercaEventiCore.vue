@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import csv2json from '@/utils/csv2json.js'
 
 const props = defineProps({
@@ -17,7 +17,69 @@ const events = ref([])
 const isLoading = ref(true)
 const days = [0, 1, 2, 3]
 
+// Intersection observer for scroll-triggered animations
+let observer = null
+let initialLoad = true
+let animationsReady = false
+let pendingElements = [] // Queue for elements that scroll into view before animations are ready
+let batchTimeout = null // For batching scroll-triggered animations
+
 onMounted(async () => {
+  // Setup intersection observer for event cards
+  observer = new IntersectionObserver(
+    (entries) => {
+      // Collect all initially visible events for staggered animation
+      const visibleOnLoad = []
+      
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          if (initialLoad) {
+            visibleOnLoad.push(entry.target)
+          } else if (animationsReady) {
+            // Queue elements and batch them with a small delay
+            pendingElements.push(entry.target)
+            
+            // Debounce: wait a frame to collect all visible elements, then animate with stagger
+            if (batchTimeout) clearTimeout(batchTimeout)
+            batchTimeout = setTimeout(() => {
+              pendingElements.forEach((el, index) => {
+                el.style.animationDelay = `${index * 40}ms`
+                el.classList.add('event-visible')
+              })
+              pendingElements = []
+            }, 16)
+          } else {
+            // Queue elements that appear before initial animations are done
+            pendingElements.push(entry.target)
+          }
+          observer.unobserve(entry.target) // Only animate once
+        }
+      })
+      
+      // Apply staggered delays to initially visible events
+      if (initialLoad && visibleOnLoad.length > 0) {
+        visibleOnLoad.forEach((el, index) => {
+          el.style.animationDelay = `${index * 40}ms`
+          el.classList.add('event-visible')
+        })
+        initialLoad = false
+        
+        // Wait for all initial animations to complete before enabling scroll animations
+        const totalDuration = (visibleOnLoad.length - 1) * 40 + 350 // last delay + animation duration
+        setTimeout(() => {
+          animationsReady = true
+          // Animate any queued elements with staggered delays
+          pendingElements.forEach((el, index) => {
+            el.style.animationDelay = `${index * 40}ms`
+            el.classList.add('event-visible')
+          })
+          pendingElements = []
+        }, totalDuration)
+      }
+    },
+    { threshold: 0.01, rootMargin: '0px 0px -20px 0px' }
+  )
+
   try {
     const res = await fetch(
       'https://docs.google.com/spreadsheets/d/1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g/export?format=csv&id=1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g&gid=0'
@@ -74,6 +136,19 @@ onMounted(async () => {
     events.value = []
   } finally {
     isLoading.value = false
+    // Observe event elements after loading completes
+    setTimeout(() => {
+      document.querySelectorAll('.event').forEach((el) => {
+        if (observer) observer.observe(el)
+      })
+    }, 50)
+  }
+})
+
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect()
+    observer = null
   }
 })
 
@@ -360,6 +435,29 @@ function sameStartEnd(ev) {
 <style scoped src="@/assets/css/cercaeventi.css"></style>
 
 <style scoped>
+/* Fade-up entrance animation for events - triggered on scroll into view */
+@keyframes event-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Events start hidden until scrolled into view */
+.event {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+/* Animate when visible */
+.event.event-visible {
+  animation: event-fade-up 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+}
+
 /* Hover effect for event items: subtle lift and background lightening */
 .event {
   transition: background-color 220ms cubic-bezier(.2,.9,.2,1),
