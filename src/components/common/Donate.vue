@@ -1,10 +1,23 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, defineProps } from 'vue';
+
+defineProps({
+    hideDonators: {
+        type: Boolean,
+        default: false
+    }
+});
 
 const bubbleRef = ref(null);
+const rotation = ref(0);
 
 onMounted(() => {
+    // Random slight rotation between -2 and 2 degrees
+    rotation.value = (Math.random() - 0.5) * 4;
+    
     if (bubbleRef.value) {
+        bubbleRef.value.style.setProperty('--rotation', `${rotation.value}deg`);
+        
         // Add mouse move event for glow effect
         bubbleRef.value.addEventListener('mousemove', (event) => {
             const rect = bubbleRef.value.getBoundingClientRect();
@@ -80,7 +93,7 @@ onMounted(() => {
             </a>
         </div>
         <p class="donate-support"><b>e supporta il progetto!</b></p>
-        <router-link class="btn outlined" to="/donators">
+        <router-link v-if="!hideDonators" class="btn outlined" to="/supporters">
             Donatori ❤️
         </router-link>
         </div>
@@ -92,10 +105,11 @@ onMounted(() => {
 .donate-bubble {
     --mouse-x: 50%;
     --mouse-y: 50%;
+    --rotation: 0deg;
     
     position: relative;
     display: inline-block;
-    padding: 40px;
+    padding: 50px;
     background: linear-gradient(135deg, 
         rgba(var(--primary-rgb, 99, 102, 241), 0.15) 0%, 
         rgba(var(--primary-rgb, 99, 102, 241), 0.05) 100%);
@@ -109,6 +123,8 @@ onMounted(() => {
     overflow: hidden;
     transition: box-shadow 0.3s ease, transform 0.3s ease;
     margin-bottom: 30px;
+    z-index: 10;
+    transform: rotate(var(--rotation));
 }
 
 .donate-bubble:hover {
@@ -116,7 +132,7 @@ onMounted(() => {
         0 12px 40px rgba(0, 0, 0, 0.15),
         0 4px 12px rgba(var(--primary-rgb, 99, 102, 241), 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    transform: scale(1.02);
+    transform: rotate(var(--rotation)) scale(1.02);
 }
 
 .bubble-glow {

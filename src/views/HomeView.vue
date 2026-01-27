@@ -1,6 +1,6 @@
 <script setup>
   import CercaEventi from '../components/CercaEventi.vue'
-  import Donate from '../components/Donate.vue'
+  import Donate from '../components/common/Donate.vue'
 </script>
 
 <template>

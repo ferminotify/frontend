@@ -357,7 +357,7 @@ function sameStartEnd(ev) {
   </div>
 </template>
 
-<style scoped src="../assets/css/cercaeventi.css"></style>
+<style scoped src="@/assets/css/cercaeventi.css"></style>
 
 <style scoped>
 /* Hover effect for event items: subtle lift and background lightening */

@@ -1,8 +1,8 @@
 <script setup>
   import { onMounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import LoginForm from '../components/LoginForm.vue'
-  import RegisterForm from '../components/RegisterForm.vue'
+  import LoginForm from '@/components/LoginForm.vue'
+  import RegisterForm from '@/components/RegisterForm.vue'
   import { useUserStore } from '@/stores/user'
 
   const route = useRoute()

@@ -1,0 +1,145 @@
+/* Common bubble styles for draggable bubble components */
+
+.bubble-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.bubble {
+    --mouse-x: 50%;
+    --mouse-y: 50%;
+    --drag-x: 0px;
+    --drag-y: 0px;
+    --rotation: 0deg;
+    --offset-x: 0%;
+    --offset-y: 0%;
+    --z-index: 1;
+    
+    position: relative;
+    z-index: var(--z-index);
+    transform: 
+        translateX(calc(var(--offset-x) + var(--drag-x))) 
+        translateY(calc(var(--offset-y) + var(--drag-y))) 
+        rotate(var(--rotation));
+    padding: 20px 25px;
+    background: linear-gradient(135deg, 
+        rgba(var(--primary-rgb, 99, 102, 241), 0.15) 0%, 
+        rgba(var(--primary-rgb, 99, 102, 241), 0.05) 100%);
+    border: 2px solid rgba(var(--primary-rgb, 99, 102, 241), 0.3);
+    border-radius: 24px;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(var(--primary-rgb, 99, 102, 241), 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    animation: bubbleFloatIn 0.6s ease-out backwards;
+    animation-delay: var(--animation-delay, 0s);
+    transition: box-shadow 0.3s ease;
+    cursor: grab;
+    user-select: none;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.bubble.dragging {
+    cursor: grabbing;
+    z-index: calc(var(--z-index) + 1000);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.25),
+        0 8px 20px rgba(var(--primary-rgb, 99, 102, 241), 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: 
+        translateX(calc(var(--offset-x) + var(--drag-x))) 
+        translateY(calc(var(--offset-y) + var(--drag-y))) 
+        rotate(var(--rotation)) 
+        scale(1.02);
+}
+
+.bubble:hover {
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.15),
+        0 4px 12px rgba(var(--primary-rgb, 99, 102, 241), 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Mouse-following glow effect */
+.bubble-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 22px;
+    background: radial-gradient(
+        circle 120px at var(--mouse-x) var(--mouse-y),
+        rgba(var(--primary-rgb, 99, 102, 241), 0.4) 0%,
+        transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.bubble:hover .bubble-glow {
+    opacity: 1;
+}
+
+.bubble-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+}
+
+.bubble-content .name {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-color, var(--on-surface, #fff));
+}
+
+.bubble-content .message {
+    margin: 5px 0 0 0;
+    font-size: 0.85rem;
+    opacity: 0.8;
+    line-height: 1.4;
+    max-width: 200px;
+}
+
+@keyframes bubbleFloatIn {
+    0% {
+        opacity: 0;
+        transform: 
+            translateX(calc(var(--offset-x) + var(--drag-x))) 
+            translateY(calc(var(--offset-y) + var(--drag-y) + 30px)) 
+            rotate(var(--rotation)) 
+            scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: 
+            translateX(calc(var(--offset-x) + var(--drag-x))) 
+            translateY(calc(var(--offset-y) + var(--drag-y))) 
+            rotate(var(--rotation)) 
+            scale(1);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .bubble {
+        padding: 15px 20px;
+    }
+    
+    .bubble-content .name {
+        font-size: 1.1rem;
+    }
+    
+    .bubble-content .message {
+        font-size: 0.8rem;
+        max-width: 180px;
+    }
+}

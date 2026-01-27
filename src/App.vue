@@ -23,6 +23,60 @@
   const hideSidebarText = ref(false)
   let prevScroll = typeof window !== 'undefined' ? window.pageYOffset : 0
 
+  // Hamburger menu state
+  const menuOpen = ref(false)
+
+  const closeMenu = () => {
+    if (menuOpen.value) toggleMenu()
+  }
+
+  const toggleMenu = () => {
+    const navLinks = document.querySelector('.nav-links')
+    const hamburger = document.querySelector('.hamburger')
+    const ul = navLinks?.querySelector('ul')
+    const lis = ul?.querySelectorAll('li') || []
+
+    if (menuOpen.value) {
+      // Close menu with staggered animation
+      Array.from(lis).reverse().forEach((li, i) => {
+        setTimeout(() => {
+          li.classList.add('li-inactive')
+          li.classList.remove('li-active')
+          li.style.visibility = 'hidden'
+        }, 250 * i)
+      })
+
+      setTimeout(() => {
+        navLinks?.classList.remove('active')
+        navLinks?.classList.add('inactive')
+      }, 250 * lis.length)
+
+      hamburger?.querySelectorAll('.line').forEach(line => {
+        line.classList.remove('line-pazzo')
+      })
+
+      menuOpen.value = false
+    } else {
+      // Open menu with staggered animation
+      navLinks?.classList.remove('inactive')
+      navLinks?.classList.add('active')
+
+      hamburger?.querySelectorAll('.line').forEach(line => {
+        line.classList.add('line-pazzo')
+      })
+
+      Array.from(lis).forEach((li, i) => {
+        setTimeout(() => {
+          li.classList.remove('li-inactive')
+          li.classList.add('li-active')
+          li.style.visibility = 'visible'
+        }, 250 * i)
+      })
+
+      menuOpen.value = true
+    }
+  }
+
   // PWA install state
   const deferredPrompt = ref(null)
   const isStandalone = ref(false)
@@ -257,17 +311,31 @@
           </a>
         </RouterLink>
 
+        <RouterLink v-if="!isStandalone" to="/app" custom v-slot="{ href, navigate, isExactActive }">
+          <a :href="href" @click="installApp(navigate, $event)" class="sidebar-link" id="app" :class="{ active: isExactActive }">
+            <span class="material-symbols-outlined sidebar-icon">download</span>
+            <span class="sidebar-link-text">Installa l'app</span>
+          </a>
+        </RouterLink>
+
         <RouterLink to="/faq" custom v-slot="{ href, navigate, isExactActive }">
-          <a :href="href" @click="navigate" class="sidebar-link" id="faq" :class="{ active: isExactActive }">
+          <a :href="href" @click="navigate" class="sidebar-link sidebar-desktop" id="faq" :class="{ active: isExactActive }">
             <span class="material-symbols-outlined sidebar-icon">help_center</span>
             <span class="sidebar-link-text">FAQ</span>
           </a>
         </RouterLink>
 
-        <RouterLink v-if="!isStandalone" to="/app" custom v-slot="{ href, navigate, isExactActive }">
-          <a :href="href" @click="installApp(navigate, $event)" class="sidebar-link" id="app" :class="{ active: isExactActive }">
-            <span class="material-symbols-outlined sidebar-icon">download</span>
-            <span class="sidebar-link-text">Installa l'app</span>
+        <RouterLink to="/supporters" custom v-slot="{ href, navigate, isExactActive }">
+          <a :href="href" @click="navigate" class="sidebar-link sidebar-desktop" id="supporters" :class="{ active: isExactActive }">
+            <span class="material-symbols-outlined sidebar-icon">favorite</span>
+            <span class="sidebar-link-text">Supporta</span>
+          </a>
+        </RouterLink>
+
+        <RouterLink to="/team" custom v-slot="{ href, navigate, isExactActive }">
+          <a :href="href" @click="navigate" class="sidebar-link sidebar-desktop" id="team" :class="{ active: isExactActive }">
+            <span class="material-symbols-outlined sidebar-icon">group</span>
+            <span class="sidebar-link-text">Team</span>
           </a>
         </RouterLink>
 
@@ -280,8 +348,8 @@
           </a>
         </div>
 
-        <!--div class="sidebar-link sidebar-menu" id="manu">
-          <a class="hamburger">
+        <div class="sidebar-link sidebar-menu sidebar-mobile" id="menu">
+          <a class="hamburger" @click="toggleMenu">
             <span class="line"></span>
             <span class="line"></span>
             <span class="line"></span>
@@ -289,11 +357,26 @@
           <div class="nav-links">
             <ul>
               <li>
+                <RouterLink to="/faq" class="sidebar-menu-link" @click="closeMenu">
+                  <span class="material-symbols-outlined">help_center</span> FAQ
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink to="/supporters" class="sidebar-menu-link" @click="closeMenu">
+                  <span class="material-symbols-outlined">favorite</span> Supporta
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink to="/team" class="sidebar-menu-link" @click="closeMenu">
+                  <span class="material-symbols-outlined">group</span> Team
+                </RouterLink>
+              </li>
+              <li>
                 <div class="sidebar-link sidebar-contatti">
-                  <a href="https://www.instagram.com/ferminotify/" target="_blank">
+                  <a href="https://www.instagram.com/ferminotify/" target="_blank" @click="closeMenu">
                     <font-awesome-icon :icon="['fab', 'instagram']" />
                   </a>
-                  <a href="https://github.com/ferminotify" target="_blank">
+                  <a href="https://github.com/ferminotify" target="_blank" @click="closeMenu">
                     <font-awesome-icon :icon="['fab', 'github']" />
                   </a>
                 </div>
@@ -301,7 +384,7 @@
             </ul>
           </div>
           <span class="sidebar-link-text">Menu</span>
-        </div-->
+        </div>
       </div>
     </div>
   </header>
@@ -355,6 +438,37 @@
 /* keep default desktop behaviour untouched */
 .sidebar .sidebar-link-text {
   transition: none;
+}
+
+/* Mobile/Desktop visibility */
+.sidebar-mobile {
+  display: none;
+}
+
+@media screen and (max-width: 600px) {
+  .sidebar-desktop {
+    display: none !important;
+  }
+  .sidebar-mobile {
+    display: flex !important;
+  }
+}
+
+/* Hamburger menu link styling */
+.sidebar-menu-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  color: var(--on-surface);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.sidebar-menu-link:hover {
+  color: var(--primary);
+}
+.sidebar-menu-link .material-symbols-outlined {
+  font-size: 20px;
 }
 
 

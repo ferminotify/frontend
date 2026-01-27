@@ -25,7 +25,7 @@
 </template>
 <script setup>
     import { ref } from 'vue'
-    import Title from '../components/Title.vue'
+    import Title from '@/components/common/Title.vue'
     import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
     const showInstallHelp = ref(false)

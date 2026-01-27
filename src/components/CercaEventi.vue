@@ -1,7 +1,7 @@
 <script setup>
   import { ref, defineEmits, nextTick, onMounted, computed } from 'vue'
   import { generateAlert } from '@/utils/alertbanner.js'
-  import CercaEventiCore from '@/components/CercaEventiCore.vue'
+  import CercaEventiCore from '@/components/common/CercaEventiCore.vue'
 
   // local state for the search query
   const query = ref('')
