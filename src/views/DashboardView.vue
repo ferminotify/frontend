@@ -200,7 +200,7 @@
 <script setup>
   import KeywordForm from '@/components/dashboard/KeywordForm.vue'
   import Eventi from '@/components/dashboard/Eventi.vue'
-  import Title from '@/components/Title.vue'
+  import Title from '@/components/common/Title.vue'
   import Settings from '@/components/dashboard/Settings.vue'
   import Telegram from '@/components/dashboard/Telegram.vue'
   import UserInfo from '@/components/dashboard/UserInfo.vue'
