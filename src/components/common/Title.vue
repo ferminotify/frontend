@@ -15,9 +15,7 @@
 </template>
 
 <script setup>
-  import { computed } from 'vue'
-  import bgVideoFaq from '@/assets/img/bg/Google_Mio_UsingMaterial_2400x3200.mp4'
-  import bgVideoApp from '@/assets/img/bg/Google_Mio_DevelopInputOutput_1080x1080.mp4'
+  import { ref, watch } from 'vue'
 
   const props = defineProps({
     title: String,
@@ -25,11 +23,26 @@
     showVideo: { type: String, default: null },
   })
 
-  const videoSrc = computed(() => {
-    if (props.showVideo === 'faq') return bgVideoFaq
-    if (props.showVideo === 'app') return bgVideoApp
-    return null
-  })
+  const videoSrc = ref(null)
+
+  watch(() => props.showVideo, async (videoType) => {
+    if (!videoType) {
+      videoSrc.value = null
+      return
+    }
+    
+    const videoMap = {
+      faq: () => import('@/assets/img/bg/Google_Mio_UsingMaterial_2400x3200.mp4'),
+      app: () => import('@/assets/img/bg/Google_Mio_DevelopInputOutput_1080x1080.mp4'),
+      team: () => import('@/assets/img/bg/Google_Mio_MaterialAZ_1080x1080_(1).mp4'),
+      supporter: () => import('@/assets/img/bg/Google_Mio_Shape_1080x1080.mp4'),
+    }
+    
+    if (videoMap[videoType]) {
+      const module = await videoMap[videoType]()
+      videoSrc.value = module.default
+    }
+  }, { immediate: true })
 </script>
 
 <style scoped>

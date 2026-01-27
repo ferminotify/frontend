@@ -10,7 +10,7 @@
 </template>
 
 <script setup>
-  import CercaEventiCore from '@/components/CercaEventiCore.vue'
+  import CercaEventiCore from '@/components/common/CercaEventiCore.vue'
   import { computed } from 'vue'
 
   const { keywords } = defineProps({

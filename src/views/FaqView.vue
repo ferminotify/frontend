@@ -11,7 +11,7 @@
   import { onMounted, nextTick } from 'vue'
   import { useRouter } from 'vue-router'
 
-  import Title from '@/components/Title.vue'
+  import Title from '@/components/common/Title.vue'
   import TagIntro from '@/components/TagIntro.vue'
   import Status from '@/components/Status.vue'
   import FaqSections from '@/components/FaqSections.vue'

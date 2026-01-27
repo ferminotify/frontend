@@ -1,13 +1,13 @@
 <script setup>
-import Title from '@/components/Title.vue';
-import Donate from '@/components/Donate.vue';
+import Title from '@/components/common/Title.vue';
+import Donate from '@/components/common/Donate.vue';
 import Supporters from '@/components/Supporters.vue';
 </script>
 
 <template>
 
-    <div class="section">
-        <Title title="Sostenitori di Fermi Notify" subtitle="GRAZIE ❤️" />
+    <div class="section" id="supporters-view">
+        <Title title="Sostenitori di Fermi Notify" subtitle="GRAZIE ❤️" :showVideo="'supporter'" />
         <div class="supporter-content">
             <div style="text-align: center;">
                 <Donate hide-donators="true"/>

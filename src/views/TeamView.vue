@@ -1,10 +1,14 @@
 <script setup>
-    import Title from '@/components/Title.vue';
+    import Title from '@/components/common/Title.vue';
     import Team from '@/components/Team.vue';
 </script>
 
 <template>
-    <Title title="Team" subtitle="Il Team di Fermi Notify" />
+    <div class="section" id="team-view">
+        <Title title="Team" subtitle="Il Team di Fermi Notify" :showVideo="'team'" />
 
-    <Team />
+        <Team />
+    </div>
 </template>
+
+<style src="@/assets/css/page.css"></style>
