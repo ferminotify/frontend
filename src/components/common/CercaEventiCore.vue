@@ -22,7 +22,8 @@ let observer = null
 let initialLoad = true
 let animationsReady = false
 let pendingElements = [] // Queue for elements that scroll into view before animations are ready
-let batchTimeout = null // For batching scroll-triggered animations
+let scrollAnimationIndex = 0 // Running counter for scroll-triggered animation delays
+const MAX_STAGGER_DELAY = 200 // Cap maximum delay to prevent long waits when scrolling fast
 
 onMounted(async () => {
   // Setup intersection observer for event cards
@@ -33,24 +34,37 @@ onMounted(async () => {
       
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
+          // Skip if already animated or already queued
+          if (entry.target.classList.contains('event-visible') || 
+              entry.target.classList.contains('event-animating')) {
+            observer.unobserve(entry.target)
+            return
+          }
+          
           if (initialLoad) {
             visibleOnLoad.push(entry.target)
           } else if (animationsReady) {
-            // Queue elements and batch them with a small delay
-            pendingElements.push(entry.target)
+            // Immediately mark as animating and assign delay based on running counter
+            entry.target.classList.add('event-animating')
+            const delay = Math.min(scrollAnimationIndex * 40, MAX_STAGGER_DELAY)
+            scrollAnimationIndex++
             
-            // Debounce: wait a frame to collect all visible elements, then animate with stagger
-            if (batchTimeout) clearTimeout(batchTimeout)
-            batchTimeout = setTimeout(() => {
-              pendingElements.forEach((el, index) => {
-                el.style.animationDelay = `${index * 40}ms`
-                el.classList.add('event-visible')
-              })
-              pendingElements = []
-            }, 16)
+            // Use requestAnimationFrame to batch DOM reads/writes
+            requestAnimationFrame(() => {
+              entry.target.style.animationDelay = `${delay}ms`
+              entry.target.classList.add('event-visible')
+              
+              // Reset the counter after animation completes to avoid infinitely growing delays
+              setTimeout(() => {
+                scrollAnimationIndex = Math.max(0, scrollAnimationIndex - 1)
+              }, delay + 350) // delay + animation duration
+            })
           } else {
             // Queue elements that appear before initial animations are done
-            pendingElements.push(entry.target)
+            if (!pendingElements.includes(entry.target)) {
+              entry.target.classList.add('event-animating') // Mark to prevent re-adding
+              pendingElements.push(entry.target)
+            }
           }
           observer.unobserve(entry.target) // Only animate once
         }
@@ -59,19 +73,27 @@ onMounted(async () => {
       // Apply staggered delays to initially visible events
       if (initialLoad && visibleOnLoad.length > 0) {
         visibleOnLoad.forEach((el, index) => {
-          el.style.animationDelay = `${index * 40}ms`
+          el.style.animationDelay = `${Math.min(index * 40, MAX_STAGGER_DELAY)}ms`
           el.classList.add('event-visible')
         })
         initialLoad = false
         
         // Wait for all initial animations to complete before enabling scroll animations
-        const totalDuration = (visibleOnLoad.length - 1) * 40 + 350 // last delay + animation duration
+        const totalDuration = Math.min((visibleOnLoad.length - 1) * 40, MAX_STAGGER_DELAY) + 350
         setTimeout(() => {
           animationsReady = true
-          // Animate any queued elements with staggered delays
-          pendingElements.forEach((el, index) => {
-            el.style.animationDelay = `${index * 40}ms`
-            el.classList.add('event-visible')
+          // Animate any queued elements with staggered delays using the running counter
+          pendingElements.forEach((el) => {
+            if (!el.classList.contains('event-visible')) {
+              const delay = Math.min(scrollAnimationIndex * 40, MAX_STAGGER_DELAY)
+              scrollAnimationIndex++
+              el.style.animationDelay = `${delay}ms`
+              el.classList.add('event-visible')
+              
+              setTimeout(() => {
+                scrollAnimationIndex = Math.max(0, scrollAnimationIndex - 1)
+              }, delay + 350)
+            }
           })
           pendingElements = []
         }, totalDuration)
