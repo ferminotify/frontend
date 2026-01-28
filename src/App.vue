@@ -7,6 +7,25 @@
   const route = useRoute()
   const user = useUserStore()
 
+  // Initial loading screen for icons
+  const iconsReady = ref(false)
+  const skipLoading = ref(false)
+  // random loading text
+  const loadingText = ref('')
+  {
+    const loadingMessages = [
+      'Stiamo preparando l\'app...',
+      'Caricamento Fermi Notify...',
+      'Caricamento in corso...',
+      'Quasi pronto...',
+      'Raccogliendo gli eventi...',
+      'Sincronizzazione dei dati...',
+      'Preparazione della dashboard...',
+    ]
+    loadingText.value = loadingMessages[Math.floor(Math.random() * loadingMessages.length)]
+  }
+  const showSkipButton = ref(false)
+
   const isLoggedIn = computed(() => !!user.token)
   const isDashboard = computed(() => route.path.startsWith('/dashboard'))
   const isAuthActive = computed(() =>
@@ -191,8 +210,67 @@
     isStandalone.value = !!(displayModeStandalone || iosStandalone)
   }
 
-  onMounted(() => {
+  const waitForIconsToLoad = () => {
+    return new Promise((resolve) => {
+      if (typeof document === 'undefined' || !document.fonts) {
+        // Fallback for browsers without Font Loading API
+        console.log('[icons] Font Loading API not available, proceeding')
+        resolve()
+        return
+      }
+
+      const timeout = setTimeout(() => {
+        console.warn('[icons] Icon loading timeout, proceeding anyway')
+        showSkipButton.value = true
+        resolve()
+      }, 5000)
+
+      // Show skip button after 3 seconds
+      const skipTimeout = setTimeout(() => {
+        showSkipButton.value = true
+      }, 3000)
+
+      // Explicitly load the fonts we need
+      const fontPromises = [
+        document.fonts.load('16px "Material Symbols Outlined"'),
+        // Try multiple Font Awesome variants
+        Promise.any([
+          document.fonts.load('16px "Font Awesome 6 Brands"'),
+          document.fonts.load('16px "Font Awesome 5 Brands"'),
+          document.fonts.load('16px FontAwesome')
+        ]).catch(() => Promise.resolve()) // Don't fail if FA isn't found
+      ]
+
+      Promise.all(fontPromises)
+        .then(() => {
+          clearTimeout(timeout)
+          clearTimeout(skipTimeout)
+          console.log('[icons] All icons loaded successfully')
+          resolve()
+        })
+        .catch((err) => {
+          clearTimeout(timeout)
+          clearTimeout(skipTimeout)
+          console.warn('[icons] Font loading failed, proceeding anyway', err)
+          resolve()
+        })
+    })
+  }
+
+  onMounted(async () => {
     if (typeof window === 'undefined') return
+
+    // Wait for icons to load before showing the app
+    // Ensure the loading screen is visible for at least minLoadingMs milliseconds
+    const minLoadingMs = 500
+    const start = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()
+    await waitForIconsToLoad()
+    const end = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()
+    const elapsed = end - start
+    if (elapsed < minLoadingMs) {
+      await new Promise((r) => setTimeout(r, Math.ceil(minLoadingMs - elapsed)))
+    }
+    iconsReady.value = true
 
     prevScroll = window.pageYOffset
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -362,7 +440,30 @@
 </script>
 
 <template>
-  <header>
+  <!-- Loading screen for icons -->
+  <div v-if="!iconsReady && !skipLoading" class="icon-loading-screen">
+    <div class="icon-loading-container">
+      <div class="loading-content">
+        <div class="lds-grid">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <p class="loading-text">{{ loadingText }}</p>
+        <button v-if="showSkipButton" @click="skipLoading = true" class="skip-loading-btn">
+          Salta attesa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <header v-show="iconsReady || skipLoading">
     <div class="sidebar" :class="{ compact: hideSidebarText, mobile: isMobile }" style="padding-right: 6px; /* padding for bounce animation */">
       <div class="sidebar-inner" ref="sidebarInner">
         <div class="sidebar-indicator" :style="indicatorStyle"></div>
@@ -458,7 +559,7 @@
     </div>
   </header>
 
-  <div class="main-container">
+  <div class="main-container" v-show="iconsReady || skipLoading">
     <main class="main">
       <RouterView v-slot="{ Component, route: viewRoute }">
         <Transition appear mode="out-in" name="fade-up">
@@ -499,6 +600,7 @@
   position: absolute;
   background: var(--primary);
   border-radius: 999px;
+  opacity: 0; /* Start hidden, JS will reveal it */
   transition: top 0.5s cubic-bezier(0.34, 1.4, 0.64, 1),
               left 0.5s cubic-bezier(0.34, 1.4, 0.64, 1),
               width 0.5s cubic-bezier(0.34, 1.4, 0.64, 1),
@@ -626,6 +728,170 @@
 @media screen and (max-width: 400px) {
   .bigalert .btn{
     padding: 10px 15px;
+  }
+}
+
+/* Icon Loading Screen */
+.icon-loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--surface);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.icon-loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.loading-text {
+  color: var(--on-surface);
+  font-size: 16px;
+  text-align: center;
+  margin: 0;
+  min-height: 24px;
+  min-width: 240px;
+  animation: fadeInOut 0.6s ease-in-out infinite;
+}
+
+.skip-loading-btn {
+  margin-top: 12px;
+  padding: 10px 24px;
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: slideUp 0.3s ease;
+}
+
+.skip-loading-btn:hover {
+  background-color: var(--primary-dark, var(--primary));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.skip-loading-btn:active {
+  transform: translateY(0);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* LDS Grid animation */
+.lds-grid {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.lds-grid div {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--on-surface-primary);
+  animation: lds-grid 1.2s linear infinite;
+}
+
+.lds-grid div:nth-child(1) {
+  left: 8px;
+  top: 8px;
+  animation-delay: 0s;
+}
+
+.lds-grid div:nth-child(2) {
+  left: 32px;
+  top: 8px;
+  animation-delay: -0.4s;
+}
+
+.lds-grid div:nth-child(3) {
+  left: 56px;
+  top: 8px;
+  animation-delay: -0.8s;
+}
+
+.lds-grid div:nth-child(4) {
+  left: 8px;
+  top: 32px;
+  animation-delay: -0.4s;
+}
+
+.lds-grid div:nth-child(5) {
+  left: 32px;
+  top: 32px;
+  animation-delay: -0.8s;
+}
+
+.lds-grid div:nth-child(6) {
+  left: 56px;
+  top: 32px;
+  animation-delay: -1.2s;
+}
+
+.lds-grid div:nth-child(7) {
+  left: 8px;
+  top: 56px;
+  animation-delay: -0.8s;
+}
+
+.lds-grid div:nth-child(8) {
+  left: 32px;
+  top: 56px;
+  animation-delay: -1.2s;
+}
+
+.lds-grid div:nth-child(9) {
+  left: 56px;
+  top: 56px;
+  animation-delay: -1.6s;
+}
+
+@keyframes lds-grid {
+  0%, 100% {
+    opacity: 1;
+  }
+  33.33% {
+    opacity: 0.5;
+  }
+  66.66% {
+    opacity: 0.1;
   }
 }
 </style>
