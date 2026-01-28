@@ -2,7 +2,6 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useBubbleDrag } from '@/composables/useBubbleDrag';
 import '@/assets/css/bubbles.css';
-import router from '@/router';
 
 const coreTeam = ref([
     {
