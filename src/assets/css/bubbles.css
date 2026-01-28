@@ -3,6 +3,12 @@
 .bubble-wrapper {
     display: flex;
     justify-content: center;
+    align-items: flex-start;
+}
+
+/* Ensure grid cells with bubbles don't stretch and create extra vertical space */
+.bubbles-grid {
+    align-items: start;
 }
 
 .bubble {
