@@ -462,7 +462,7 @@
     <main class="main">
       <RouterView v-slot="{ Component, route: viewRoute }">
         <Transition appear mode="out-in" name="fade-up">
-          <div :key="viewRoute.path">
+          <div :key="viewRoute.path" style="width: 100%;">
             <component :is="Component" />
           </div>
         </Transition>

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import csv2json from '@/utils/csv2json.js'
 
 const props = defineProps({
@@ -151,6 +151,20 @@ onUnmounted(() => {
     observer = null
   }
 })
+
+// Watch for changes in filtered events and re-observe new elements
+watch(
+  () => [props.activeFilter, props.keywords],
+  () => {
+    // Wait for DOM to update with new filtered events
+    setTimeout(() => {
+      document.querySelectorAll('.events-list .event:not(.event-visible)').forEach((el) => {
+        if (observer) observer.observe(el)
+      })
+    }, 50)
+  },
+  { deep: true }
+)
 
 // Date parsing helpers
 function parseEnd(ev) {
