@@ -30,8 +30,8 @@ const donators = ref([
     },
 ]);
 
-const sortedDonators = ref([]);
-const bubbleRefs = ref([]);
+const processedDonators = ref([]);
+const bubbleRefs = ref({});
 const containerRef = ref(null);
 
 const { 
@@ -42,167 +42,154 @@ const {
     setupDragListeners 
 } = useBubbleDrag(containerRef, bubbleRefs);
 
-const getBubbleSize = (coffees, maxCoffees) => {
-    const minSize = 140;
-    const maxSize = 220;
-    const ratio = coffees / maxCoffees;
-    return minSize + (maxSize - minSize) * ratio;
+const processDonator = (donator, index, total) => ({
+    ...donator,
+    offsetX: getRandomOffset(30),
+    offsetY: getRandomOffset(30),
+    rotation: getRandomRotation(6),
+    delay: index * 0.08,
+    zIndex: total - index,
+    dragX: 0,
+    dragY: 0
+});
+
+const getList = (section) => {
+    return processedDonators;
+};
+
+const onStartDrag = (event, index) => {
+    startDrag(event, index, processedDonators, 'donators');
 };
 
 let cleanupListeners = null;
 
 onMounted(() => {
-    const maxCoffees = Math.max(...donators.value.map(d => d.coffees));
-    
-    sortedDonators.value = [...donators.value]
-        .sort((a, b) => b.coffees - a.coffees)
-        .map((donator, index, array) => ({
-            ...donator,
-            offsetX: getRandomOffset(),
-            rotation: getRandomRotation(),
-            size: getBubbleSize(donator.coffees, maxCoffees),
-            delay: index * 0.1,
-            zIndex: array.length - index,
-            dragX: 0,
-            dragY: 0,
-            isDragged: false,
-            originalHeight: 0
-        }));
-    
-    cleanupListeners = setupDragListeners(() => sortedDonators);
+    processedDonators.value = donators.value.map((d, i) => processDonator(d, i, donators.value.length));
+    cleanupListeners = setupDragListeners(getList);
 });
 
 onUnmounted(() => {
     if (cleanupListeners) cleanupListeners();
 });
-
-const onStartDrag = (event, index) => {
-    startDrag(event, index, sortedDonators);
-};
 </script>
 
 <template>
-<div class="bubbles-container" ref="containerRef">
-    <div 
-        v-for="(donator, index) in sortedDonators" 
-        :key="donator.name"
-        class="bubble-wrapper"
-        :style="{
-            '--placeholder-height': donator.isDragged ? donator.originalHeight + 'px' : 'auto'
-        }"
-    >
+<div class="supporters-container" ref="containerRef">
+    <div class="bubbles-grid">
         <div 
-            :ref="el => bubbleRefs[index] = el"
-            class="bubble"
-            :class="{ 'is-dragged': donator.isDragged }"
-            :style="{
-                '--offset-x': donator.offsetX + '%',
-                '--rotation': donator.rotation + 'deg',
-                '--bubble-size': donator.size + 'px',
-                '--animation-delay': donator.delay + 's',
-                '--z-index': donator.zIndex,
-                '--drag-x': donator.dragX + 'px',
-                '--drag-y': donator.dragY + 'px'
-            }"
-            @mousemove="handleMouseMove($event, index)"
-            @mousedown="onStartDrag($event, index)"
-            @touchstart="onStartDrag($event, index)"
+            v-for="(donator, index) in processedDonators" 
+            :key="donator.name"
+            class="bubble-wrapper"
         >
-        <div class="bubble-glow"></div>
-        <div class="bubble-content">
-            <h3 class="name">{{ donator.name }}</h3>
-            <p class="coffees">
-                <b class="primary-text">
-                    {{ donator.coffees }} 
-                    <span class="material-symbols-outlined">local_cafe</span>
-                </b>
-            </p>
-            <p v-if="donator.message" class="message">
-                <span v-for="(line, i) in donator.message.split('\n')" :key="i">
-                    {{ line }}<br v-if="i < donator.message.split('\n').length - 1">
-                </span>
-            </p>
-            <a 
-                v-if="donator.social" 
-                class="link social-link" 
-                :href="donator.social.url"
-                target="_blank"
+            <div 
+                :ref="el => bubbleRefs[`donators-${index}`] = el"
+                class="bubble"
+                :style="{
+                    '--offset-x': donator.offsetX + '%',
+                    '--offset-y': donator.offsetY + '%',
+                    '--rotation': donator.rotation + 'deg',
+                    '--animation-delay': donator.delay + 's',
+                    '--z-index': donator.zIndex,
+                    '--drag-x': donator.dragX + 'px',
+                    '--drag-y': donator.dragY + 'px'
+                }"
+                @mousemove="handleMouseMove($event, index, 'donators')"
+                @mousedown="onStartDrag($event, index)"
+                @touchstart="onStartDrag($event, index)"
             >
-                <font-awesome-icon :icon="['fab', donator.social.platform]" />
-                {{ donator.social.handle }}
-            </a>
-        </div>
+                <div class="bubble-glow"></div>
+                <div class="bubble-content">
+                    <h3 class="name">{{ donator.name }}</h3>
+                    <div class="coffees">
+                        <span class="coffee-count">{{ donator.coffees }}</span> <span class="material-symbols-outlined">local_cafe</span>
+                    </div>
+                    <p v-if="donator.message" class="message">{{ donator.message }}</p>
+                    <div v-if="donator.social" class="social-links">
+                        <a class="link social-link" :href="donator.social.url" target="_blank" rel="noopener noreferrer">
+                            <font-awesome-icon :icon="['fab', donator.social.platform]" />
+                            <span class="handle">@{{ donator.social.handle }}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 </template>
 
 <style scoped>
-.bubbles-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 25px;
+.supporters-container {
     padding: 20px;
-    min-height: 60vh;
+    max-width: 1200px;
+    margin: 0 auto;
     position: relative;
 }
 
-.bubble {
-    min-width: var(--bubble-size);
-    max-width: 90vw;
-    touch-action: none;
-}
-
-.coffees {
-    margin: 0;
+.bubble-wrapper {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    justify-content: center;
+    align-items: start;
 }
 
-.coffees .primary-text {
+.coffees{
+    color: var(--on-surface-primary);
+}
+
+.social-links {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 1.1rem;
-}
-
-.coffees .material-symbols-outlined {
-    font-size: 1.2rem;
+    gap: 12px;
+    margin-top: 10px;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
 }
 
 .social-link {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.85rem;
-    margin-top: 5px;
     opacity: 0.9;
-    transition: opacity 0.2s ease;
-    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-size: 0.9rem;
+    /* color handled by shared bubble styles when inside a bubble */
+    text-decoration: none;
+    pointer-events: auto;
 }
 
 .social-link:hover {
     opacity: 1;
+    transform: scale(1.05);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .bubbles-container {
-        gap: 20px;
+.handle {
+    font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .bubbles-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+}
+
+@media (max-width: 600px) {
+    .supporters-container {
         padding: 15px;
     }
     
-    .bubble {
-        --offset-x: calc(var(--offset-x) * 0.5) !important;
-        min-width: min(var(--bubble-size), 85vw);
+    .bubbles-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
     }
-}
-
-@media (max-width: 480px) {
-    .bubble {
-        --offset-x: calc(var(--offset-x) * 0.3) !important;
+    
+    .name {
+        font-size: 1rem;
+    }
+    
+    .message {
+        font-size: 0.8rem;
+        max-width: 180px;
     }
 }
 </style>

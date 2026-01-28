@@ -353,57 +353,7 @@ onUnmounted(() => {
     margin: 0 auto;
 }
 
-.bubble-wrapper {
-    align-items: start;
-}
-
-.bubble {
-    width: fit-content;
-    touch-action: none;
-    overflow: visible;
-    background: linear-gradient(135deg, 
-        rgba(0, 74, 119, 0.2) 0%, 
-        rgba(0, 74, 119, 0.1) 100%);
-    border: 2px solid rgba(0, 74, 119, 0.4);
-}
-
-.bubble:not(.bubble-inactive) .name {
-    color: var(--on-primary, #c2e7ff);
-}
-
-.bubble:not(.bubble-inactive) .role {
-    color: var(--on-primary, #c2e7ff);
-}
-
-.bubble:hover:not(.bubble-inactive) {
-    background: linear-gradient(135deg, 
-        rgba(18, 86, 128, 0.25) 0%, 
-        rgba(18, 86, 128, 0.15) 100%);
-    border-color: rgba(18, 86, 128, 0.5);
-}
-
-.bubble:not(.bubble-inactive) .bubble-glow {
-    background: radial-gradient(
-        circle 120px at var(--mouse-x) var(--mouse-y),
-        rgba(0, 74, 119, 0.35) 0%,
-        transparent 70%
-    );
-}
-
-.bubble.bubble-inactive {
-    background: linear-gradient(135deg, 
-        rgba(251, 188, 4, 0.12) 0%, 
-        rgba(251, 188, 4, 0.06) 100%);
-    border: 2px solid rgba(251, 188, 4, 0.3);
-}
-
-.bubble.bubble-inactive .bubble-glow {
-    background: radial-gradient(
-        circle 120px at var(--mouse-x) var(--mouse-y),
-        rgba(251, 188, 4, 0.25) 0%,
-        transparent 70%
-    );
-}
+/* Bubble variants moved to `src/assets/css/bubbles.css` */
 
 .roles {
     display: flex;
@@ -434,7 +384,7 @@ onUnmounted(() => {
     opacity: 0.9;
     transition: opacity 0.2s ease, transform 0.2s ease;
     font-size: 1.3rem;
-    color: var(--on-primary, #c2e7ff);
+    /* color handled by shared bubble styles when inside a bubble */
     text-decoration: none;
     pointer-events: auto;
 }
