@@ -568,7 +568,7 @@
           </div>
         </Transition>
       </RouterView>
-      <div v-if="showBigAlert" class="bigalert" id="alert_new_app_beta_251216">
+      <!--div v-if="showBigAlert" class="bigalert" id="alert_new_app_beta_251216">
         <div class="bigalert-inner">
           <div class="two-container" style="padding-bottom: 0.83em;">
             <h2 style="margin: 0;">Stai usando la nuova App! <span class="badge">beta</span></h2>
@@ -588,7 +588,7 @@
             <button @click="closeBigAlert" class="btn filled">Chiudi</button>
           </div>
         </div>
-      </div>
+      </div-->
       
     </main>
   </div>
