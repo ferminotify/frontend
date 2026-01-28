@@ -394,10 +394,6 @@ onUnmounted(() => {
     transform: scale(1.15);
 }
 
-.bubble.bubble-inactive .social-link {
-    color: rgba(251, 188, 4, 0.9);
-}
-
 .email-link {
     display: flex;
     align-items: center;
