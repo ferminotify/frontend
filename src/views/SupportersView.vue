@@ -14,6 +14,9 @@ import Supporters from '@/components/Supporters.vue';
             </div>
             <Supporters />
         </div>
+        <div style="text-align: center; margin: 30px 0 60px;">
+            <RouterLink to="/team" class="btn outlined">Scopri il team 🌐</RouterLink>
+        </div>
     </div>
 </template>
 

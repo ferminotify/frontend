@@ -668,7 +668,7 @@
   white-space: nowrap;
 }
 .sidebar-menu-link:hover {
-  color: var(--primary);
+  color: var(--on-surface-primary);
 }
 .sidebar-menu-link .material-symbols-outlined {
   font-size: 20px;
