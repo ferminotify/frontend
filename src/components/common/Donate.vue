@@ -94,7 +94,7 @@ onMounted(() => {
         </div>
         <p class="donate-support"><b>e supporta il progetto!</b></p>
         <router-link v-if="!hideDonators" class="btn outlined" to="/supporters">
-            Donatori ❤️
+            Sostenitori ❤️
         </router-link>
         </div>
     </div>
