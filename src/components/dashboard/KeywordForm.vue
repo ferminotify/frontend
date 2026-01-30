@@ -71,7 +71,7 @@
             </li>
             <li>
               Per ulteriori dettagli, visita il
-              <a href="./faq" class="link">FAQ</a>
+              <RouterLink to="/faq" class="link">FAQ</RouterLink>
               .
             </li>
           </ul>

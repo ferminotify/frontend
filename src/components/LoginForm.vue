@@ -39,7 +39,7 @@
             <span class="material-symbols-outlined" aria-hidden="true">info</span>
             Fermi Notify non &egrave; un servizio ufficiale del Fermi: non &egrave; possibile accedere con l'account
             scolastico (di Moodle). Crea un nuovo account
-            <a href="/register" style="text-decoration: underline">qui</a>
+            <RouterLink to="/register" style="text-decoration: underline">qui</RouterLink>
             .
           </p>
         </form>

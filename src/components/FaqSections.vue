@@ -120,7 +120,7 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>2. Come faccio a registrarmi?</h3>
 				<p class="answer">
-					Per registrarti clicca <a href="/register" class="link">qui</a>. L'email utilizzata nella registrazione sarà quella che riceverà le notifiche.
+					Per registrarti clicca <RouterLink to="/register" class="link">qui</RouterLink>. L'email utilizzata nella registrazione sarà quella che riceverà le notifiche.
 				</p>
 			</div>
 
@@ -135,7 +135,7 @@ onBeforeUnmount(() => {
 					Nel caso in cui l'evento che ti riguarda venga pubblicato in qualsiasi momento prima del giorno stesso, ti arriver&agrave; una notifica <i>Daily Notification</i> che racchiude tutti gli eventi in programma.<br>
 					Le Daily Notification vengono inviate di default alle <span class="primary-text">6:00</span> del giorno stesso delle variazioni dell'orario.<br>
 					Puoi cambiare l'orario di invio delle Daily Notification nella
-					<a href="/dashboard" class="link">Dashboard</a>. Maggiori informazioni nella sezione <a href="/faq?page=configurazione" class="link">Configurazione</a>.
+					<RouterLink to="/dashboard" class="link">Dashboard</RouterLink>. Maggiori informazioni nella sezione <RouterLink to="/faq?page=configurazione" class="link">Configurazione</RouterLink>.
 				</p>
 				<p class="answer answer-staccato">
 					Nel caso in cui l'evento che ti riguarda venga pubblicato la Daily Notification (come una sostituzione dell'ultimo minuto), riceverai la notifica <i>Last Minute Notification</i> <span class="primary-text">all'istante</span>.
@@ -181,7 +181,7 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>2. Come aggiungo le keywords?</h3>
 				<p class="answer">
-					Puoi aggiungere le keywords nella casella dedicata nella <a href="/dashboard">Dashboard</a>. Una volta aggiunte, appariranno nella lista. Le keywords <span class="primary-text">non</span> sono case sensitive, quindi puoi
+					Puoi aggiungere le keywords nella casella dedicata nella <RouterLink to="/dashboard">Dashboard</RouterLink>. Una volta aggiunte, appariranno nella lista. Le keywords <span class="primary-text">non</span> sono case sensitive, quindi puoi
 					aggiungerle in maiuscolo o minuscolo (4CIIN o 4Ciin o 4ciin non cambia).
 				</p>
 			</div>
@@ -189,14 +189,14 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>3. Come rimuovo le keywords?</h3>
 				<p class="answer">
-					Per rimuovere una keyword, <span class="primary-text">riscrivila</span> nella casella che hai utilizzato per aggiungerla nella <a href="/dashboard" class="link">Dashboard</a>. Quindi la keyword verr&agrave; rimossa dalla lista.
+					Per rimuovere una keyword, <span class="primary-text">riscrivila</span> nella casella che hai utilizzato per aggiungerla nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>. Quindi la keyword verr&agrave; rimossa dalla lista.
 				</p>
 			</div>
 
 			<div class="question">
 				<h3>4. Come funziona la notifica tramite Telegram?</h3>
 				<p class="answer">
-					Per essere notificato su Telegram, invia il <span class="primary-text">codice</span> presente nella <a href="/dashboard#Telegram" class="link">Dashboard</a> al bot
+					Per essere notificato su Telegram, invia il <span class="primary-text">codice</span> presente nella <RouterLink to="/dashboard#Telegram" class="link">Dashboard</RouterLink> al bot
 					<a href="https://t.me/FermiNotifierBot" class="link">@FermiNotifierBot</a>.
 				</p>
 			</div>
@@ -220,7 +220,7 @@ onBeforeUnmount(() => {
 				</ul>
 				<p class="answer">
 					Tutte le variazioni aggiunte dopo l'orario specificato (negli esempi, dopo le 6:30 e le 19:30) verranno inviati come Last Minute Notification all'istante in cui vengono individuate nel calendario giornaliero.<br>
-					Per cambiare l'orario di invio delle Daily Notification, vai nella <a href="/dashboard" class="link">Dashboard</a> e seleziona l'orario desiderato.
+					Per cambiare l'orario di invio delle Daily Notification, vai nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink> e seleziona l'orario desiderato.
 				</p>
 			</div>
 
@@ -259,7 +259,7 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>2. Trattamento dei dati</h3>
 				<p class="answer">
-					I dati forniti sono accessibili esclusivamente al team interno di Fermi Notify, composto da persone fisiche presenti a <a href="/team" class="link">questa pagina</a>. Collaboratori esterni e strumenti citati come "Extra" non hanno
+					I dati forniti sono accessibili esclusivamente al team interno di Fermi Notify, composto da persone fisiche presenti a <RouterLink to="/team" class="link">questa pagina</RouterLink>. Collaboratori esterni e strumenti citati come "Extra" non hanno
 					accesso ai dati sensibili degli utenti. L'impiego dell'intelligenza artificiale (OpenAI ChatGPT, Google Gemini e GitHub Copilot) è limitato al supporto tecnico e allo sviluppo.
 				</p>
 			</div>
@@ -325,7 +325,7 @@ onBeforeUnmount(() => {
 				<a class="btn text flex-center" @click="copy('ferminotify@gmail.com')"><span class="material-symbols-outlined">content_copy</span></a>
 				-->
 			</div>
-			<a href="/team" class="btn filled flex-center" style="margin-top: 10px;">Team</a>
+			<RouterLink to="/team" class="btn filled flex-center" style="margin-top: 10px;">Team</RouterLink>
 		</div>
 	</section>
 </template>
