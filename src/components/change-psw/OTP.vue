@@ -188,7 +188,7 @@
 <style scoped>
   input {
     width: calc(100% - 30px);
-    padding: 15px;
+    padding: 10px;
     margin: 5px 0 0 0;
     display: inline-block;
     border: none;
@@ -203,11 +203,12 @@
   }
   .otp-input-fields {
     margin: auto;
-    width: auto;
+    width: 100%;
     max-width: 350px;
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
+    place-items: center;
+    gap: 5px;
   }
   .otp-input-fields input {
     height: auto;
