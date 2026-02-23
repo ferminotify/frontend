@@ -93,15 +93,6 @@ const router = createRouter({
       },
       meta: { title: 'GitHub · Fermi Notify' },
     },
-    // Proxy media files from backend API
-    {
-      path: '/:mediaFolder(email|icons)/:pathMatch(.*)*',
-      beforeEnter(to) {
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://api.fn.lkev.in';
-        const filePath = to.params.pathMatch ? `/${to.params.pathMatch}` : '';
-        window.location.href = `${apiUrl}/${to.params.mediaFolder}${filePath}`;
-      },
-    },
   ],
 })
 
