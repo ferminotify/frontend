@@ -77,7 +77,31 @@ const router = createRouter({
       name: 'team',
       component: TeamView,
       meta: { title: 'Team · Fermi Notify' },
-    }
+    },
+    {
+      path: '/ig',
+      name: 'ig',
+      beforeEnter() {
+        window.location.href = 'https://www.instagram.com/ferminotify/'
+      },
+      meta: { title: 'Instagram · Fermi Notify' },
+    },
+    {
+      path: '/gh',
+      beforeEnter() {
+        window.location.href = 'https://github.com/ferminotify'
+      },
+      meta: { title: 'GitHub · Fermi Notify' },
+    },
+    // Proxy media files from backend API
+    {
+      path: '/:mediaFolder(email|icons)/:pathMatch(.*)*',
+      beforeEnter(to) {
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://api.fn.lkev.in';
+        const filePath = to.params.pathMatch ? `/${to.params.pathMatch}` : '';
+        window.location.href = `${apiUrl}/${to.params.mediaFolder}${filePath}`;
+      },
+    },
   ],
 })
 

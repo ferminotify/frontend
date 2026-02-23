@@ -543,12 +543,12 @@
               </li>
               <li>
                 <div class="sidebar-link sidebar-contatti">
-                  <a href="https://www.instagram.com/ferminotify/" target="_blank" @click="closeMenu">
+                  <RouterLink to="/ig" target="_blank" @click="closeMenu">
                     <font-awesome-icon :icon="['fab', 'instagram']" />
-                  </a>
-                  <a href="https://github.com/ferminotify" target="_blank" @click="closeMenu">
+                  </RouterLink>
+                  <RouterLink to="/gh" target="_blank" @click="closeMenu">
                     <font-awesome-icon :icon="['fab', 'github']" />
-                  </a>
+                  </RouterLink>
                 </div>
               </li>
             </ul>
