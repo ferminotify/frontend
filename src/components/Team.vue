@@ -66,7 +66,7 @@ const externalCollaborators = ref([
     },
     {
         name: 'Tellaroli Alberto',
-        roles: ['🔃 Miscellaneous'],
+        roles: ['🔃 Side quests'],
         instagram: 'https://www.instagram.com/albertotellarolii/',
         github: 'https://github.com/zAnimus'
     }
