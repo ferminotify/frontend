@@ -9,6 +9,7 @@ const ResetPasswordView = () => import('../views/ResetPasswordView.vue')
 const AppView = () => import('../views/AppView.vue')
 const SupportersView = () => import('../views/SupportersView.vue')
 const TeamView = () => import('../views/TeamView.vue')
+const ArchiveView = () => import('../views/ArchiveView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -79,6 +80,12 @@ const router = createRouter({
       meta: { title: 'Team · Fermi Notify' },
     },
     {
+      path: '/archive',
+      name: 'archive',
+      component: ArchiveView,
+      meta: { title: 'Archivio · Fermi Notify' },
+    },
+    {
       path: '/ig',
       name: 'ig',
       beforeEnter() {
@@ -88,6 +95,7 @@ const router = createRouter({
     },
     {
       path: '/gh',
+      name: 'gh',
       beforeEnter() {
         window.location.href = 'https://github.com/ferminotify'
       },
