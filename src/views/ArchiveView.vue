@@ -97,6 +97,11 @@ const archiveSections = [
 		description: 'Digital footprint di Fermi Notify',
 		items: [
 			{
+				name: 'Articolo MyFermi',
+				url: 'https://myfermi.fermimn.edu.it/voci-di-corridoio/fermi-notify/',
+				type: 'ARTICLE',
+			},
+			{
 				name: 'App attuale',
 				url: 'https://fn.lkev.in',
 				type: 'PWA',

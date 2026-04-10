@@ -20,6 +20,11 @@ const router = createRouter({
       component: HomeView,
     },
     {
+      path: '/CercaEventi',
+      name: 'cerca-eventi',
+      redirect: '/',
+    },
+    {
       path: '/login',
       name: 'login',
       component: LoginView,
