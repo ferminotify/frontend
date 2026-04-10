@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import Title from '@/components/common/Title.vue';
 
 const STORAGE_KEY = 'archiveStyleMode'
 
@@ -148,13 +149,7 @@ const archiveSections = [
 			<button class="hero-kicker hero-switch" type="button" @click="toggleStyleMode">
 				{{ styleLabel }}
 			</button>
-			<h1>
-				Archivio
-				<span>Fermi Notify</span>
-			</h1>
-			<p class="hero-copy">
-				Una raccolta di risorse prodotte da Fermi Notify
-			</p>
+			<Title class="archive-title" title="Archivio Fermi Notify" subtitle="Una raccolta di risorse prodotte da Fermi Notify" />
 		</header>
 
 		<div class="archive-grid">
@@ -252,6 +247,10 @@ const archiveSections = [
 	--archive-text: #ffffff;
 	--archive-text-muted: #cfcfcf;
 	--archive-border: #505050;
+	--archive-title-bg: linear-gradient(180deg, rgba(255, 152, 0, 0.14), rgba(16, 16, 16, 0.96));
+	--archive-title-text: #fff7ea;
+	--archive-title-subtitle: #e5d6c2;
+	--archive-title-border: rgba(255, 152, 0, 0.3);
 	--card-radius: 16px;
 	--link-radius: 10px;
 	--hero-font: 'Montserrat', sans-serif;
@@ -266,6 +265,10 @@ const archiveSections = [
 	--archive-text: var(--on-surface, #e3e3e3);
 	--archive-text-muted: var(--on-surface-variant, #c4c7c5);
 	--archive-border: var(--divider, rgb(94, 98, 101));
+	--archive-title-bg: linear-gradient(180deg, rgba(194, 231, 255, 0.1), rgba(20, 19, 20, 0.96));
+	--archive-title-text: #f4fbff;
+	--archive-title-subtitle: #c4c7c5;
+	--archive-title-border: rgba(194, 231, 255, 0.24);
 	--card-radius: 18px;
 	--link-radius: 12px;
 	--hero-font: 'Montserrat', sans-serif;
@@ -312,25 +315,32 @@ const archiveSections = [
 	outline-offset: 3px;
 }
 
-.hero h1 {
+.archive-title {
+	margin-top: 1rem;
+	background: var(--archive-title-bg);
+	border: 1px solid var(--archive-title-border);
+	border-radius: 24px;
+	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+	color: var(--archive-title-text);
+}
+
+.archive-title :deep(.firstTitle) {
 	font-family: var(--hero-font);
 	font-weight: var(--hero-font-weight);
 	font-size: clamp(2rem, 7vw, 4rem);
 	line-height: 1.05;
 	margin: 0.8rem 0;
+	color: inherit;
+	text-wrap: balance;
 }
 
-.hero h1 span {
-	color: var(--archive-primary-color);
-}
-
-.hero-copy {
-	max-width: 760px;
-	margin: 0 auto;
+.archive-title :deep(.firstSubtitle) {
+	margin: 0;
 	font-family: 'Montserrat', sans-serif;
-	font-size: 0.95rem;
-	line-height: 1.6;
-	color: var(--archive-text-muted);
+	font-size: 1rem;
+	line-height: 1.5;
+	color: var(--archive-title-subtitle);
+	text-wrap: balance;
 }
 
 .archive-grid {
@@ -497,10 +507,6 @@ const archiveSections = [
 
 	.archive-card {
 		grid-column: span 1;
-	}
-
-	.hero-copy {
-		font-size: 0.88rem;
 	}
 }
 
