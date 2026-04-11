@@ -10,6 +10,7 @@ const AppView = () => import('../views/AppView.vue')
 const SupportersView = () => import('../views/SupportersView.vue')
 const TeamView = () => import('../views/TeamView.vue')
 const ArchiveView = () => import('../views/ArchiveView.vue')
+const TestView = () => import('../views/TestView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -105,6 +106,12 @@ const router = createRouter({
         window.location.href = 'https://github.com/ferminotify'
       },
       meta: { title: 'GitHub · Fermi Notify' },
+    },
+    {
+      path: '/test',
+      name: 'test',
+      component: TestView,
+      meta: { title: 'Test · Fermi Notify' },
     },
   ],
 })
