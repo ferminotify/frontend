@@ -4,7 +4,7 @@
   <!-- Core Pages -->
   <url>
     <loc>https://fn.lkev.in/</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -12,7 +12,7 @@
   <!-- Main Services -->
   <url>
     <loc>https://fn.lkev.in/app</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -20,19 +20,13 @@
   <!-- Information Pages -->
   <url>
     <loc>https://fn.lkev.in/faq</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://fn.lkev.in/faq?page=privacy</loc>
-    <lastmod>2026-04-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://fn.lkev.in/archive</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -40,49 +34,15 @@
   <!-- Community Pages -->
   <url>
     <loc>https://fn.lkev.in/team</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fn.lkev.in/supporters</loc>
-    <lastmod>2026-04-10</lastmod>
+    <lastmod>2026-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>
-
-  <!-- Account Pages -->
-  <url>
-    <loc>https://fn.lkev.in/login</loc>
-    <lastmod>2026-04-10</lastmod>
-    <changefreq>never</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://fn.lkev.in/register</loc>
-    <lastmod>2026-04-10</lastmod>
-    <changefreq>never</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://fn.lkev.in/dashboard</loc>
-    <lastmod>2026-04-10</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://fn.lkev.in/password_reset</loc>
-    <lastmod>2026-04-10</lastmod>
-    <changefreq>never</changefreq>
-    <priority>0.3</priority>
-  </url>
-
-  <!-- Status Pages -->
-  <url>
-    <loc>https://status.fn.lkev.in</loc>
-    <lastmod>2026-04-10</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.5</priority>
   </url>
 
 </urlset>

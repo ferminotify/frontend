@@ -1,3 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /register
+Disallow: /password_reset
+Disallow: /password-otp
+Disallow: /test
 Sitemap: https://fn.lkev.in/sitemap.xml
