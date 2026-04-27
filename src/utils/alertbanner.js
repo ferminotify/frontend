@@ -70,9 +70,24 @@ export function generateAlert(type, msg) {
     const append = () => {
       document.body.appendChild(banner)
       banner.style.animation = 'showAlert 0.5s ease-in-out forwards'
-      banner.addEventListener('click', function () {
+
+      const closeBanner = () => {
+        if (banner.dataset.closing === 'true') {
+          return
+        }
+
+        banner.dataset.closing = 'true'
         banner.style.animation = 'hideAlert 0.5s ease-in-out forwards'
-      })
+        banner.addEventListener(
+          'animationend',
+          () => {
+            banner.remove()
+          },
+          { once: true }
+        )
+      }
+
+      banner.addEventListener('click', closeBanner)
     }
 
     if (document.readyState === 'loading') {

@@ -157,7 +157,8 @@ h2{
         justify-content: center;
         background: var(--surface-variant);
         padding: 20px;
-        border-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border-top-right-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         text-align: center;
         gap: 10px;

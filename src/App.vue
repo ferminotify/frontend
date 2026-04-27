@@ -102,6 +102,12 @@
     nextTick(updateIndicator)
   })
 
+  const onViewAfterLeave = () => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    }
+  }
+
   // Mobile hide-on-scroll state
   const isMobile = ref(typeof window !== 'undefined' && window.innerWidth <= 600)
   const hideSidebarText = ref(false)
@@ -576,7 +582,7 @@
   <div class="main-container" v-show="iconsReady || skipLoading">
     <main class="main">
       <RouterView v-slot="{ Component, route: viewRoute }">
-        <Transition appear mode="out-in" name="fade-up">
+        <Transition appear mode="out-in" name="fade-up" @after-leave="onViewAfterLeave">
           <div :key="viewRoute.path" style="width: 100%;">
             <component :is="Component" />
           </div>
