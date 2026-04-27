@@ -3,6 +3,7 @@
   import { RouterLink, RouterView, useRoute } from 'vue-router'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
+  import SondaggioDesktop from './components/SondaggioDesktop.vue'
 
   const route = useRoute()
   const user = useUserStore()
@@ -100,6 +101,12 @@
   watch(() => route.path, () => {
     nextTick(updateIndicator)
   })
+
+  const onViewAfterLeave = () => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    }
+  }
 
   // Mobile hide-on-scroll state
   const isMobile = ref(typeof window !== 'undefined' && window.innerWidth <= 600)
@@ -568,13 +575,14 @@
           <span class="sidebar-link-text">Menu</span>
         </div>
       </div>
+      <SondaggioDesktop />
     </div>
   </header>
 
   <div class="main-container" v-show="iconsReady || skipLoading">
     <main class="main">
       <RouterView v-slot="{ Component, route: viewRoute }">
-        <Transition appear mode="out-in" name="fade-up">
+        <Transition appear mode="out-in" name="fade-up" @after-leave="onViewAfterLeave">
           <div :key="viewRoute.path" style="width: 100%;">
             <component :is="Component" />
           </div>
@@ -632,6 +640,13 @@
   position: relative;
   z-index: 1;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Let desktop sidebar widgets overflow above main content (handle sondaggio) */
+@media screen and (min-width: 1050px) {
+  .sidebar {
+    overflow: visible;
+  }
 }
 
 /* Only apply when JS detects mobile layout to avoid clashing with global media rules */

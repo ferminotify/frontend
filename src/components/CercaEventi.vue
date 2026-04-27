@@ -1,7 +1,8 @@
 <script setup>
-  import { ref, defineEmits, nextTick, onMounted, computed } from 'vue'
+  import { ref, defineEmits, nextTick, onMounted, onBeforeUnmount, computed } from 'vue'
   import { generateAlert } from '@/utils/alertbanner.js'
   import CercaEventiCore from '@/components/common/CercaEventiCore.vue'
+  import SondaggioMobile from '@/components/SondaggioMobile.vue'
 
   // local state for the search query
   const query = ref('')
@@ -213,9 +214,28 @@
       generateAlert('info', 'Ci sono filtri attivi')
     }
   }
+
+  onBeforeUnmount(() => {
+    document.querySelectorAll('.alertbanner').forEach((banner) => {
+      if (banner.dataset.closing === 'true') {
+        return
+      }
+
+      banner.dataset.closing = 'true'
+      banner.style.animation = 'hideAlert 0.5s ease-in-out forwards'
+      banner.addEventListener(
+        'animationend',
+        () => {
+          banner.remove()
+        },
+        { once: true }
+      )
+    })
+  })
 </script>
 
 <template>
+  <SondaggioMobile />
   <div id="CercaEventi">
     <!-- cerca eventi -->
     <div class="cercaEventi-container">

@@ -394,6 +394,7 @@ code,
   height: 100%;
   font-weight: 500;
   overflow-y: auto;
+  overflow-x: hidden;
   z-index: 100;
   width: var(--sidebar-width);
 }
