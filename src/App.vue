@@ -3,6 +3,7 @@
   import { RouterLink, RouterView, useRoute } from 'vue-router'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
+  import SondaggioDesktop from './components/SondaggioDesktop.vue'
 
   const route = useRoute()
   const user = useUserStore()
@@ -568,6 +569,7 @@
           <span class="sidebar-link-text">Menu</span>
         </div>
       </div>
+      <SondaggioDesktop />
     </div>
   </header>
 
@@ -632,6 +634,13 @@
   position: relative;
   z-index: 1;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Let desktop sidebar widgets overflow above main content (handle sondaggio) */
+@media screen and (min-width: 1050px) {
+  .sidebar {
+    overflow: visible;
+  }
 }
 
 /* Only apply when JS detects mobile layout to avoid clashing with global media rules */

@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 
 const SITE_URL = 'https://fn.lkev.in'
 const DEFAULT_TITLE = 'Fermi Notify'
@@ -37,6 +36,7 @@ function upsertCanonical(url) {
 }
 
 // Lazy-loaded views
+const HomeView = () => import('../views/HomeView.vue')
 const LoginView = () => import('../views/LoginView.vue')
 const FaqView = () => import('../views/FaqView.vue')
 const DashboardView = () => import('../views/DashboardView.vue')
@@ -46,6 +46,7 @@ const SupportersView = () => import('../views/SupportersView.vue')
 const TeamView = () => import('../views/TeamView.vue')
 const ArchiveView = () => import('../views/ArchiveView.vue')
 const TestView = () => import('../views/TestView.vue')
+const FeedbackView = () => import('../views/FeedbackView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -161,6 +162,12 @@ const router = createRouter({
         title: 'Team · Fermi Notify',
         description: 'Scopri il team che sviluppa e mantiene Fermi Notify.',
       },
+    },
+    {
+      path: '/feedback',
+      name: 'feedback',
+      component: FeedbackView,
+      meta: { title: 'Feedback · Fermi Notify' },
     },
     {
       path: '/archive',
