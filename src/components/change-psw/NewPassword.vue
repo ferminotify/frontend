@@ -5,7 +5,7 @@
       <div class="material-textfield">
         <input
           v-model="password"
-          placeholder=""
+          placeholder=" "
           type="password"
           required
           name="password"
@@ -27,7 +27,7 @@
       <div class="material-textfield">
         <input
           v-model="password2"
-          placeholder=""
+          placeholder=" "
           type="password"
           required
           name="password2"

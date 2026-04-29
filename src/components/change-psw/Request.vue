@@ -6,7 +6,7 @@
         Inserisci la email che hai utilizzato per registrarti
       </p>
       <div class="material-textfield">
-        <input placeholder="" type="email" required name="user_email" v-model="email" />
+        <input placeholder=" " type="email" required name="user_email" v-model="email" />
         <label>Email</label>
       </div>
     </div>

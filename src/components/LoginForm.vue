@@ -7,7 +7,7 @@
           <h1 class="firstTitle flex-center-x">Accedi</h1>
           <div class="input-container">
             <div class="material-textfield">
-              <input v-model="email" placeholder="" type="email" required name="email" />
+              <input v-model="email" placeholder=" " type="email" required name="email" />
               <label>Email</label>
             </div>
             <p class="firstSubtitle">
@@ -19,7 +19,7 @@
             <div class="material-textfield">
               <input
                 v-model="password"
-                placeholder=""
+                placeholder=" "
                 type="password"
                 required
                 name="password"

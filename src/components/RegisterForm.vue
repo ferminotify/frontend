@@ -7,17 +7,17 @@
           <h1 class="firstTitle flex-center-x">Registrazione</h1>
           <div class="two-inputs-container">
             <div class="material-textfield">
-              <input v-model="name" placeholder="" type="text" required name="name" />
+              <input v-model="name" placeholder=" " type="text" required name="name" />
               <label>Nome</label>
             </div>
             <div class="material-textfield">
-              <input v-model="surname" placeholder="" type="text" required name="surname" />
+              <input v-model="surname" placeholder=" " type="text" required name="surname" />
               <label>Cognome</label>
             </div>
           </div>
           <div class="input-container">
             <div class="material-textfield">
-              <input v-model="email" placeholder="" type="email" required name="email" />
+              <input v-model="email" placeholder=" " type="email" required name="email" />
               <label>Email</label>
             </div>
           </div>
@@ -25,7 +25,7 @@
             <div class="material-textfield">
               <input
                 v-model="password"
-                placeholder=""
+                placeholder=" "
                 type="password"
                 required
                 name="password"
@@ -47,7 +47,7 @@
             <div class="material-textfield">
               <input
                 v-model="password2"
-                placeholder=""
+                placeholder=" "
                 type="password"
                 required
                 name="password2"
@@ -75,13 +75,7 @@
           <button class="btn filled submit-btn" ref="submitBtnRef" type="submit">Registrati</button>
           <p style="font-size: 0.84rem; color: var(--muted)">
             <span class="material-symbols-outlined" aria-hidden="true">info</span>
-            Conserviamo le tue informazioni in modo sicuro e crittografato, consulta la nostra
-            <RouterLink
-              :to="{ name: 'faq', query: { page: 'privacy' } }"
-              style="color: var(--muted); text-decoration: underline">
-              informativa privacy
-            </RouterLink>
-            per ulteriori dettagli.
+            Conserviamo le tue informazioni in modo sicuro e crittografato, consulta la nostra <RouterLink :to="{ name: 'faq', query: { page: 'privacy' } }" style="color: var(--muted); text-decoration: underline">informativa privacy</RouterLink> per ulteriori dettagli.
           </p>
         </form>
       </div>

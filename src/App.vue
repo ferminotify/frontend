@@ -11,21 +11,19 @@
   // Initial loading screen for icons
   const iconsReady = ref(false)
   const skipLoading = ref(false)
-  // random loading text
-  const loadingText = ref('')
-  {
-    const loadingMessages = [
-      'Stiamo preparando l\'app...',
-      'Caricamento Fermi Notify...',
-      'Caricamento in corso...',
-      'Quasi pronto...',
-      'Raccogliendo gli eventi...',
-      'Sincronizzazione dei dati...',
-      'Preparazione della dashboard...',
-    ]
-    loadingText.value = loadingMessages[Math.floor(Math.random() * loadingMessages.length)]
-  }
+  const loadingMessages = [
+    'Stiamo preparando l\'app...',
+    'Caricamento Fermi Notify...',
+    'Caricamento in corso...',
+    'Quasi pronto...',
+    'Raccogliendo gli eventi...',
+    'Sincronizzazione dei dati...',
+    'Preparazione della dashboard...',
+  ]
+  const loadingIndex = ref(Math.floor(Math.random() * loadingMessages.length))
+  const loadingText = computed(() => loadingMessages[loadingIndex.value])
   const showSkipButton = ref(false)
+  let loadingInterval = null
 
   const isLoggedIn = computed(() => !!user.token)
   const isDashboard = computed(() => route.path.startsWith('/dashboard'))
@@ -237,23 +235,31 @@
         showSkipButton.value = true
       }, 3000)
 
-      // Explicitly load the fonts we need
+      const ligatures = 'apk_install android arrow_forward_ios arrow_right_alt archive backspace bolt calendar_month captive_portal check check_circle close content_copy download edit edit_square email error error_outline event event_available explore favorite group help help_center help_outline hourglass_top info keyboard_double_arrow_right local_cafe local_offer link login logout notifications open_in_new person play_circle schedule schedule_send search send settings space_dashboard start tune visibility_off'
+      const materialPromise = document.fonts.load('16px "Material Symbols Outlined"', ligatures)
+
       const fontPromises = [
-        document.fonts.load('16px "Material Symbols Outlined"'),
+        materialPromise,
         // Try multiple Font Awesome variants
         Promise.any([
           document.fonts.load('16px "Font Awesome 6 Brands"'),
           document.fonts.load('16px "Font Awesome 5 Brands"'),
           document.fonts.load('16px FontAwesome')
-        ]).catch(() => Promise.resolve()) // Don't fail if FA isn't found
+        ]).catch(() => Promise.resolve()),
+        // The magic bullet: wait for ALL document fonts to finish loading
+        document.fonts.ready 
       ]
 
       Promise.all(fontPromises)
         .then(() => {
           clearTimeout(timeout)
           clearTimeout(skipTimeout)
-          console.log('[icons] All icons loaded successfully')
-          resolve()
+          console.log('[icons] All fonts and ligatures loaded successfully')
+          
+          // Give the browser one paint frame to apply the font before revealing the app
+          requestAnimationFrame(() => {
+            resolve()
+          })
         })
         .catch((err) => {
           clearTimeout(timeout)
@@ -266,6 +272,15 @@
 
   onMounted(async () => {
     if (typeof window === 'undefined') return
+
+    // start cycling loading messages every 2.5s while loading screen is visible
+    try {
+      loadingInterval = setInterval(() => {
+        loadingIndex.value = (loadingIndex.value + 1) % loadingMessages.length
+      }, 2500)
+    } catch (e) {
+      /* ignore */
+    }
 
     // Wait for icons to load before showing the app
     // Ensure the loading screen is visible for at least minLoadingMs milliseconds
@@ -308,6 +323,13 @@
 
   onBeforeUnmount(() => {
     if (typeof window === 'undefined') return
+
+    // stop loading message cycle
+    try {
+      if (loadingInterval) clearInterval(loadingInterval)
+    } catch (e) {
+      /* ignore */
+    }
 
     window.removeEventListener('scroll', handleScroll)
     window.removeEventListener('resize', handleResize)
@@ -462,7 +484,11 @@
           <div></div>
           <div></div>
         </div>
-        <p class="loading-text">{{ loadingText }}</p>
+        <div class="loading-text-container">
+          <Transition name="loading-msg" mode="out-in">
+            <p class="loading-text" :key="loadingIndex">{{ loadingText }}</p>
+          </Transition>
+        </div>
         <button v-if="showSkipButton" @click="skipLoading = true" class="skip-loading-btn">
           Salta attesa
         </button>
@@ -792,7 +818,40 @@
   margin: 0;
   min-height: 24px;
   min-width: 240px;
-  animation: fadeInOut 0.6s ease-in-out infinite;
+  display: block;
+}
+
+/* container to keep messages stacked and clipped for transition */
+.loading-text-container {
+  position: relative;
+  height: 24px;
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* enter from bottom, leave to top */
+.loading-msg-enter-active,
+.loading-msg-leave-active {
+  transition: transform 0.45s cubic-bezier(.2,.9,.2,1), opacity 0.45s ease;
+}
+.loading-msg-enter-from {
+  transform: translateY(20px);
+  opacity: 0;
+}
+.loading-msg-enter-to {
+  transform: translateY(0);
+  opacity: 1;
+}
+.loading-msg-leave-from {
+  transform: translateY(0);
+  opacity: 1;
+}
+.loading-msg-leave-to {
+  transform: translateY(-20px);
+  opacity: 0;
 }
 
 .skip-loading-btn {
