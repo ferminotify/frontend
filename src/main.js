@@ -45,7 +45,7 @@ async function registerServiceWorker() {
 export const createApp = ViteSSG(
   App,
   { routes, base: import.meta.env.BASE_URL },
-  ({ app, router, isClient }) => {
+  ({ app, router }) => {
     const pinia = createPinia()
     app.use(pinia)
 
@@ -56,7 +56,7 @@ export const createApp = ViteSSG(
 
     setupRouter(router)
 
-    if (isClient) {
+    if (!import.meta.env.SSR) {
       const store = useUserStore(pinia)
       if (store.token) {
         store.fetchProfile().catch(() => store.logout())
