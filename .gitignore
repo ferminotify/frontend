@@ -39,3 +39,6 @@ test-results/
 playwright-report/
 
 .env
+.claude
+.vscode
+docs
