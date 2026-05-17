@@ -173,7 +173,8 @@ export const routes = [
 export function setupRouter(router) {
   router.beforeEach((to) => {
     // localStorage is not available in Node.js SSG — skip auth check
-    if (typeof localStorage === 'undefined') return
+    // Use typeof check AND verify getItem exists (vite-ssg may inject a broken stub)
+    if (typeof localStorage === 'undefined' || typeof localStorage?.getItem !== 'function') return
 
     const token = localStorage.getItem('token')
     if (token && (to.path === '/login' || to.path === '/register')) {

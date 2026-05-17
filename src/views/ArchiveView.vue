@@ -4,7 +4,8 @@ import Title from '@/components/common/Title.vue';
 
 const STORAGE_KEY = 'archiveStyleMode'
 
-const savedMode = localStorage.getItem(STORAGE_KEY)
+const isClient = typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function'
+const savedMode = isClient ? localStorage.getItem(STORAGE_KEY) : null
 const styleMode = ref(savedMode === 'current' ? 'current' : 'old')
 
 const styleLabel = computed(() => `> stile: ${styleMode.value}`)

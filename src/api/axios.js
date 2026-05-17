@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { useUserStore } from '@/stores/user'
 import { API_URL } from '@/utils/config'
-import router from '@/router'
 
 axios.defaults.withCredentials = true; // send cookies with requests
 
@@ -39,10 +38,9 @@ api.interceptors.response.use(
         if (!api._redirecting) {
           api._redirecting = true
           await store.logout()
-          // Use client-side navigation to avoid full-page reloads
-          router.push('/login').finally(() => {
-            api._redirecting = false
-          })
+          // Use window.location since the router instance is not importable in SSG setup
+          window.location.href = '/login'
+          api._redirecting = false
         }
       }
     }

@@ -17,12 +17,15 @@ export const useUserStore = defineStore('user', {
       return tg.length > 0 && tg.charAt(0) !== 'X'
     },
   },
-  state: () => ({
-    token: localStorage.getItem('token') || null,
-    refreshToken: localStorage.getItem('refreshToken') || null,
-    user: null,
-    firstLogin: false,
-  }),
+  state: () => {
+    const isClient = typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function'
+    return {
+      token: isClient ? localStorage.getItem('token') : null,
+      refreshToken: isClient ? localStorage.getItem('refreshToken') : null,
+      user: null,
+      firstLogin: false,
+    }
+  },
 
   actions: {
     async register({ name, surname, email, password, password2, gender }) {

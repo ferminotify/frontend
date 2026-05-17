@@ -1,6 +1,6 @@
 <script setup>
   import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
-  import { useHead } from '@vueuse/head'
+  import { useHead } from '@unhead/vue'
   import { RouterLink, RouterView, useRoute } from 'vue-router'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'

@@ -6,7 +6,6 @@ import './assets/css/alertbanner.css'
 
 import { ViteSSG } from 'vite-ssg'
 import { createPinia } from 'pinia'
-import { createHead } from '@vueuse/head'
 
 import App from './App.vue'
 import { routes, setupRouter } from './router'
@@ -48,9 +47,6 @@ export const createApp = ViteSSG(
   ({ app, router }) => {
     const pinia = createPinia()
     app.use(pinia)
-
-    const head = createHead()
-    app.use(head)
 
     app.component('font-awesome-icon', FontAwesomeIcon)
 
