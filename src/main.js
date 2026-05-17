@@ -4,72 +4,69 @@ import './assets/css/dark.css'
 import './assets/css/material-icons.css'
 import './assets/css/alertbanner.css'
 
-// Vue core imports
-import { createApp } from 'vue'
+import { ViteSSG } from 'vite-ssg'
 import { createPinia } from 'pinia'
+import { createHead } from '@vueuse/head'
 
 import App from './App.vue'
-import router from './router'
+import { routes, setupRouter } from './router'
 
 import { useUserStore } from '@/stores/user'
 import { subscribeUser } from '@/stores/push'
 
-// Font Awesome imports
+// Font Awesome
 import { library, config } from '@fortawesome/fontawesome-svg-core'
 import '@fortawesome/fontawesome-svg-core/styles.css'
-// Prevent the core from auto-injecting CSS since we import it explicitly above
 config.autoAddCss = false
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faInstagram, faGithub, faXTwitter } from '@fortawesome/free-brands-svg-icons'
-// Add icons to library
 library.add(faInstagram, faGithub, faXTwitter)
 
-// Create the Vue app
-const app = createApp(App)
-
-// Register global plugins
-const pinia = createPinia()
-app.use(pinia)
-
-// Initialize store AFTER pinia is installed
-const store = useUserStore(pinia)
-if (store.token) {
-  store.fetchProfile().catch(() => {
-    store.logout()
-  })
-}
-app.use(router)
-
-// PWA service worker + push notification setup
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
+async function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return
+  try {
+    const registration = await navigator.serviceWorker.register('/service-worker.js')
     try {
-      const registration = await navigator.serviceWorker.register('/service-worker.js')
-
-      try {
-        // Only call subscribeUser(true) when we don't already have a subscription
-        // or when the saved endpoint differs from the current one. This avoids
-        // overwriting user-edited `device_info` in the backend on every page load.
-        const storedEndpoint = localStorage.getItem('endpoint') || null
-        const existingSub = await registration.pushManager.getSubscription()
-
-        if (!existingSub || (existingSub && existingSub.endpoint !== storedEndpoint)) {
-          await subscribeUser(true)
-        } else {
-          // nothing to do: keep existing subscription and backend record as-is
-          console.log('[push] Existing subscription matches stored endpoint — skipping subscribeUser')
-        }
-      } catch (e) {
-        console.warn('[push] Error checking push subscription after SW registration', e)
+      const storedEndpoint = localStorage.getItem('endpoint') || null
+      const existingSub = await registration.pushManager.getSubscription()
+      if (!existingSub || existingSub.endpoint !== storedEndpoint) {
+        await subscribeUser(true)
+      } else {
+        console.log('[push] Existing subscription matches stored endpoint — skipping subscribeUser')
       }
-    } catch (err) {
-      console.error('SW registration failed:', err)
+    } catch (e) {
+      console.warn('[push] Error checking push subscription after SW registration', e)
     }
-  })
+  } catch (err) {
+    console.error('SW registration failed:', err)
+  }
 }
 
-// Register FontAwesome component globally
-app.component('font-awesome-icon', FontAwesomeIcon)
+export const createApp = ViteSSG(
+  App,
+  { routes, base: import.meta.env.BASE_URL },
+  ({ app, router, isClient }) => {
+    const pinia = createPinia()
+    app.use(pinia)
 
-// Mount the app
-app.mount('#app')
+    const head = createHead()
+    app.use(head)
+
+    app.component('font-awesome-icon', FontAwesomeIcon)
+
+    setupRouter(router)
+
+    if (isClient) {
+      const store = useUserStore(pinia)
+      if (store.token) {
+        store.fetchProfile().catch(() => store.logout())
+      }
+
+      if (document.readyState === 'complete') {
+        registerServiceWorker()
+      } else {
+        window.addEventListener('load', registerServiceWorker)
+      }
+    }
+  },
+)
