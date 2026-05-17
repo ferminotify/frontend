@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite-ssg build",
     "preview": "vite preview",
     "test:unit": "vitest",
     "test:e2e": "playwright test",
@@ -16,12 +16,12 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "axios": "^1.7.7",
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
     "@fortawesome/free-brands-svg-icons": "^7.1.0",
     "@fortawesome/free-regular-svg-icons": "^7.1.0",
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/vue-fontawesome": "^3.1.2",
+    "axios": "^1.7.7",
     "jquery": "^3.7.1",
     "pinia": "^3.0.3",
     "vue": "^3.5.22",
@@ -35,6 +35,7 @@
     "@vitest/eslint-plugin": "^1.3.23",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/test-utils": "^2.4.6",
+    "@vueuse/head": "^2.0.0",
     "eslint": "^9.37.0",
     "eslint-plugin-playwright": "^2.2.2",
     "eslint-plugin-vue": "~10.5.0",
@@ -43,6 +44,7 @@
     "prettier": "3.6.2",
     "vite": "^7.3.2",
     "vite-plugin-vue-devtools": "^8.0.3",
+    "vite-ssg": "^28.3.0",
     "vitest": "^3.2.4"
   }
 }
