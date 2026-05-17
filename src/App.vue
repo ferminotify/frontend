@@ -1,5 +1,6 @@
 <script setup>
   import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+  import { useHead } from '@vueuse/head'
   import { RouterLink, RouterView, useRoute } from 'vue-router'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
@@ -7,6 +8,33 @@
 
   const route = useRoute()
   const user = useUserStore()
+
+  const SITE_URL = 'https://fn.lkev.in'
+  const DEFAULT_DESCRIPTION =
+    'Resta aggiornato sulle variazioni dell\'orario giornaliero dell\'IS E. Fermi Mantova con Fermi Notify. L\'app user-friendly creata dagli studenti con notifiche e funzioni avanzate.'
+
+  useHead(computed(() => {
+    const title = route.meta.title || 'Fermi Notify'
+    const description = route.meta.description || DEFAULT_DESCRIPTION
+    const robots = route.meta.robots || 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'
+    const canonicalUrl = new URL(route.path, SITE_URL).toString()
+
+    return {
+      title,
+      meta: [
+        { name: 'description', content: description },
+        { name: 'robots', content: robots },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:url', content: canonicalUrl },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+      ],
+      link: [
+        { rel: 'canonical', href: canonicalUrl },
+      ],
+    }
+  }))
 
   // Initial loading screen for icons
   const iconsReady = ref(false)
