@@ -1,6 +1,8 @@
 // Lightweight alert banner utility for the frontend SPA
 // Usage: generateAlert('info'|'success'|'warning'|'error', 'message')
 
+import { navigate } from './navigation'
+
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -87,7 +89,15 @@ export function generateAlert(type, msg) {
         )
       }
 
-      banner.addEventListener('click', closeBanner)
+      banner.addEventListener('click', (ev) => {
+        // Internal links navigate via the SPA router (no full reload).
+        const link = ev.target.closest && ev.target.closest('a[href^="/"]')
+        if (link) {
+          ev.preventDefault()
+          navigate(link.getAttribute('href'))
+        }
+        closeBanner()
+      })
     }
 
     if (document.readyState === 'loading') {

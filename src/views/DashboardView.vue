@@ -207,9 +207,11 @@
   import Notifiche from '@/components/dashboard/Notifiche.vue'
   import PushDevices from '@/components/dashboard/PushDevices.vue'
   import { onMounted, ref, computed, nextTick } from 'vue'
+  import { useRouter } from 'vue-router'
   import { useUserStore } from '@/stores/user'
 
   const store = useUserStore()
+  const router = useRouter()
   const loading = ref(false)
   const user = computed(() => store.user || {})
   const keywords = computed(() => (Array.isArray(store.user?.keywords) ? store.user.keywords : []))
@@ -334,6 +336,12 @@
       // Ensure profile is loaded if we only have a token
       if (!store.user && store.token) {
         await store.fetchProfile()
+      }
+
+      // Google signups must finish the completion step (gender) first.
+      if (store.user?.profile_complete === false) {
+        await router.replace({ name: 'complete-profile' })
+        return
       }
 
       // first login --> lightweight guided scroll (use backend-provided flag)

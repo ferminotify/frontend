@@ -57,8 +57,13 @@
   const isDashboard = computed(() => route.path.startsWith('/dashboard'))
   const isAuthActive = computed(() =>
     isLoggedIn.value
-      ? isDashboard.value
-      : route.path === '/login' || route.path === '/register'
+      ? isDashboard.value ||
+        route.path.startsWith('/complete-profile') ||
+        route.path.startsWith('/auth')
+      : route.path === '/login' ||
+        route.path === '/register' ||
+        route.path.startsWith('/complete-profile') ||
+        route.path.startsWith('/auth')
   )
   const authTo = computed(() => (isLoggedIn.value ? '/dashboard' : '/login'))
   const authIcon = computed(() => (isLoggedIn.value ? 'space_dashboard' : 'login'))

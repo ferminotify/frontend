@@ -1,3 +1,6 @@
+import { useUserStore } from '@/stores/user'
+import { setRouter } from '@/utils/navigation'
+
 // Lazy-loaded views
 const HomeView = () => import('../views/HomeView.vue')
 const LoginView = () => import('../views/LoginView.vue')
@@ -10,6 +13,8 @@ const TeamView = () => import('../views/TeamView.vue')
 const ArchiveView = () => import('../views/ArchiveView.vue')
 const TestView = () => import('../views/TestView.vue')
 const FeedbackView = () => import('../views/FeedbackView.vue')
+const AuthCallbackView = () => import('../views/AuthCallbackView.vue')
+const CompleteProfileView = () => import('../views/CompleteProfileView.vue')
 
 export const routes = [
   {
@@ -45,6 +50,26 @@ export const routes = [
       title: 'Registrazione · Fermi Notify',
       description: 'Crea un account su Fermi Notify per ricevere aggiornamenti sulle variazioni dell\'orario.',
       robots: 'noindex,follow',
+    },
+  },
+  {
+    path: '/auth/callback',
+    name: 'auth-callback',
+    component: AuthCallbackView,
+    meta: {
+      title: 'Accesso · Fermi Notify',
+      description: 'Completamento accesso con Google.',
+      robots: 'noindex,nofollow',
+    },
+  },
+  {
+    path: '/complete-profile',
+    name: 'complete-profile',
+    component: CompleteProfileView,
+    meta: {
+      title: 'Completa il profilo · Fermi Notify',
+      description: 'Completa i dati del tuo profilo Fermi Notify.',
+      robots: 'noindex,nofollow',
     },
   },
   {
@@ -171,6 +196,9 @@ export const routes = [
 ]
 
 export function setupRouter(router) {
+  // Expose the instance for non-component navigation (e.g. alert banner links).
+  setRouter(router)
+
   router.beforeEach((to) => {
     // localStorage is not available in Node.js SSG — skip auth check
     // Use typeof check AND verify getItem exists (vite-ssg may inject a broken stub)
@@ -180,8 +208,16 @@ export function setupRouter(router) {
     if (token && (to.path === '/login' || to.path === '/register')) {
       return '/dashboard'
     }
-    if (!token && to.path.startsWith('/dashboard')) {
+    if (!token && (to.path.startsWith('/dashboard') || to.path.startsWith('/complete-profile'))) {
       return '/login'
+    }
+    // A logged-in user with an unfinished Google signup can browse freely, but
+    // the dashboard requires finishing the completion step first.
+    if (token && to.path.startsWith('/dashboard')) {
+      const store = useUserStore()
+      if (store.user?.profile_complete === false) {
+        return '/complete-profile'
+      }
     }
   })
 }

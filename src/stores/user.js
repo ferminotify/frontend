@@ -82,6 +82,20 @@ export const useUserStore = defineStore('user', {
       this.user = res.data
     },
 
+    // Redirect the browser to the backend Google OAuth entry point.
+    loginWithGoogle() {
+      window.location.href = `${API_URL}/user/auth/google`
+    },
+
+    async completeProfile({ name, surname, gender, password, password2 }) {
+      const res = await api.post(`${API_URL}/user/complete-profile`, { name, surname, gender, password, password2 })
+      this.onboarding = !!res.data?.onboarding
+      if (this.user) {
+        this.user = { ...this.user, name, surname, gender, profile_complete: true }
+      }
+      return res.data
+    },
+
     async addKeyword(keyword) {
       if (!keyword) return
       await api.put(`${API_URL}/user/keyword/add`, { keyword })

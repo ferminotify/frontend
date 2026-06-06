@@ -159,3 +159,41 @@ input:focus + label + #PSWShowHideIcon span.material-symbols-outlined {
 .select:focus-within:after {
   border-top-color: var(--on-surface-primary);
 }
+
+/* OAuth ("oppure" divider + Google button) */
+.oauth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.oauth-divider::before,
+.oauth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--muted);
+  opacity: 0.4;
+}
+.oauth-divider span {
+  padding: 0 12px;
+}
+button.btn.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 20px;
+  border-radius: 25px;
+  background-color: var(--surface-variant);
+  color: var(--on-surface-primary);
+  border: 1px solid var(--muted);
+  font-weight: 600;
+}
+button.btn.google-btn:hover {
+  background-color: var(--surface);
+}
+button.btn.google-btn svg {
+  font-size: 1.1rem;
+}

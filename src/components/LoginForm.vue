@@ -35,6 +35,11 @@
             </p>
           </div>
           <button class="btn filled submit-btn" ref="submitBtnRef">Accedi</button>
+          <div class="oauth-divider"><span>oppure</span></div>
+          <button type="button" class="btn google-btn" @click="onGoogle">
+            <font-awesome-icon :icon="['fab', 'google']" />
+            <span>Continua con Google</span>
+          </button>
           <p style="font-size: 0.84rem; color: var(--muted)">
             <span class="material-symbols-outlined" aria-hidden="true">info</span>
             Fermi Notify non &egrave; un servizio ufficiale del Fermi: non &egrave; possibile accedere con l'account
@@ -78,6 +83,7 @@
     } catch (error) {
       // Better normalization: handle network/CORS errors and backend messages
       const status = error?.response?.status
+      const code = error?.response?.data?.code
       const backendMsg = error?.response?.data?.error || error?.response?.data?.message
 
       if (!error?.response) {
@@ -87,6 +93,10 @@
       } else if (status === 404) {
         generateAlert('error', {
           html: `Non ci sono utenti registrati con l'email ${email.value}. Crea un account <a href="/register" style="text-decoration: underline">qui</a>.`
+        })
+      } else if (code === 'google_only') {
+        generateAlert('error', {
+          html: `Questo account usa l'accesso con Google. Accedi con Google, oppure imposta una password <a href="/password_reset" style="text-decoration: underline">qui</a>.`
         })
       } else if (status === 401) {
         generateAlert('error', 'La password non è corretta.')
@@ -101,6 +111,10 @@
 
   function onTogglePsw() {
     togglePasswordVisibility(pswInputRef.value, pswIconRef.value)
+  }
+
+  function onGoogle() {
+    user.loginWithGoogle()
   }
 
   function handleConfirmQuery() {
