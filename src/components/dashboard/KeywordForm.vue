@@ -102,11 +102,11 @@
   }
 
   function toUppercase() {
-    keywordInput.value = (keywordInput.value || '').toUpperCase().replace(/\s+/g, '')
+    keywordInput.value = (keywordInput.value || '').toUpperCase()
   }
 
   async function addKeyword() {
-    const kw = (keywordInput.value || '').trim()
+    const kw = (keywordInput.value || '').trim().replace(/\s+/g, ' ')
     if (!kw) return
     // prevent duplicates (case-insensitive)
     const exists = (keywords.value || []).some((k) => (k || '').toUpperCase() === kw.toUpperCase())
