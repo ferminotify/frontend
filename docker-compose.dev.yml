@@ -1,0 +1,25 @@
+name: ferminotify-dev
+
+services:
+
+  frontend:
+    container_name: fn-frontend
+    image: ferminotify/dev-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      # Browser connects to backend on host — default in config.js is already http://localhost:3001
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "5173:5173"
+    networks:
+      - ferminotify-dev
+
+networks:
+  ferminotify-dev:
+    name: ferminotify-dev
+    driver: bridge

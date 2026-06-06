@@ -69,6 +69,40 @@ Di default l'app viene avviata in sviluppo con Vite.
 - `/feedback`: feedback.
 - `/test`: pagina interna di test.
 
+## Development mode con Docker
+
+### Prerequisiti
+
+- Docker + Docker Compose v2
+- La repo [backend](https://github.com/ferminotify/backend) avviata prima (crea la rete `ferminotify-dev` e il DB)
+
+### Avvio
+
+```bash
+docker compose -f docker-compose.dev.yml up --build -d
+```
+
+Il frontend è raggiungibile su `http://localhost:5173`.  
+Il flag `--build` è necessario ogni volta che si modifica il codice sorgente.
+
+### Variabili d'ambiente nel container
+
+| Variabile | Default nel compose | Descrizione |
+|-----------|---------------------|-------------|
+| `VITE_API_URL` | `http://localhost:3001` | URL backend (lato browser) |
+
+`VITE_API_URL` viene usata da Vite a runtime in dev mode — corrisponde all'indirizzo che il **browser** usa per raggiungere il backend, non quello interno Docker.
+
+### Rete
+
+Il container si aggancia alla rete Docker `ferminotify-dev` creata dal backend compose. Se il backend non è avviato, il frontend parte comunque ma tutte le chiamate API falliscono.
+
+### Stop
+
+```bash
+docker compose -f docker-compose.dev.yml down
+```
+
 ## Note tecniche
 
 - L'app registra automaticamente il service worker al primo caricamento.
