@@ -82,6 +82,19 @@ export const useUserStore = defineStore('user', {
       this.user = res.data
     },
 
+    // Variazioni dell'utente raggruppate per giorno (finestra lookahead).
+    async fetchWeekEvents() {
+      const res = await api.get(`${API_URL}/user/events/week`)
+      return res.data?.days || []
+    },
+
+    // Ruota il token del feed iCal (invalida il vecchio URL di sottoscrizione).
+    async regenerateIcalToken() {
+      const res = await api.post(`${API_URL}/user/ical/regenerate`)
+      if (this.user) this.user = { ...this.user, ical_token: res.data.ical_token }
+      return res.data.ical_token
+    },
+
     // Redirect the browser to the backend Google OAuth entry point.
     loginWithGoogle() {
       window.location.href = `${API_URL}/user/auth/google`

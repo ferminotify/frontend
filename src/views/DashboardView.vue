@@ -43,6 +43,9 @@
     <!-- Events -->
     <Eventi :keywords="keywords" />
 
+    <!-- iCal subscribe -->
+    <CalendarSubscribe />
+
     <!-- Settings -->
     <div ref="settingsRef" class="onboarding-container" :class="{ 'onboarding-active': showOnboarding && step === 2 }">
       <Settings />
@@ -200,6 +203,7 @@
 <script setup>
   import KeywordForm from '@/components/dashboard/KeywordForm.vue'
   import Eventi from '@/components/dashboard/Eventi.vue'
+  import CalendarSubscribe from '@/components/dashboard/CalendarSubscribe.vue'
   import Title from '@/components/common/Title.vue'
   import Settings from '@/components/dashboard/Settings.vue'
   import Telegram from '@/components/dashboard/Telegram.vue'
