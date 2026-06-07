@@ -41,12 +41,16 @@
   const skipLoading = ref(false)
   const loadingMessages = [
     'Stiamo preparando l\'app...',
-    'Caricamento Fermi Notify...',
-    'Caricamento in corso...',
     'Quasi pronto...',
     'Raccogliendo gli eventi...',
     'Sincronizzazione dei dati...',
-    'Preparazione della dashboard...',
+    'Venere è l\'unico pianeta che ruota in senso orario.',
+    'Le banane sono bacche, le fragole no.',
+    'Il miele non scade mai.',
+    'Un fulmine è più caldo della superficie del Sole.',
+    'Pondering…',
+    'Cogitating…',
+    'Noodling…',
   ]
   const loadingIndex = ref(Math.floor(Math.random() * loadingMessages.length))
   const loadingText = computed(() => loadingMessages[loadingIndex.value])
@@ -847,18 +851,21 @@
 .loading-text {
   color: var(--on-surface);
   font-size: 16px;
+  line-height: 1.4;
   text-align: center;
   margin: 0;
   min-height: 24px;
-  min-width: 240px;
+  max-width: min(90vw, 420px);
   display: block;
 }
 
 /* container to keep messages stacked and clipped for transition */
 .loading-text-container {
   position: relative;
-  height: 24px;
+  min-height: 24px;
   min-width: 240px;
+  max-width: min(90vw, 420px);
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: center;
