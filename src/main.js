@@ -19,7 +19,8 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 config.autoAddCss = false
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faInstagram, faGithub, faXTwitter, faGoogle } from '@fortawesome/free-brands-svg-icons'
-library.add(faInstagram, faGithub, faXTwitter, faGoogle)
+import { faEnvelope } from '@fortawesome/free-solid-svg-icons'
+library.add(faInstagram, faGithub, faXTwitter, faGoogle, faEnvelope)
 
 async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return

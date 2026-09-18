@@ -40,17 +40,14 @@
   const iconsReady = ref(false)
   const skipLoading = ref(false)
   const loadingMessages = [
-    'Stiamo preparando l\'app...',
-    'Quasi pronto...',
     'Raccogliendo gli eventi...',
-    'Sincronizzazione dei dati...',
-    'Venere è l\'unico pianeta che ruota in senso orario.',
-    'Le banane sono bacche, le fragole no.',
-    'Il miele non scade mai.',
-    'Un fulmine è più caldo della superficie del Sole.',
-    'Pondering…',
-    'Cogitating…',
-    'Noodling…',
+    'Carico il file su Moodle...',
+    'Dillydalling...',
+    'Il server sta andando a fuoco...',
+    'Spengo l\'incendio nel server...',
+    'Packet Tracing...',
+    'AutoCADing...',
+    'DevC++ing...',
   ]
   const loadingIndex = ref(Math.floor(Math.random() * loadingMessages.length))
   const loadingText = computed(() => loadingMessages[loadingIndex.value])

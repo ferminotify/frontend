@@ -17,6 +17,18 @@ const donators = ref([
         social: { platform: 'x-twitter', handle: 'antonacci.mattia', url: 'https://x.com/@antonacci.mattia' }
     },
     {
+        name: 'Cecilia Pincella',
+        coffees: 5,
+        message: 'Grazie per Ferminotify!',
+        social: null
+    },
+    {
+        name: 'Mariachiara Puviani',
+        coffees: 5,
+        message: 'Buon lavoro!',
+        social: null
+    },
+    {
         name: 'Cecilia',
         coffees: 5,
         message: null,

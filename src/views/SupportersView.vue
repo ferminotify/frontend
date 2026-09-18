@@ -11,6 +11,7 @@ import Supporters from '@/components/Supporters.vue';
         <div class="supporter-content">
             <div style="text-align: center;">
                 <Donate hide-donators="true"/>
+                <p style="color: var(--muted)">Se desideri essere rimosso da questa lista, contattaci su <a href="https://instagram.com/ferminotify" style="white-space: nowrap;" target="_blank" rel="noopener noreferrer"><font-awesome-icon :icon="['fab', 'instagram']" /> <i><u>ferminotify</u></i></a> / <a href="mailto:mail@fn.lkev.in" style="white-space: nowrap;" target="_blank" rel="noopener noreferrer"><font-awesome-icon :icon="['fas', 'envelope']" /> <i><u>mail@fn.lkev.in</u></i></a>.</p>
             </div>
             <Supporters />
         </div>
