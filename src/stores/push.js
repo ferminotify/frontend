@@ -341,6 +341,21 @@ export async function deletePushDevice(deviceId) {
   }
 }
 
+// Send a demo push notification to a specific device of the authenticated user
+export async function sendTestPush(deviceId) {
+  if (!deviceId) throw new Error('deviceId mancante')
+  try {
+    const resp = await api.post(`/user/push/devices/${encodeURIComponent(deviceId)}/test`)
+    return resp.data
+  } catch (e) {
+    console.error('[push] sendTestPush error', e)
+    const data = e?.response?.data || {}
+    const err = new Error(data.error || 'Errore inviando la notifica di prova.')
+    err.removed = data.removed === true
+    throw err
+  }
+}
+
 export async function updatePushDeviceInfo(deviceId, deviceInfo) {
   const token = localStorage.getItem('token') || ''
   if (!deviceId) throw new Error('deviceId mancante')

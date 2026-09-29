@@ -4,7 +4,7 @@
             <span class="material-symbols-outlined">devices</span>
             Dispositivi Push
         </h2>
-        <p>Gestisci i dispositivi registrati per le notifiche push.</p>
+        <p>Gestisci i dispositivi registrati per le notifiche push. Usa <b>Invia notifica di prova</b> per ricevere subito una notifica demo e verificare che funzioni.</p>
         <div v-if="loadingDevices" class="submit-lds-grid" style="margin:15px 0">
             <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
         </div>
@@ -45,7 +45,16 @@
                     </small>
                     
                 </div>
-                <div>
+                <div class="device-actions">
+                    <button
+                        class="btn text"
+                        :disabled="testing[d.device_id]"
+                        @click="sendTest(d)"
+                        title="Invia una notifica push demo a questo dispositivo per verificare che le notifiche arrivino"
+                    >
+                        <span class="material-symbols-outlined">notifications_active</span>
+                        {{ testing[d.device_id] ? 'Invio in corso…' : 'Invia notifica di prova' }}
+                    </button>
                     <button v-if="d.device_id !== currentDeviceId" class="btn outlined" @click="removeDevice(d)" ref="submitBtnRef">Rimuovi</button>
                 </div>
             </div>
@@ -57,12 +66,13 @@
 import Modal from '@/components/common/Modal.vue'
 import { ref, onMounted, onBeforeUnmount, nextTick, createApp } from 'vue'
 import { generateAlert } from '@/utils/alertbanner.js'
-import { getPushDevices, deletePushDevice, updatePushDeviceInfo } from '@/stores/push.js'
+import { getPushDevices, deletePushDevice, updatePushDeviceInfo, sendTestPush } from '@/stores/push.js'
 import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
 
 const devices = ref([])
 const loadingDevices = ref(false)
 const removing = ref({})
+const testing = ref({})
 const currentDeviceId = localStorage.getItem('device_id') || ''
 const editingId = ref(null)
 const editText = ref('')
@@ -307,6 +317,20 @@ async function removeDevice(d) {
     }
 }
 
+async function sendTest(d) {
+    if (testing.value[d.device_id]) return
+    testing.value[d.device_id] = true
+    try {
+        await sendTestPush(d.device_id)
+        generateAlert('success', `Notifica di prova inviata a ${d.device_info}.`)
+    } catch (e) {
+        generateAlert('error', e.message || 'Errore inviando la notifica di prova.')
+        if (e.removed) devices.value = devices.value.filter(x => x.device_id !== d.device_id)
+    } finally {
+        testing.value[d.device_id] = false
+    }
+}
+
 // per-device toggle removed: delivery mode is displayed read-only here
 </script>
 
@@ -321,11 +345,24 @@ async function removeDevice(d) {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
     padding: 15px;
     border-top: 1px solid var(--divider);
 }
 .push-list .push-device:last-child{
     border-bottom: 1px solid var(--divider);
+}
+.device-actions{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.device-actions .btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 .device-info-name{
     display: flex;
