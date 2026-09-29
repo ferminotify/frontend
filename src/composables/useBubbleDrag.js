@@ -40,6 +40,8 @@ export function useBubbleDrag(containerRef, bubbleRefs) {
     const startDrag = (event, index, list, section = null) => {
         // Don't start drag if clicking on a link
         if (event.target.tagName === 'A' || event.target.closest('a')) return;
+        // Touch keeps native scrolling: bubbles fill the screen on mobile
+        if (event.type === 'touchstart') return;
         
         event.preventDefault();
         dragging.value = index;

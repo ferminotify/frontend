@@ -1,85 +1,87 @@
-/* Common bubble styles for draggable bubble components */
+/* Common bubble styles for draggable bubble components (Team, Supporters) */
 
 .bubble-wrapper {
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: stretch;
 }
 
-/* Ensure grid cells with bubbles don't stretch and create extra vertical space */
 .bubbles-grid {
-    align-items: start;
+    align-items: stretch;
 }
 
 .bubble {
+    --accent-rgb: var(--primary-rgb, 194, 231, 255);
     --mouse-x: 50%;
     --mouse-y: 50%;
     --drag-x: 0px;
     --drag-y: 0px;
     --rotation: 0deg;
-    --offset-x: 0%;
-    --offset-y: 0%;
+    --offset-x: 0px;
+    --offset-y: 0px;
     --z-index: 1;
-    
+
     position: relative;
     z-index: var(--z-index);
-    transform: 
-        translateX(calc(var(--offset-x) + var(--drag-x))) 
-        translateY(calc(var(--offset-y) + var(--drag-y))) 
+    width: 100%;
+    transform:
+        translateX(calc(var(--offset-x) + var(--drag-x)))
+        translateY(calc(var(--offset-y) + var(--drag-y)))
         rotate(var(--rotation));
-    padding: 20px 25px;
-    background: linear-gradient(135deg, 
-        rgba(var(--primary-rgb, 99, 102, 241), 0.15) 0%, 
-        rgba(var(--primary-rgb, 99, 102, 241), 0.05) 100%);
-    border: 2px solid rgba(var(--primary-rgb, 99, 102, 241), 0.3);
+    padding: 22px 24px;
+    /* Opaque base under the translucent tint: dragged cards stay readable over others */
+    background: linear-gradient(160deg,
+        rgba(var(--accent-rgb), 0.18) 0%,
+        rgba(var(--accent-rgb), 0.05) 100%),
+        var(--surface-variant);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
     border-radius: 24px;
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.1),
-        0 2px 8px rgba(var(--primary-rgb, 99, 102, 241), 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    animation: bubbleFloatIn 0.6s ease-out backwards;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(var(--accent-rgb), 0.2);
+    animation: bubbleFloatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
     animation-delay: var(--animation-delay, 0s);
-    transition: box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
     cursor: grab;
     user-select: none;
     overflow: hidden;
-    touch-action: none;
-    min-width: 100px;
+    touch-action: manipulation;
+}
+
+.bubble img {
+    -webkit-user-drag: none;
+    user-select: none;
 }
 
 .bubble.dragging {
     cursor: grabbing;
     z-index: calc(var(--z-index) + 1000);
-    box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.25),
-        0 8px 20px rgba(var(--primary-rgb, 99, 102, 241), 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transform: 
-        translateX(calc(var(--offset-x) + var(--drag-x))) 
-        translateY(calc(var(--offset-y) + var(--drag-y))) 
-        rotate(var(--rotation)) 
-        scale(1.02);
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transform:
+        translateX(calc(var(--offset-x) + var(--drag-x)))
+        translateY(calc(var(--offset-y) + var(--drag-y)))
+        rotate(var(--rotation))
+        scale(1.03);
 }
 
 .bubble:hover {
-    box-shadow: 
-        0 12px 40px rgba(0, 0, 0, 0.15),
-        0 4px 12px rgba(var(--primary-rgb, 99, 102, 241), 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border-color: rgba(var(--accent-rgb), 0.6);
+    background: linear-gradient(160deg,
+        rgba(var(--accent-rgb), 0.24) 0%,
+        rgba(var(--accent-rgb), 0.07) 100%),
+        var(--surface-variant);
 }
 
 /* Mouse-following glow effect */
 .bubble-glow {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 22px;
+    inset: 0;
+    border-radius: inherit;
     background: radial-gradient(
-        circle 120px at var(--mouse-x) var(--mouse-y),
-        rgba(var(--primary-rgb, 99, 102, 241), 0.4) 0%,
+        circle 140px at var(--mouse-x) var(--mouse-y),
+        rgba(var(--accent-rgb), 0.28) 0%,
         transparent 70%
     );
     opacity: 0;
@@ -96,99 +98,81 @@
     z-index: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    text-align: center;
+    gap: 10px;
 }
 
 .bubble-content .name {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: var(--text-color, var(--on-surface, #fff));
+    line-height: 1.25;
+    color: var(--on-surface);
 }
 
-.bubble-content .message {
-    margin: 5px 0 0 0;
-    font-size: 0.85rem;
-    opacity: 0.8;
-    line-height: 1.4;
-    max-width: 200px;
+/* Former members: neutral grey instead of the accent */
+.bubble.bubble-inactive {
+    --accent-rgb: 196, 199, 197;
+    background: linear-gradient(160deg,
+        rgba(var(--accent-rgb), 0.09) 0%,
+        rgba(var(--accent-rgb), 0.03) 100%),
+        var(--surface-variant);
+    border-color: rgba(var(--accent-rgb), 0.2);
+}
+
+.bubble.bubble-inactive:hover {
+    background: linear-gradient(160deg,
+        rgba(var(--accent-rgb), 0.14) 0%,
+        rgba(var(--accent-rgb), 0.05) 100%),
+        var(--surface-variant);
+    border-color: rgba(var(--accent-rgb), 0.4);
+}
+
+.bubble .social-link {
+    color: rgb(var(--accent-rgb));
+    opacity: 0.85;
+}
+
+.bubble .social-link:hover {
+    opacity: 1;
+}
+
+.bubble a:focus-visible {
+    outline: 2px solid rgb(var(--accent-rgb));
+    outline-offset: 3px;
+    border-radius: 6px;
 }
 
 @keyframes bubbleFloatIn {
     0% {
         opacity: 0;
-        transform: 
-            translateX(calc(var(--offset-x) + var(--drag-x))) 
-            translateY(calc(var(--offset-y) + var(--drag-y) + 30px)) 
-            rotate(var(--rotation)) 
-            scale(0.8);
+        transform:
+            translateX(calc(var(--offset-x) + var(--drag-x)))
+            translateY(calc(var(--offset-y) + var(--drag-y) + 24px))
+            rotate(var(--rotation))
+            scale(0.94);
     }
     100% {
         opacity: 1;
-        transform: 
-            translateX(calc(var(--offset-x) + var(--drag-x))) 
-            translateY(calc(var(--offset-y) + var(--drag-y))) 
-            rotate(var(--rotation)) 
+        transform:
+            translateX(calc(var(--offset-x) + var(--drag-x)))
+            translateY(calc(var(--offset-y) + var(--drag-y)))
+            rotate(var(--rotation))
             scale(1);
     }
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
     .bubble {
-        padding: 15px 20px;
-    }
-    
-    .bubble-content .name {
-        font-size: 1.1rem;
-    }
-    
-    .bubble-content .message {
-        font-size: 0.8rem;
-        max-width: 180px;
+        padding: 18px 20px;
     }
 }
 
-.bubble:not(.bubble-inactive) .role {
-    color: var(--on-primary, #c2e7ff);
-}
-
-.bubble:hover:not(.bubble-inactive) {
-    background: linear-gradient(135deg, 
-        rgba(var(--primary-rgb, 99, 102, 241), 0.25) 0%, 
-        rgba(var(--primary-rgb, 99, 102, 241), 0.15) 100%);
-    border-color: rgba(var(--primary-rgb, 99, 102, 241), 0.5);
-}
-
-.bubble:not(.bubble-inactive) .bubble-glow {
-    background: radial-gradient(
-        circle 120px at var(--mouse-x) var(--mouse-y),
-        rgba(var(--primary-rgb, 99, 102, 241), 0.35) 0%,
-        transparent 70%
-    );
-}
-
-.bubble.bubble-inactive {
-    background: linear-gradient(135deg, 
-        rgba(251, 188, 4, 0.12) 0%, 
-        rgba(251, 188, 4, 0.06) 100%);
-    border: 2px solid rgba(251, 188, 4, 0.3);
-}
-
-.bubble.bubble-inactive .bubble-glow {
-    background: radial-gradient(
-        circle 120px at var(--mouse-x) var(--mouse-y),
-        rgba(251, 188, 4, 0.25) 0%,
-        transparent 70%
-    );
-}
-
-.bubble .social-link {
-    color: var(--on-primary, #c2e7ff);
-}
-
-.bubble.bubble-inactive .social-link {
-    color: rgba(251, 188, 4, 0.9);
+@media (prefers-reduced-motion: reduce) {
+    .bubble {
+        animation: none;
+        transition: none;
+    }
+    .bubble-glow {
+        transition: none;
+    }
 }

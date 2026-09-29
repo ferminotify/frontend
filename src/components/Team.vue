@@ -3,139 +3,157 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useBubbleDrag } from '@/composables/useBubbleDrag';
 import '@/assets/css/bubbles.css';
 
-const coreTeam = ref([
+const roleIcons = {
+    'Project Management': 'event_note',
+    'Code': 'code',
+    'Design': 'palette',
+    'Hosting': 'dns',
+    'Code Review': 'rate_review',
+    'Business': 'work',
+    'Testing': 'bug_report',
+    'Side quests': 'explore'
+};
+
+const coreTeam = [
     {
         name: 'Liu Kevin',
-        roles: ['📆 Project Management', '💻 Code', '🎨 Design', '🚇 Hosting'],
+        roles: ['Project Management', 'Code', 'Design', 'Hosting'],
         instagram: 'https://instagram.com/kev1nl1u',
         github: 'https://github.com/kev1nl1u'
     },
     {
         name: 'Sirico Davide',
-        roles: ['💻 Code', '🚇 Hosting'],
+        roles: ['Code', 'Hosting'],
         instagram: 'https://www.instagram.com/davidesirico05/',
         github: 'https://github.com/DavideSirico'
     }
-]);
+];
 
-const createdByTeam = ref([
+const createdByTeam = [
     {
         name: 'Bini Matteo',
-        roles: ['📆 Project Management', '💻 Code', '👀 Code Review'],
+        roles: ['Project Management', 'Code', 'Code Review'],
         instagram: 'https://www.instagram.com/matteobini_/',
         github: 'https://github.com/MatteoBini'
     },
     {
         name: 'Liu Kevin',
-        roles: ['💻 Code', '🎨 Design'],
+        roles: ['Code', 'Design'],
         instagram: 'https://instagram.com/kev1nl1u',
         github: 'https://github.com/kev1nl1u'
     },
     {
         name: 'Sirico Davide',
-        roles: ['💻 Code'],
+        roles: ['Code'],
         instagram: 'https://www.instagram.com/davidesirico05/',
         github: 'https://github.com/DavideSirico'
     },
     {
         name: 'Casari Simone',
-        roles: ['💼 Business', '🎨 Design'],
+        roles: ['Business', 'Design'],
         instagram: 'https://www.instagram.com/simonecasari_/',
         github: 'https://github.com/SimoneCasari'
     },
     {
         name: 'Tardiani Simone',
-        roles: ['💻 Code'],
+        roles: ['Code'],
         instagram: 'https://www.instagram.com/simone_tardiani/',
         github: 'https://github.com/Captniz'
     },
     {
         name: 'Rastelli Francesco',
-        roles: ['⚠️ Testing'],
+        roles: ['Testing'],
         instagram: 'https://www.instagram.com/francescoo_rastellii/',
         github: 'https://github.com/franchecco'
     }
-]);
+];
 
-const externalCollaborators = ref([
+const externalCollaborators = [
     {
         name: 'Malinverno Tommaso',
-        roles: ['💻 Code'],
+        roles: ['Code'],
         instagram: 'https://www.instagram.com/tommaso_malinverno/',
         github: 'https://github.com/lampaDario1543'
     },
     {
         name: 'Tellaroli Alberto',
-        roles: ['🔃 Side quests'],
+        roles: ['Side quests'],
         instagram: 'https://www.instagram.com/albertotellarolii/',
         github: 'https://github.com/zAnimus'
     }
-]);
+];
 
-const extraCredits = ref([
-    {
-        name: 'OpenAI ChatGPT',
-        roles: ['💻 Code'],
-        link: 'https://chat.openai.com/'
-    },
-    {
-        name: 'Anthropic Claude',
-        roles: ['💻 Code'],
-        link: 'https://www.anthropic.com/claude'
-    },
-    {
-        name: 'Google Gemini',
-        roles: ['💻 Code'],
-        link: 'https://gemini.google.com/'
-    }
-]);
+const extraCredits = [
+    { name: 'OpenAI ChatGPT', link: 'https://chat.openai.com/' },
+    { name: 'Anthropic Claude', link: 'https://www.anthropic.com/claude' },
+    { name: 'Google Gemini', link: 'https://gemini.google.com/' }
+];
 
-const processedCore = ref([]);
-const processedCreatedBy = ref([]);
-const processedExternal = ref([]);
-const processedExtra = ref([]);
+const sections = [
+    { key: 'core', title: 'Core', description: 'Sviluppatori e mantenitori attuali', members: coreTeam, layout: 'core' },
+    { key: 'createdBy', title: 'Creato da', description: "Chi c'era al giorno 1 e il loro ruolo precedente", members: createdByTeam, layout: 'grid', inactive: true },
+    { key: 'external', title: 'Collaboratori esterni', description: null, members: externalCollaborators, layout: 'pair', inactive: true }
+];
+
+const lists = {
+    core: ref([]),
+    createdBy: ref([]),
+    external: ref([])
+};
 const bubbleRefs = ref({});
 const containerRef = ref(null);
 const showExtra = ref(false);
 
-const { 
-    getRandomOffset, 
-    getRandomRotation, 
-    handleMouseMove, 
-    startDrag, 
-    setupDragListeners 
+const {
+    getRandomOffset,
+    getRandomRotation,
+    handleMouseMove,
+    startDrag,
+    setupDragListeners
 } = useBubbleDrag(containerRef, bubbleRefs);
+
+const githubAvatar = (url) => {
+    const user = url?.replace(/\/+$/, '').split('/').pop();
+    return user ? `https://github.com/${user}.png?size=160` : null;
+};
+
+const initials = (name) => name.split(' ').map((part) => part[0]).join('').slice(0, 2);
 
 const processMember = (member, index, total) => ({
     ...member,
-    offsetX: getRandomOffset(30),
-    offsetY: getRandomOffset(30),
-    rotation: getRandomRotation(6),
-    delay: index * 0.08,
+    avatar: member.github ? githubAvatar(member.github) : null,
+    offsetX: getRandomOffset(16),
+    offsetY: getRandomOffset(12),
+    rotation: getRandomRotation(4),
+    delay: index * 0.06,
     zIndex: total - index,
     dragX: 0,
     dragY: 0
 });
 
-const getList = (section) => {
-    if (section === 'core') return processedCore;
-    if (section === 'createdBy') return processedCreatedBy;
-    if (section === 'external') return processedExternal;
-    return processedExtra;
-};
+const getList = (section) => lists[section];
 
 const onStartDrag = (event, index, section) => {
     startDrag(event, index, getList(section), section);
 };
 
+const bubbleStyle = (member) => ({
+    '--offset-x': member.offsetX + 'px',
+    '--offset-y': member.offsetY + 'px',
+    '--rotation': member.rotation + 'deg',
+    '--animation-delay': member.delay + 's',
+    '--z-index': member.zIndex,
+    '--drag-x': member.dragX + 'px',
+    '--drag-y': member.dragY + 'px'
+});
+
 let cleanupListeners = null;
 
 onMounted(() => {
-    processedCore.value = coreTeam.value.map((m, i) => processMember(m, i, coreTeam.value.length));
-    processedCreatedBy.value = createdByTeam.value.map((m, i) => processMember(m, i, createdByTeam.value.length));
-    processedExternal.value = externalCollaborators.value.map((m, i) => processMember(m, i, externalCollaborators.value.length));
-    processedExtra.value = extraCredits.value.map((m, i) => processMember(m, i, extraCredits.value.length));
-    
+    for (const section of sections) {
+        lists[section.key].value = section.members.map((m, i) => processMember(m, i, section.members.length));
+    }
+
     cleanupListeners = setupDragListeners(getList);
 });
 
@@ -146,310 +164,311 @@ onUnmounted(() => {
 
 <template>
 <div class="team-container" ref="containerRef">
-    <!-- Core Team -->
-    <h2 class="section-subtitle">Core</h2>
-    <p class="section-description">Sviluppatori e mantenitori attuali</p>
-    <div class="bubbles-grid">
-        <div 
-            v-for="(member, index) in processedCore" 
-            :key="member.name"
-            class="bubble-wrapper"
-        >
-            <div 
-                :ref="el => bubbleRefs[`core-${index}`] = el"
-                class="bubble"
-                :style="{
-                    '--offset-x': member.offsetX + '%',
-                    '--offset-y': member.offsetY + '%',
-                    '--rotation': member.rotation + 'deg',
-                    '--animation-delay': member.delay + 's',
-                    '--z-index': member.zIndex,
-                    '--drag-x': member.dragX + 'px',
-                    '--drag-y': member.dragY + 'px'
-                }"
-                @mousemove="handleMouseMove($event, index, 'core')"
-                @mousedown="onStartDrag($event, index, 'core')"
-                @touchstart="onStartDrag($event, index, 'core')"
+    <section v-for="section in sections" :key="section.key" class="team-section">
+        <header class="section-head">
+            <h2 class="section-subtitle">{{ section.title }}</h2>
+            <p v-if="section.description" class="section-description">{{ section.description }}</p>
+        </header>
+
+        <div :class="['bubbles-grid', `bubbles-grid-${section.layout}`]">
+            <div
+                v-for="(member, index) in lists[section.key].value"
+                :key="member.name"
+                class="bubble-wrapper"
             >
-                <div class="bubble-glow"></div>
-                <div class="bubble-content">
-                    <h3 class="name">{{ member.name }}</h3>
-                    <div class="roles">
-                        <p v-for="role in member.roles" :key="role" class="role">{{ role }}</p>
-                    </div>
-                    <div class="social-links">
-                        <a v-if="member.instagram" class="link social-link" :href="member.instagram" target="_blank" rel="noopener noreferrer">
-                            <font-awesome-icon :icon="['fab', 'instagram']" />
-                        </a>
-                        <a v-if="member.github" class="link social-link" :href="member.github" target="_blank" rel="noopener noreferrer">
-                            <font-awesome-icon :icon="['fab', 'github']" />
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Created By Team -->
-    <h2 class="section-subtitle">Creato da</h2>
-    <p class="section-description">Chi c'era al giorno 1 e il loro ruolo precedente</p>
-    <div class="bubbles-grid">
-        <div 
-            v-for="(member, index) in processedCreatedBy" 
-            :key="member.name"
-            class="bubble-wrapper"
-        >
-            <div 
-                :ref="el => bubbleRefs[`createdBy-${index}`] = el"
-                class="bubble bubble-inactive"
-                :style="{
-                    '--offset-x': member.offsetX + '%',
-                    '--offset-y': member.offsetY + '%',
-                    '--rotation': member.rotation + 'deg',
-                    '--animation-delay': member.delay + 's',
-                    '--z-index': member.zIndex,
-                    '--drag-x': member.dragX + 'px',
-                    '--drag-y': member.dragY + 'px'
-                }"
-                @mousemove="handleMouseMove($event, index, 'createdBy')"
-                @mousedown="onStartDrag($event, index, 'createdBy')"
-                @touchstart="onStartDrag($event, index, 'createdBy')"
-            >
-                <div class="bubble-glow"></div>
-                <div class="bubble-content">
-                    <h3 class="name">{{ member.name }}</h3>
-                    <div class="roles">
-                        <p v-for="role in member.roles" :key="role" class="role">{{ role }}</p>
-                    </div>
-                    <div class="social-links">
-                        <a v-if="member.instagram" class="link social-link" :href="member.instagram" target="_blank" rel="noopener noreferrer">
-                            <font-awesome-icon :icon="['fab', 'instagram']" />
-                        </a>
-                        <a v-if="member.github" class="link social-link" :href="member.github" target="_blank" rel="noopener noreferrer">
-                            <font-awesome-icon :icon="['fab', 'github']" />
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- External Collaborators -->
-    <h2 class="section-subtitle">Collaboratori esterni</h2>
-    <div class="bubbles-grid bubbles-grid-small">
-        <div 
-            v-for="(member, index) in processedExternal" 
-            :key="member.name"
-            class="bubble-wrapper"
-        >
-            <div 
-                :ref="el => bubbleRefs[`external-${index}`] = el"
-                class="bubble bubble-small bubble-inactive"
-                :style="{
-                    '--offset-x': member.offsetX + '%',
-                    '--offset-y': member.offsetY + '%',
-                    '--rotation': member.rotation + 'deg',
-                    '--animation-delay': member.delay + 's',
-                    '--z-index': member.zIndex,
-                    '--drag-x': member.dragX + 'px',
-                    '--drag-y': member.dragY + 'px'
-                }"
-                @mousemove="handleMouseMove($event, index, 'external')"
-                @mousedown="onStartDrag($event, index, 'external')"
-                @touchstart="onStartDrag($event, index, 'external')"
-            >
-                <div class="bubble-glow"></div>
-                <div class="bubble-content">
-                    <h3 class="name">{{ member.name }}</h3>
-                    <div class="roles">
-                        <p v-for="role in member.roles" :key="role" class="role">{{ role }}</p>
-                    </div>
-                    <div class="social-links">
-                        <a v-if="member.instagram" class="link social-link" :href="member.instagram" target="_blank" rel="noopener noreferrer">
-                            <font-awesome-icon :icon="['fab', 'instagram']" />
-                        </a>
-                        <a v-if="member.github" class="link social-link" :href="member.github" target="_blank" rel="noopener noreferrer">
-                            <font-awesome-icon :icon="['fab', 'github']" />
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="supporters">
-        <router-link to="/supporters" class="btn outlined">
-            I nostri sostenitori ☕
-        </router-link>
-    </div>
-
-    <!-- Extra Credits Toggle -->
-    <div class="extra-toggle">
-        <button :class="['btn', showExtra ? 'filled' : 'outlined']" @click="showExtra = !showExtra">
-            <span class="btn-label">{{ showExtra ? 'Nascondi' : 'Altro' }}</span>
-        </button>
-    </div>
-
-    <!-- Extra Credits -->
-    <transition name="slide">
-        <div v-if="showExtra" class="extra-section">
-            <h2 class="section-subtitle" style="margin-top: 0;">Extra</h2>
-            <div class="bubbles-grid bubbles-grid-small">
-                <div 
-                    v-for="(member, index) in processedExtra" 
-                    :key="member.name"
-                    class="bubble-wrapper"
+                <div
+                    :ref="el => bubbleRefs[`${section.key}-${index}`] = el"
+                    :class="['bubble', { 'bubble-inactive': section.inactive, 'bubble-core': section.layout === 'core' }]"
+                    :style="bubbleStyle(member)"
+                    @mousemove="handleMouseMove($event, index, section.key)"
+                    @mousedown="onStartDrag($event, index, section.key)"
+                    @touchstart="onStartDrag($event, index, section.key)"
                 >
-                    <div 
-                        :ref="el => bubbleRefs[`extra-${index}`] = el"
-                        class="bubble bubble-small"
-                        :style="{
-                            '--offset-x': member.offsetX + '%',
-                            '--offset-y': member.offsetY + '%',
-                            '--rotation': member.rotation + 'deg',
-                            '--animation-delay': member.delay + 's',
-                            '--z-index': member.zIndex,
-                            '--drag-x': member.dragX + 'px',
-                            '--drag-y': member.dragY + 'px'
-                        }"
-                        @mousemove="handleMouseMove($event, index, 'extra')"
-                        @mousedown="onStartDrag($event, index, 'extra')"
-                        @touchstart="onStartDrag($event, index, 'extra')"
-                    >
-                        <div class="bubble-glow"></div>
-                        <div class="bubble-content">
+                    <div class="bubble-glow"></div>
+                    <div class="bubble-content member">
+                        <img
+                            v-if="member.avatar"
+                            class="avatar"
+                            :src="member.avatar"
+                            alt=""
+                            width="80"
+                            height="80"
+                            loading="lazy"
+                            draggable="false"
+                        />
+                        <span v-else class="avatar avatar-fallback" aria-hidden="true">{{ initials(member.name) }}</span>
+                        <div class="member-body">
                             <h3 class="name">{{ member.name }}</h3>
-                            <div class="roles">
-                                <p v-for="role in member.roles" :key="role" class="role">{{ role }}</p>
+                            <ul class="roles">
+                                <li v-for="role in member.roles" :key="role" class="role">
+                                    <span class="material-symbols-outlined" aria-hidden="true">{{ roleIcons[role] }}</span>
+                                    {{ role }}
+                                </li>
+                            </ul>
+                            <div class="social-links">
+                                <a v-if="member.instagram" class="social-link" :href="member.instagram" target="_blank" rel="noopener noreferrer" :aria-label="`Instagram di ${member.name}`">
+                                    <font-awesome-icon :icon="['fab', 'instagram']" />
+                                </a>
+                                <a v-if="member.github" class="social-link" :href="member.github" target="_blank" rel="noopener noreferrer" :aria-label="`GitHub di ${member.name}`">
+                                    <font-awesome-icon :icon="['fab', 'github']" />
+                                </a>
                             </div>
-                            <a v-if="member.link" class="link email-link" :href="member.link" target="_blank">
-                                <span class="material-symbols-outlined">link</span>
-                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </section>
+
+    <div class="team-actions">
+        <router-link to="/supporters" class="btn outlined btn-icon">
+            <span class="material-symbols-outlined" aria-hidden="true">local_cafe</span>
+            I nostri sostenitori
+        </router-link>
+        <button
+            type="button"
+            :class="['btn', 'btn-icon', showExtra ? 'filled' : 'text']"
+            :aria-expanded="showExtra"
+            aria-controls="team-extra"
+            @click="showExtra = !showExtra"
+        >
+            <span class="material-symbols-outlined extra-chevron" :class="{ open: showExtra }" aria-hidden="true">expand_more</span>
+            {{ showExtra ? 'Nascondi' : 'Altro' }}
+        </button>
+    </div>
+
+    <transition name="slide">
+        <p v-if="showExtra" id="team-extra" class="extra-line">
+            Hanno scritto codice anche
+            <template v-for="(credit, index) in extraCredits" :key="credit.name">
+                <a class="link" :href="credit.link" target="_blank" rel="noopener noreferrer">{{ credit.name }}</a>{{ index < extraCredits.length - 2 ? ', ' : index === extraCredits.length - 2 ? ' e ' : '.' }}
+            </template>
+        </p>
     </transition>
 </div>
 </template>
 
 <style scoped>
 .team-container {
-    padding: 20px;
-    max-width: 1200px;
+    padding: 8px 20px 60px;
+    max-width: 1100px;
     margin: 0 auto;
     position: relative;
 }
 
+.team-section {
+    margin-top: 56px;
+}
+
+.team-section:first-child {
+    margin-top: 32px;
+}
+
+.section-head {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.section-subtitle {
+    margin: 0;
+    font-size: 1.6rem;
+    letter-spacing: -0.01em;
+    color: var(--on-surface);
+}
+
+.section-description {
+    margin: 6px auto 0;
+    max-width: 60ch;
+    color: var(--on-surface-variant);
+    line-height: 1.5;
+}
+
 .bubbles-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    padding: 10px;
+    gap: 18px;
 }
 
-.bubbles-grid-small {
-    max-width: 800px;
-    margin: 0 auto;
+.bubbles-grid-core {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
 }
 
-/* Bubble variants moved to `src/assets/css/bubbles.css` */
+.bubbles-grid-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 
-.roles {
+/* Same card width as the 3-col grid above, without an empty third cell */
+.bubbles-grid-pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: calc((100% - 36px) / 3 * 2 + 18px);
+    margin-inline: auto;
+}
+
+/* Member card */
+.bubble {
+    container-type: inline-size;
+}
+
+/* Current team in blue, former members fall back to the grey of .bubble-inactive */
+.bubble:not(.bubble-inactive) {
+    --accent-rgb: 138, 180, 248;
+}
+
+.member {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+/* Narrow cards: avatar on top so role chips get the full width */
+@container (max-width: 240px) {
+    .member {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+.member-body {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 10px;
+    min-width: 0;
+}
+
+.avatar {
+    flex: none;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface-variant);
+    border: 2px solid rgb(var(--accent-rgb));
+}
+
+.avatar-fallback {
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    color: rgb(var(--accent-rgb));
+    background: rgba(var(--accent-rgb), 0.15);
+}
+
+.bubble-core {
+    padding: 28px;
+}
+
+.bubble-core .avatar {
+    width: 80px;
+    height: 80px;
+}
+
+.bubble-core .name {
+    font-size: 1.45rem;
+}
+
+.bubble-inactive .avatar {
+    filter: grayscale(0.6);
+    border-width: 1px;
+}
+
+.roles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
 .role {
-    margin: 0;
-    font-size: 0.85rem;
-    opacity: 0.85;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px 3px 7px;
+    border-radius: 999px;
+    font-size: 0.8rem;
     line-height: 1.4;
+    color: rgb(var(--accent-rgb));
+    background: rgba(var(--accent-rgb), 0.12);
+    border: 1px solid rgba(var(--accent-rgb), 0.25);
+}
+
+.role .material-symbols-outlined {
+    font-size: 16px;
 }
 
 .social-links {
     display: flex;
-    gap: 12px;
-    margin-top: 10px;
-    justify-content: center;
+    gap: 14px;
     position: relative;
     z-index: 10;
 }
 
 .social-link {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    opacity: 0.9;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    font-size: 1.3rem;
-    /* color handled by shared bubble styles when inside a bubble */
+    font-size: 1.2rem;
     text-decoration: none;
-    pointer-events: auto;
+    transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .social-link:hover {
-    opacity: 1;
-    transform: scale(1.15);
+    transform: translateY(-1px);
 }
 
-.email-link {
+/* Actions */
+.team-actions {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    margin-top: 8px;
-    opacity: 0.8;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    gap: 12px;
+    margin-top: 56px;
 }
 
-.email-link:hover {
-    opacity: 1;
-    transform: scale(1.1);
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    transition: background-color 220ms ease, color 220ms ease, transform 160ms ease;
 }
 
-.email-link .material-symbols-outlined {
-    font-size: 1.3rem;
+.btn-icon .material-symbols-outlined {
+    font-size: 20px;
 }
 
-.section-subtitle {
+.btn-icon:active {
+    transform: scale(0.98);
+}
+
+.extra-chevron {
+    transition: transform 0.25s ease;
+}
+
+.extra-chevron.open {
+    transform: rotate(180deg);
+}
+
+.extra-line {
+    margin: 20px auto 0;
+    max-width: 60ch;
     text-align: center;
-    margin: 40px 0 20px 0;
-    color: var(--on-surface, #fff);
+    line-height: 1.6;
+    color: var(--on-surface-variant);
+    font-size: 0.85rem;
 }
 
-.section-description {
-    text-align: center;
-    margin: 0 0 20px 0;
-    color: var(--on-surface, #ddd);
-    opacity: 0.9;
-}
-
-.supporters {
-    display: flex;
-    justify-content: center;
-    margin: 30px 0;
-}
-
-.extra-toggle {
-    display: flex;
-    justify-content: center;
-    padding: 25px 0;
-}
-
-/* Button variants for More/Altro toggle */
-.btn {
-    transition: background-color 220ms ease, color 220ms ease, transform 160ms ease, box-shadow 220ms ease;
-}
-
-.extra-section {
-    padding-top: 10px;
+.extra-line a {
+    white-space: nowrap;
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 /* Slide transition */
 .slide-enter-active,
 .slide-leave-active {
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .slide-enter-from,
@@ -458,38 +477,53 @@ onUnmounted(() => {
     transform: translateY(-10px);
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .slide-enter-active,
+    .slide-leave-active,
+    .extra-chevron {
+        transition: none;
+    }
+}
+
 /* Responsive */
 @media (max-width: 900px) {
-    .bubbles-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+    .bubbles-grid-grid,
+    .bubbles-grid-pair {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    
-    .bubbles-grid-small {
-        grid-template-columns: repeat(2, 1fr);
+
+    .bubbles-grid-pair {
+        max-width: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .bubbles-grid-core {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bubble-core {
+        padding: 22px;
+    }
+
+    .bubble-core .avatar {
+        width: 64px;
+        height: 64px;
     }
 }
 
 @media (max-width: 600px) {
     .team-container {
-        padding: 15px;
+        padding: 0 16px 40px;
     }
-    
-    .bubbles-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
+
+    .bubbles-grid-grid,
+    .bubbles-grid-pair {
+        grid-template-columns: minmax(0, 1fr);
     }
-    
-    .bubbles-grid-small {
-        grid-template-columns: 1fr;
-    }
-    
-    .name {
-        font-size: 1rem;
-    }
-    
-    .role {
-        font-size: 0.8rem;
+
+    .section-subtitle {
+        font-size: 1.35rem;
     }
 }
 </style>
