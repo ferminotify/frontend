@@ -1,5 +1,5 @@
 <template>
-  <div class="sub-section">
+  <div class="sub-section" id="notifiche">
     <h2>
       <span class="material-symbols-outlined">notifications</span>
       Notifiche

@@ -27,7 +27,7 @@
     </p>
 
     <!-- Keyword form -->
-    <div ref="keywordRef" class="onboarding-container" :class="{ 'onboarding-active': showOnboarding && step === 1 }">
+    <div id="keyword" ref="keywordRef" class="onboarding-container" :class="{ 'onboarding-active': showOnboarding && step === 1 }">
       <KeywordForm />
       <!-- Onboarding card anchored to this section -->
       <div v-if="showOnboarding && step === 1" class="onboarding-card">
@@ -44,7 +44,7 @@
     <Eventi :keywords="keywords" />
 
     <!-- Settings -->
-    <div ref="settingsRef" class="onboarding-container" :class="{ 'onboarding-active': showOnboarding && step === 2 }">
+    <div id="impostazioni" ref="settingsRef" class="onboarding-container" :class="{ 'onboarding-active': showOnboarding && step === 2 }">
       <Settings />
       <!-- Onboarding card anchored to this section -->
       <div v-if="showOnboarding && step === 2" class="onboarding-card settings">
@@ -58,7 +58,7 @@
     </div>
 
     <!-- Telegram -->
-    <div ref="telegramRef" class="onboarding-container" :class="{ 'onboarding-active': showOnboarding && step === 3 }">
+    <div id="telegram" ref="telegramRef" class="onboarding-container" :class="{ 'onboarding-active': showOnboarding && step === 3 }">
       <Telegram />
       <!-- Onboarding card anchored to this section -->
       <div v-if="showOnboarding && step === 3" class="onboarding-card">
@@ -81,7 +81,7 @@
     <Notifiche />
 
     <!-- Report a problem -->
-    <div class="sub-section reportProblem">
+    <div class="sub-section reportProblem" id="segnala">
       <p>
         <a href="mailto:mail@fn.lkev.in">
           <span class="material-symbols-outlined material-space-right primary-text" aria-hidden="true">error</span>

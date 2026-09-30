@@ -18,6 +18,7 @@
 </template>
 
 <script setup>
+  import { consumeRedirect } from '@/utils/redirect.js'
   import { onMounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useUserStore } from '@/stores/user'
@@ -38,7 +39,7 @@
       if (needsCompletion) {
         await router.replace({ name: 'complete-profile' })
       } else {
-        await router.replace({ name: 'dashboard' })
+        await router.replace(consumeRedirect())
       }
     } catch (err) {
       console.error('Google auth callback failed:', err)

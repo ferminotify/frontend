@@ -4,6 +4,7 @@
   import { RouterLink, RouterView, useRoute } from 'vue-router'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
+  import { scrollToHash } from '@/utils/scroll.js'
   import SondaggioDesktop from './components/SondaggioDesktop.vue'
 
   const route = useRoute()
@@ -132,6 +133,20 @@
 
   watch(() => route.path, () => {
     nextTick(updateIndicator)
+  })
+
+  const onViewAfterEnter = () => {
+    scrollToHash(route.hash)
+  }
+
+  // Boot: page is hidden behind the loading screen until icons are ready
+  watch([iconsReady, skipLoading], ([ready, skip]) => {
+    if ((ready || skip) && route.hash) nextTick(() => scrollToHash(route.hash))
+  })
+
+  // Hash change on the same page (no view transition)
+  watch(() => route.hash, (hash, prev) => {
+    if (hash && hash !== prev) scrollToHash(hash)
   })
 
   const onViewAfterLeave = () => {
@@ -642,7 +657,7 @@
   <div class="main-container" v-show="iconsReady || skipLoading">
     <main class="main">
       <RouterView v-slot="{ Component, route: viewRoute }">
-        <Transition appear mode="out-in" name="fade-up" @after-leave="onViewAfterLeave">
+        <Transition appear mode="out-in" name="fade-up" @after-leave="onViewAfterLeave" @after-enter="onViewAfterEnter">
           <div :key="viewRoute.path" style="width: 100%;">
             <component :is="Component" />
           </div>

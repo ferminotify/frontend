@@ -1,5 +1,6 @@
 import { useUserStore } from '@/stores/user'
 import { setRouter } from '@/utils/navigation'
+import { saveRedirect, consumeRedirect } from '@/utils/redirect'
 
 // Lazy-loaded views
 const HomeView = () => import('../views/HomeView.vue')
@@ -206,9 +207,10 @@ export function setupRouter(router) {
 
     const token = localStorage.getItem('token')
     if (token && (to.path === '/login' || to.path === '/register')) {
-      return '/dashboard'
+      return consumeRedirect()
     }
     if (!token && (to.path.startsWith('/dashboard') || to.path.startsWith('/complete-profile'))) {
+      saveRedirect(to.fullPath)
       return '/login'
     }
     // A logged-in user with an unfinished Google signup can browse freely, but

@@ -1,5 +1,5 @@
 <template>
-  <div class="sub-section" id="events">
+  <div class="sub-section" id="eventi">
     <h2>
       <span class="material-symbols-outlined">calendar_month</span>
       Eventi in programma

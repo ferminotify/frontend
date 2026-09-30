@@ -62,6 +62,7 @@
   import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
+  import { consumeRedirect } from '@/utils/redirect.js'
 
   const submitBtnRef = ref(null)
   const pswInputRef = ref(null)
@@ -79,7 +80,7 @@
     loading(submitBtnRef.value)
     try {
       await user.login(email.value, password.value)
-      await router.push('/dashboard')
+      await router.push(consumeRedirect())
     } catch (error) {
       // Better normalization: handle network/CORS errors and backend messages
       const status = error?.response?.status

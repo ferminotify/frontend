@@ -1,5 +1,5 @@
 <template>
-  <div class="sub-section info">
+  <div class="sub-section info" id="info">
     <h2>
       <span class="material-symbols-outlined">person</span>
       Le tue info

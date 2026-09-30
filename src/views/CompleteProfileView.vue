@@ -96,6 +96,7 @@
   import { useRouter } from 'vue-router'
   import { togglePasswordVisibility, initPasswordIconForEdge } from '@/utils/forms.js'
   import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
+  import { consumeRedirect } from '@/utils/redirect.js'
   import { generateAlert } from '@/utils/alertbanner.js'
   import { useUserStore } from '@/stores/user'
 
@@ -144,7 +145,7 @@
     }
     // Profile already complete → nothing to do here.
     if (user.user?.profile_complete) {
-      await router.replace({ name: 'dashboard' })
+      await router.replace(consumeRedirect())
       return
     }
     name.value = user.user?.name || ''
@@ -184,7 +185,7 @@
         password: password.value || undefined,
         password2: password2.value || undefined,
       })
-      await router.replace({ name: 'dashboard' })
+      await router.replace(consumeRedirect())
     } catch (error) {
       const msg = error?.response?.data?.error || 'Si è verificato un errore. Riprova più tardi.'
       generateAlert('error', msg)

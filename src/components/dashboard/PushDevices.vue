@@ -1,5 +1,5 @@
 <template>
-    <div class="sub-section">
+    <div class="sub-section" id="dispositivi-push">
         <h2>
             <span class="material-symbols-outlined">devices</span>
             Dispositivi Push
