@@ -12,17 +12,17 @@ describe('describeCell (class)', () => {
   })
 
   it('room change strikes the original room and lists teachers/absent', () => {
-    const cell = { ...base, status: 'changed', variations: [v({ room: 'Aula 46', teachers: ['Rossi'], absent: ['Bianchi'] })] }
+    const cell = { ...base, status: 'changed', variations: [v({ room: 'Aula 46', teachers: ['Esempio'], absent: ['Ipotetico'] })] }
     expect(describeCell(cell, 'class')).toMatchObject({
-      tone: 'changed', badge: 'Variazione', lines: ['Aula 46', 'Prof. Rossi', 'Assente: Bianchi'], original: 'Aula 94',
+      tone: 'changed', badge: 'Variazione', lines: ['Aula 46', 'Prof. Esempio', 'Assente: Ipotetico'], original: 'Aula 94',
     })
   })
 
   it('substitution in the same room does not strike anything', () => {
-    const cell = { ...base, status: 'changed', variations: [v({ room: 'AULA 94', teachers: ['Rossi', 'Verdi'] })] }
+    const cell = { ...base, status: 'changed', variations: [v({ room: 'AULA 94', teachers: ['Esempio', 'Anonimo'] })] }
     const d = describeCell(cell, 'class')
     expect(d.original).toBeNull()
-    expect(d.lines).toContain('Proff. Rossi, Verdi')
+    expect(d.lines).toContain('Proff. Esempio, Anonimo')
   })
 
   it('cancelled lesson uses the variation label as badge', () => {
@@ -43,7 +43,7 @@ describe('describeCell (room)', () => {
     expect(describeCell(cell, 'room')).toMatchObject({ tone: 'freed', badge: 'Aula libera', lines: ['3F: spostata in Aula 916'] })
   })
   it('class moving in shows the occupant and strikes the original lesson', () => {
-    const cell = { ...roomCell, status: 'changed', occupant: '2B', variations: [v({ classes: ['2B'], teachers: ['Rossi'] })] }
+    const cell = { ...roomCell, status: 'changed', occupant: '2B', variations: [v({ classes: ['2B'], teachers: ['Esempio'] })] }
     expect(describeCell(cell, 'room')).toMatchObject({ tone: 'changed', title: '2B', original: 'Matematica · 3F' })
   })
 })
