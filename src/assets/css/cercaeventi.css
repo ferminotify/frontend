@@ -129,7 +129,9 @@
 
 .event-title {
   width: 80%;
+  min-width: 0;
   line-height: 1.4em;
+  overflow-wrap: anywhere;
 }
 
 .start-end-text {

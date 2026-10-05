@@ -359,6 +359,11 @@ function getField(ev, names) {
   return null
 }
 
+// Allow line breaks after commas/slashes with no following space
+function renderTitle(ev) {
+  return displayTitle(ev).replace(/([,/])(?=\S)/g, '$1\u200B')
+}
+
 function displayTitle(ev) {
   return getField(ev, ['title', 'summary', 'data', 'name']) || 'Evento'
 }
@@ -446,7 +451,7 @@ function sameStartEnd(ev) {
       </h3>
       <div class="events-list" :id="`events-${d}-eventslist`">
         <div v-for="(event, i) in eventsForDay(d)" :key="i" class="event" :class="eventClasses(event)" :id="event.uid">
-          <p class="event-title">{{ displayTitle(event) }}</p>
+          <p class="event-title">{{ renderTitle(event) }}</p>
           <div class="event-time">
             <p class="event-time-start">
               <span class="start-end-text">

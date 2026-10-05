@@ -163,56 +163,23 @@
   // Hamburger menu state
   const menuOpen = ref(false)
 
+  // State-driven: CSS transitions handle the motion, so rapid toggles just reverse mid-flight
+  const setMenu = (open) => {
+    menuOpen.value = open
+    try {
+      document.documentElement.style.overflow = open ? 'hidden' : ''
+    } catch (e) {}
+  }
+  const toggleMenu = () => setMenu(!menuOpen.value)
   const closeMenu = () => {
-    if (menuOpen.value) toggleMenu()
+    if (menuOpen.value) setMenu(false)
+  }
+  const onMenuKeydown = (e) => {
+    if (e.key === 'Escape') closeMenu()
   }
 
-  const toggleMenu = () => {
-    const navLinks = document.querySelector('.nav-links')
-    const hamburger = document.querySelector('.hamburger')
-    const ul = navLinks?.querySelector('ul')
-    const lis = ul?.querySelectorAll('li') || []
-
-    if (menuOpen.value) {
-      // Close menu with staggered animation
-      Array.from(lis).reverse().forEach((li, i) => {
-        setTimeout(() => {
-          li.classList.add('li-inactive')
-          li.classList.remove('li-active')
-          li.style.visibility = 'hidden'
-        }, 250 * i)
-      })
-
-      setTimeout(() => {
-        navLinks?.classList.remove('active')
-        navLinks?.classList.add('inactive')
-      }, 250 * lis.length)
-
-      hamburger?.querySelectorAll('.line').forEach(line => {
-        line.classList.remove('line-pazzo')
-      })
-
-      menuOpen.value = false
-    } else {
-      // Open menu with staggered animation
-      navLinks?.classList.remove('inactive')
-      navLinks?.classList.add('active')
-
-      hamburger?.querySelectorAll('.line').forEach(line => {
-        line.classList.add('line-pazzo')
-      })
-
-      Array.from(lis).forEach((li, i) => {
-        setTimeout(() => {
-          li.classList.remove('li-inactive')
-          li.classList.add('li-active')
-          li.style.visibility = 'visible'
-        }, 250 * i)
-      })
-
-      menuOpen.value = true
-    }
-  }
+  // Any navigation closes the menu
+  watch(() => route.fullPath, closeMenu)
 
   // PWA install state
   const deferredPrompt = ref(null)
@@ -321,6 +288,7 @@
 
   onMounted(async () => {
     if (typeof window === 'undefined') return
+    window.addEventListener('keydown', onMenuKeydown)
 
     // start cycling loading messages every 2.5s while loading screen is visible
     try {
@@ -372,6 +340,7 @@
 
   onBeforeUnmount(() => {
     if (typeof window === 'undefined') return
+    window.removeEventListener('keydown', onMenuKeydown)
 
     // stop loading message cycle
     try {
@@ -608,34 +577,42 @@
         </div>
 
         <div class="sidebar-link sidebar-menu sidebar-mobile" id="menu">
-          <a class="hamburger" @click="toggleMenu">
+          <button
+            type="button"
+            class="hamburger"
+            :class="{ open: menuOpen }"
+            :aria-expanded="menuOpen"
+            aria-controls="mobile-menu"
+            :aria-label="menuOpen ? 'Chiudi menu' : 'Apri menu'"
+            @click="toggleMenu"
+          >
             <span class="line"></span>
             <span class="line"></span>
             <span class="line"></span>
-          </a>
-          <div class="nav-links">
+          </button>
+          <div id="mobile-menu" class="nav-links" :class="{ open: menuOpen }" :inert="!menuOpen" @click.self="closeMenu">
             <ul>
-              <li>
+              <li :style="{ '--i': 0 }">
                 <RouterLink to="/faq" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">help_center</span> FAQ
                 </RouterLink>
               </li>
-              <li>
+              <li :style="{ '--i': 1 }">
                 <RouterLink to="/supporters" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">favorite</span> Supporta
                 </RouterLink>
               </li>
-              <li>
+              <li :style="{ '--i': 2 }">
                 <RouterLink to="/team" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">group</span> Team
                 </RouterLink>
               </li>
-              <li>
+              <li :style="{ '--i': 3 }">
                 <RouterLink to="/archive" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">archive</span> Archivio
                 </RouterLink>
               </li>
-              <li>
+              <li :style="{ '--i': 4 }">
                 <div class="sidebar-link sidebar-contatti">
                   <RouterLink to="/ig" target="_blank" @click="closeMenu">
                     <font-awesome-icon :icon="['fab', 'instagram']" />
