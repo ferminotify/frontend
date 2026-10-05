@@ -14,6 +14,7 @@ const TeamView = () => import('../views/TeamView.vue')
 const ArchiveView = () => import('../views/ArchiveView.vue')
 const TestView = () => import('../views/TestView.vue')
 const FeedbackView = () => import('../views/FeedbackView.vue')
+const OrarioView = () => import('../views/OrarioView.vue')
 const AuthCallbackView = () => import('../views/AuthCallbackView.vue')
 const CompleteProfileView = () => import('../views/CompleteProfileView.vue')
 
@@ -101,6 +102,16 @@ export const routes = [
       title: 'OTP Password · Fermi Notify',
       description: 'Verifica il codice OTP per completare il recupero password su Fermi Notify.',
       robots: 'noindex,follow',
+    },
+  },
+  {
+    path: '/orario/:type(classe|aula)?/:ref?',
+    name: 'orario',
+    component: OrarioView,
+    meta: {
+      title: 'Orario · Fermi Notify',
+      description:
+        "Orario settimanale di classi e aule dell'IS E. Fermi di Mantova, aggiornato in tempo reale con le variazioni del calendario giornaliero.",
     },
   },
   {

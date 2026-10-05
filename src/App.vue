@@ -539,6 +539,13 @@
           </a>
         </RouterLink>
 
+        <RouterLink to="/orario" custom v-slot="{ href, navigate }">
+          <a :href="href" @click="navigate" class="sidebar-link sidebar-desktop" id="orario" :class="{ active: route.path.startsWith('/orario') }">
+            <span class="material-symbols-outlined sidebar-icon">calendar_view_week</span>
+            <span class="sidebar-link-text">Orario</span>
+          </a>
+        </RouterLink>
+
         <RouterLink to="/faq" custom v-slot="{ href, navigate, isExactActive }">
           <a :href="href" @click="navigate" class="sidebar-link sidebar-desktop" id="faq" :class="{ active: isExactActive }">
             <span class="material-symbols-outlined sidebar-icon">help_center</span>
@@ -593,26 +600,31 @@
           <div id="mobile-menu" class="nav-links" :class="{ open: menuOpen }" :inert="!menuOpen" @click.self="closeMenu">
             <ul>
               <li :style="{ '--i': 0 }">
+                <RouterLink to="/orario" class="sidebar-menu-link" @click="closeMenu">
+                  <span class="material-symbols-outlined">calendar_view_week</span> Orario
+                </RouterLink>
+              </li>
+              <li :style="{ '--i': 1 }">
                 <RouterLink to="/faq" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">help_center</span> FAQ
                 </RouterLink>
               </li>
-              <li :style="{ '--i': 1 }">
+              <li :style="{ '--i': 2 }">
                 <RouterLink to="/supporters" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">favorite</span> Supporta
                 </RouterLink>
               </li>
-              <li :style="{ '--i': 2 }">
+              <li :style="{ '--i': 3 }">
                 <RouterLink to="/team" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">group</span> Team
                 </RouterLink>
               </li>
-              <li :style="{ '--i': 3 }">
+              <li :style="{ '--i': 4 }">
                 <RouterLink to="/archive" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">archive</span> Archivio
                 </RouterLink>
               </li>
-              <li :style="{ '--i': 4 }">
+              <li :style="{ '--i': 5 }">
                 <div class="sidebar-link sidebar-contatti">
                   <RouterLink to="/ig" target="_blank" @click="closeMenu">
                     <font-awesome-icon :icon="['fab', 'instagram']" />

@@ -16,7 +16,7 @@ export default defineConfig({
     formatting: 'minify',
     dirStyle: 'nested',
     includedRoutes(paths, routes) {
-      return ['/', '/faq', '/app', '/team', '/supporters', '/archive']
+      return ['/', '/orario', '/faq', '/app', '/team', '/supporters', '/archive']
     },
   },
 })
