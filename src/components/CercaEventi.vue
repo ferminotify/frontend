@@ -2,7 +2,7 @@
   import { ref, defineEmits, nextTick, onMounted, onBeforeUnmount, computed } from 'vue'
   import { generateAlert } from '@/utils/alertbanner.js'
   import CercaEventiCore from '@/components/common/CercaEventiCore.vue'
-  import SondaggioMobile from '@/components/SondaggioMobile.vue'
+  import FeedbackPrompt from '@/components/FeedbackPrompt.vue'
 
   // local state for the search query
   const query = ref('')
@@ -235,7 +235,6 @@
 </script>
 
 <template>
-  <SondaggioMobile />
   <div id="CercaEventi">
     <!-- cerca eventi -->
     <div class="cercaEventi-container">
@@ -379,7 +378,11 @@
     </div>
 
     <!-- TODO similar events -->
-    <CercaEventiCore :activeFilter="activeFilter" :keywords="searchKeywords" />
+    <CercaEventiCore :activeFilter="activeFilter" :keywords="searchKeywords">
+          <template #after-first-day>
+            <FeedbackPrompt />
+          </template>
+        </CercaEventiCore>
   </div>
 </template>
 

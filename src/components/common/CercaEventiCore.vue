@@ -323,6 +323,8 @@ const filteredEventsByDay = computed(() => {
   return out
 })
 
+const firstDayWithEvents = computed(() => days.find((d) => eventsForDay(d).length > 0))
+
 function eventsForDay(dayIndex) {
   return filteredEventsByDay.value[dayIndex] || []
 }
@@ -439,9 +441,9 @@ function sameStartEnd(ev) {
     <div id="noevents" style="text-align: center; margin: 25px 0" v-show="!isLoading && !hasAnyEvents">
       Nessun evento disponibile.
     </div>
+    <slot v-if="!isLoading && !hasAnyEvents" name="after-first-day" />
+    <template v-for="d in days" :key="d">
     <div
-      v-for="d in days"
-      :key="d"
       class="events-container"
       :id="`events-${d}`"
       :style="{ display: eventsForDay(d).length ? 'block' : 'none' }">
@@ -470,6 +472,8 @@ function sameStartEnd(ev) {
         </div>
       </div>
     </div>
+    <slot v-if="d === firstDayWithEvents" name="after-first-day" />
+    </template>
   </div>
 </template>
 

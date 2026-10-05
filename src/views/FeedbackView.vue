@@ -34,6 +34,7 @@
 </template>
 <script setup>
 import { onMounted, ref } from 'vue'
+import { markFeedbackDone } from '@/composables/useFeedbackPrompt'
 
 const FEEDBACK_URL = 'https://forms.gle/d9vvAFXg4ESGX6128'
 const MOBILE_BREAKPOINT = 270
@@ -50,6 +51,7 @@ const onFormLoad = () => {
 
 	if (loadCounter.value === 2) {
 		hasFormIframeClass.value = false
+		markFeedbackDone()
 	}
 
 	if (loadCounter.value === 3) {

@@ -1,15 +1,19 @@
 <template>
     <div
+        v-if="!done"
         ref="panelRef"
         class="sondaggio"
-        :class="{ dragging: isDragging }"
+        :class="{ dragging: isDragging || !boundsReady }"
         :style="panelStyle"
         @wheel.prevent="onWheel"
     >
         <div class="sondaggio-inner">
-            <h2>Racconta la <span style="white-space: nowrap;">tua esperienza</span></h2>
-            <p>Aiutaci a migliorare con questo breve sondaggio <span style="white-space: nowrap;">(< 1 minuto)</span></p>
-            <RouterLink to="/feedback" class="btn filled" style="margin-top: 5px;">
+            <div class="sondaggio-header">
+                <span class="material-symbols-outlined sondaggio-icon" aria-hidden="true">rate_review</span>
+                <h2>Racconta la <span style="white-space: nowrap;">tua esperienza</span></h2>
+                <p>con questo breve sondaggio <span style="white-space: nowrap;">(&lt; 1 min)</span></p>
+            </div>
+            <RouterLink to="/feedback" class="btn filled sondaggio-cta">
                 Partecipa
             </RouterLink>
         </div>
@@ -26,13 +30,19 @@
     </div>
 </template>
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useFeedbackPrompt } from '@/composables/useFeedbackPrompt';
+
+const { done, init, isDesktopCollapsed, setDesktopCollapsed } = useFeedbackPrompt();
 
 const panelRef = ref(null);
 const indicatorRef = ref(null);
 const isDragging = ref(false);
 const translateX = ref(0);
 const minTranslateX = ref(0);
+// Until the first real measurement the saved collapsed state is applied without animating
+const boundsReady = ref(false);
+let restoreCollapsed = false;
 
 let startPointerX = 0;
 let startTranslateX = 0;
@@ -51,9 +61,32 @@ const updateBounds = () => {
 
     const panelWidth = panelRef.value.offsetWidth;
     const indicatorWidth = indicatorRef.value.offsetWidth;
+    if (!panelWidth) {
+        return;
+    }
+    const wasCollapsed = restoreCollapsed
+        || (translateX.value !== 0 && translateX.value === minTranslateX.value);
+    restoreCollapsed = false;
     minTranslateX.value = -(panelWidth - indicatorWidth);
-    translateX.value = clamp(translateX.value, minTranslateX.value, 0);
+    translateX.value = wasCollapsed
+        ? minTranslateX.value
+        : clamp(translateX.value, minTranslateX.value, 0);
+    if (!boundsReady.value) {
+        requestAnimationFrame(() => { boundsReady.value = true; });
+    }
 };
+
+// Persist open/collapsed once the panel settles (not mid-drag)
+watch([translateX, isDragging], ([x, dragging]) => {
+    if (dragging || !minTranslateX.value) {
+        return;
+    }
+    if (x === minTranslateX.value) {
+        setDesktopCollapsed(true);
+    } else if (x === 0) {
+        setDesktopCollapsed(false);
+    }
+});
 
 const snapPanel = () => {
     const midpoint = minTranslateX.value / 2;
@@ -82,6 +115,7 @@ const onPointerUp = () => {
 };
 
 const onPointerDown = (event) => {
+    updateBounds();
     isDragging.value = true;
     hasDragged = false;
     startPointerX = event.clientX;
@@ -94,6 +128,7 @@ const onToggleClick = () => {
     if (hasDragged) {
         return;
     }
+    updateBounds();
     translateX.value = translateX.value === 0 ? minTranslateX.value : 0;
 };
 
@@ -104,6 +139,7 @@ const onWheel = (event) => {
     if (horizontalDelta === 0) {
         return;
     }
+    updateBounds();
 
     translateX.value = clamp(
         translateX.value - horizontalDelta,
@@ -113,12 +149,21 @@ const onWheel = (event) => {
     snapPanel();
 };
 
+let resizeObserver = null;
+
 onMounted(() => {
+    init();
+    restoreCollapsed = isDesktopCollapsed();
     updateBounds();
+    if (typeof ResizeObserver !== 'undefined' && panelRef.value) {
+        resizeObserver = new ResizeObserver(updateBounds);
+        resizeObserver.observe(panelRef.value);
+    }
     window.addEventListener('resize', updateBounds);
 });
 
 onBeforeUnmount(() => {
+    resizeObserver?.disconnect();
     window.removeEventListener('resize', updateBounds);
     window.removeEventListener('pointermove', onPointerMove);
     window.removeEventListener('pointerup', onPointerUp);
@@ -130,6 +175,49 @@ onBeforeUnmount(() => {
 }
 h2{
     margin: 0;
+    font-size: 1.2rem;
+    line-height: 1.25;
+}
+.sondaggio-inner p{
+    margin: 0;
+    font-size: 0.875rem;
+}
+.sondaggio-header{
+    display: grid;
+    text-wrap: balance;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+        'icon title'
+        'icon sub';
+    column-gap: 12px;
+    row-gap: 2px;
+    align-items: center;
+    text-align: left;
+}
+.sondaggio-header .sondaggio-icon{
+    grid-area: icon;
+}
+.sondaggio-header h2{
+    grid-area: title;
+    align-self: end;
+}
+.sondaggio-header p{
+    grid-area: sub;
+    align-self: start;
+    color: var(--on-surface-variant);
+}
+.sondaggio-cta{
+    text-align: center;
+}
+.sondaggio-icon{
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--on-surface-primary) 16%, transparent);
+    color: var(--on-surface-primary);
+    font-size: 19px;
 }
 @media (min-width: 1049px) and (min-height: 830px) {
     .sondaggio{
@@ -153,15 +241,14 @@ h2{
         border-bottom: 1px solid var(--primary);
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
         justify-content: center;
         background: var(--surface-variant);
-        padding: 20px;
+        padding: 18px 20px;
         border-bottom-right-radius: 8px;
         border-top-right-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        gap: 10px;
+        gap: 16px;
     }
     .toggle-arrow{
         position: absolute;
