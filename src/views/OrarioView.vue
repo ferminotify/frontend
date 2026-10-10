@@ -1,34 +1,24 @@
 <template>
   <div class="section orario">
-    <Title title="Orario" subtitle="Orario di classi e aule, aggiornato con le variazioni del giorno." />
+    <h1 class="sr-only">Orario</h1>
+
+    <p class="orario-beta">
+      <span class="orario-beta-pill">Beta</span>
+      <span>
+        Funzione in fase di test: orari e variazioni potrebbero contenere errori.
+        <RouterLink :to="{ name: 'orario-segnala', query: week ? reportQuery(week, null, null, route.fullPath) : { da: route.fullPath } }" class="orario-beta-link">Segnala un problema</RouterLink>
+      </span>
+    </p>
 
     <!-- Selection -->
     <div class="orario-controls">
-      <div class="orario-segmented" role="radiogroup" aria-label="Tipo">
-        <button
-          v-for="opt in TYPE_OPTIONS"
-          :key="opt.value"
-          type="button"
-          role="radio"
-          :aria-checked="type === opt.value"
-          :class="{ active: type === opt.value }"
-          @click="switchType(opt.value)"
-        >
-          <span class="material-symbols-outlined" aria-hidden="true">{{ opt.icon }}</span>
-          {{ opt.label }}
-        </button>
-      </div>
-
-      <label class="orario-select">
-        <span class="sr-only">{{ type === 'classe' ? 'Classe' : 'Aula' }}</span>
-        <select :value="refKey" :disabled="!index" @change="selectEntity($event.target.value)">
-          <option value="" disabled>{{ index ? (type === 'classe' ? 'Scegli una classe' : 'Scegli un’aula') : 'Caricamento…' }}</option>
-          <optgroup v-for="g in groups" :key="g.label" :label="g.label">
-            <option v-for="e in g.items" :key="e.key" :value="e.key">{{ e.name }}</option>
-          </optgroup>
-        </select>
-        <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
-      </label>
+      <OrarioPicker
+        :index="index"
+        :type="type"
+        :selected="refKey"
+        :selected-name="week?.entity.name || ''"
+        @select="selectEntity"
+      />
     </div>
 
     <p v-if="indexError" class="orario-message orario-message--error">
@@ -47,11 +37,11 @@
       <!-- Week + view toolbar -->
       <div class="orario-toolbar">
         <div class="orario-weeknav">
-          <button type="button" class="orario-icon-btn" aria-label="Settimana precedente" :disabled="!week" @click="goWeek(week.prevWeek)">
+          <button type="button" class="orario-icon-btn" aria-label="Settimana precedente" :disabled="!week" @click="stepWeek(-1)">
             <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
           </button>
           <span class="orario-weeklabel">{{ week ? weekRangeLabel(week.days) : '…' }}</span>
-          <button type="button" class="orario-icon-btn" aria-label="Settimana successiva" :disabled="!week" @click="goWeek(week.nextWeek)">
+          <button type="button" class="orario-icon-btn" aria-label="Settimana successiva" :disabled="!week" @click="stepWeek(1)">
             <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
           </button>
           <button v-if="week && !isCurrentWeek" type="button" class="orario-today-btn" @click="goToday">Oggi</button>
@@ -101,7 +91,8 @@
           </button>
         </div>
 
-        <Transition name="orario-swap" mode="out-in">
+        <div ref="swipeEl" class="orario-swipe" :class="{ 'orario-swipe--day': viewMode === 'giorno' }">
+        <Transition :name="slideDir ? `orario-slide-${slideDir}` : 'orario-swap'" mode="out-in">
           <TimetableWeek
             v-if="viewMode === 'settimana'"
             :key="`w-${week.weekStart}-${week.entity.key}`"
@@ -111,7 +102,7 @@
             :entity-type="week.entity.type"
             :entity-name="week.entity.name"
             :window="week.variationsWindow"
-            @select-day="openDay"
+            @cell-menu="openCellMenu"
           />
           <TimetableDay
             v-else-if="currentDay"
@@ -123,8 +114,17 @@
             :entity-type="week.entity.type"
             :window="week.variationsWindow"
             :focus="focusSlot"
+            @cell-menu="openCellMenu"
           />
         </Transition>
+        </div>
+        <CellMenu
+          :anchor="cellMenu?.el || null"
+          :items="cellMenuItems"
+          :info="cellMenu ? readingInfo(cellMenu.cell) : []"
+          label="Azioni lezione"
+          @close="cellMenu = null"
+        />
 
         <div class="orario-footer">
           <ul class="orario-legend" aria-label="Legenda">
@@ -154,16 +154,16 @@
   import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useHead } from '@unhead/vue'
-  import Title from '@/components/common/Title.vue'
+  import { useUserStore } from '@/stores/user'
   import TimetableWeek from '@/components/orario/TimetableWeek.vue'
   import TimetableDay from '@/components/orario/TimetableDay.vue'
-  import { fetchTimetableIndex, fetchTimetableWeek } from '@/api/timetable'
-  import { groupEntities, weekRangeLabel, weekdayShort, dayOfMonth } from '@/utils/timetable'
+  import OrarioPicker from '@/components/orario/OrarioPicker.vue'
+  import CellMenu from '@/components/orario/CellMenu.vue'
+  import { fetchTimetableIndex, fetchTimetableWeek, schoolTicket } from '@/api/timetable'
+  import { colorSubjects, readingInfo, reportQuery, weekRangeLabel, weekdayShort, dayOfMonth } from '@/utils/timetable'
+  import { useSwipe } from '@/composables/useSwipe'
 
-  const TYPE_OPTIONS = [
-    { value: 'classe', label: 'Classe', icon: 'groups' },
-    { value: 'aula', label: 'Aula', icon: 'meeting_room' },
-  ]
+  const ROUTE_TYPE = { class: 'classe', room: 'aula', teacher: 'docente' }
   const VIEW_OPTIONS = [
     { value: 'settimana', label: 'Settimana' },
     { value: 'giorno', label: 'Giorno' },
@@ -198,11 +198,6 @@
 
   const index = ref(null)
   const indexError = ref('')
-  const groups = computed(() => {
-    if (!index.value) return []
-    return groupEntities(type.value === 'classe' ? index.value.classes : index.value.rooms, type.value)
-  })
-
   async function loadIndex() {
     indexError.value = ''
     try {
@@ -212,16 +207,10 @@
     }
   }
 
-  function selectEntity(key) {
-    router.push({ name: 'orario', params: { type: type.value, ref: key.toLowerCase() }, query: route.query })
-  }
-
-  function switchType(t) {
-    if (t === type.value) return
+  // From the picker: classes and rooms share one list, so the type comes with the pick.
+  function selectEntity(t, key) {
     type.value = t
-    const last = storage.get(LAST_KEY)
-    if (last?.[t]) router.push({ name: 'orario', params: { type: t, ref: last[t] }, query: route.query })
-    else router.push({ name: 'orario', params: { type: t }, query: route.query })
+    router.push({ name: 'orario', params: { type: t, ref: key.toLowerCase() }, query: route.query })
   }
 
   // --- week data ------------------------------------------------------------------
@@ -241,14 +230,17 @@
     try {
       const data = await fetchTimetableWeek(type.value, refKey.value.toLowerCase(), route.query.settimana)
       if (id !== requestId) return
-      week.value = data
+      week.value = colorSubjects(data)
       error.value = ''
       ensureSelectedDay()
       rememberSelection(data.entity)
     } catch (e) {
       if (id !== requestId) return
-      if (e.status === 404) {
-        error.value = type.value === 'classe' ? 'Classe non trovata.' : 'Aula non trovata.'
+      if (e.status === 404 || e.status === 403) {
+        error.value =
+          e.status === 403
+            ? 'L’orario dei docenti è visibile solo con un account Fermi Notify @fermimn.edu.it.'
+            : { classe: 'Classe non trovata.', aula: 'Aula non trovata.', docente: 'Docente non trovato.' }[type.value]
         week.value = null
       } else if (!silent || !week.value) {
         error.value = 'Orario non raggiungibile in questo momento.'
@@ -259,7 +251,7 @@
   }
 
   function rememberSelection(entity) {
-    const t = entity.type === 'class' ? 'classe' : 'aula'
+    const t = ROUTE_TYPE[entity.type]
     const last = storage.get(LAST_KEY) || {}
     storage.set(LAST_KEY, { ...last, [t]: entity.key.toLowerCase(), type: t })
   }
@@ -270,6 +262,7 @@
     router.push({ query: { ...route.query, settimana: date } })
   }
   function goToday() {
+    slideDir.value = null
     const query = { ...route.query }
     delete query.settimana
     selectedDay.value = null
@@ -283,25 +276,108 @@
 
   function setView(v) {
     viewMode.value = v
+    slideDir.value = null
     focusSlot.value = null
     storage.set(VIEW_KEY, v)
   }
 
   function ensureSelectedDay() {
     const days = week.value?.days || []
+    if (pendingDay && days.length) {
+      // stepped past the end of the week in day view
+      selectedDay.value = (pendingDay === 'first' ? days[0] : days[days.length - 1]).date
+      pendingDay = null
+      return
+    }
     if (days.some((d) => d.date === selectedDay.value)) return
     selectedDay.value = (days.find((d) => d.date === week.value.today) || days[0])?.date || null
   }
 
   function selectDay(date) {
+    if (selectedDay.value && date !== selectedDay.value) slideDir.value = date > selectedDay.value ? 'next' : 'prev'
     selectedDay.value = date
     focusSlot.value = null
   }
 
   function openDay(date, slot) {
+    slideDir.value = null
     selectedDay.value = date
     focusSlot.value = slot
     viewMode.value = 'giorno'
+  }
+
+  // --- click on a lesson: menu (open the day, report a problem) --------------------
+  const cellMenu = ref(null) // { day, cell, el } | null
+  function openCellMenu(target) {
+    // A second click on the same cell closes it.
+    cellMenu.value = cellMenu.value?.el === target.el ? null : target
+  }
+  const cellMenuItems = computed(() => {
+    const t = cellMenu.value
+    if (!t) return []
+    const report = {
+      label: 'Segnala un problema',
+      icon: 'flag',
+      // The cell itself rides in history.state: the report page shows it as in the timetable.
+      action: () =>
+        router.push({
+          name: 'orario-segnala',
+          query: reportQuery(week.value, t.day, t.cell, route.fullPath),
+          state: { reportCell: JSON.parse(JSON.stringify(t.cell)), reportEntityType: week.value.entity.type },
+        }),
+    }
+    return viewMode.value === 'settimana'
+      ? [{ label: 'Apri il giorno', icon: 'view_day', action: () => openDay(t.day.date, t.cell.start) }, report]
+      : [report]
+  })
+  watch([viewMode, week], () => (cellMenu.value = null))
+  // Highlight the cell the menu belongs to.
+  watch(cellMenu, (now, old) => {
+    if (old?.el) {
+      old.el.classList.remove('is-menu-open')
+      old.el.setAttribute('aria-expanded', 'false')
+    }
+    if (now?.el) {
+      now.el.classList.add('is-menu-open')
+      now.el.setAttribute('aria-expanded', 'true')
+    }
+  })
+
+  // --- previous/next: buttons, swipe, arrow keys ----------------------------------
+  // Direction of the last step, for the slide animation (null: plain fade).
+  const slideDir = ref(null)
+  let pendingDay = null // 'first' | 'last': day to open once the adjacent week loads
+
+  function stepWeek(delta) {
+    if (!week.value) return
+    slideDir.value = delta > 0 ? 'next' : 'prev'
+    goWeek(delta > 0 ? week.value.nextWeek : week.value.prevWeek)
+  }
+
+  /** Day view: next/previous day, crossing into the adjacent week at the ends. */
+  function stepDay(delta) {
+    if (!week.value) return
+    const days = week.value.days
+    const next = days[days.findIndex((d) => d.date === selectedDay.value) + delta]
+    if (next) return selectDay(next.date)
+    pendingDay = delta > 0 ? 'first' : 'last'
+    stepWeek(delta)
+  }
+
+  const step = (delta) => (viewMode.value === 'giorno' ? stepDay(delta) : stepWeek(delta))
+
+  const swipeEl = ref(null)
+  // Swipe only in the day view; the week view keeps the arrows (and the grid scrolls sideways on phones).
+  useSwipe(swipeEl, (dir) => stepDay(dir === 'left' ? 1 : -1), {
+    enabled: () => viewMode.value === 'giorno' && Boolean(week.value) && !loading.value,
+  })
+
+  function onKeydown(e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !week.value) return
+    if (e.target.closest?.('input, textarea, select, [contenteditable], [role="radiogroup"], [role="tablist"]')) return
+    e.preventDefault()
+    step(e.key === 'ArrowRight' ? 1 : -1)
   }
 
   const currentDay = computed(() => week.value?.days.find((d) => d.date === selectedDay.value) || null)
@@ -325,6 +401,16 @@
       loadWeek({ silent: true })
     }
   }
+
+  // Logging in/out (Fermi Notify or Moodle) changes what the API returns (teachers).
+  const userStore = useUserStore()
+  watch(
+    () => [Boolean(userStore.token), schoolTicket.value],
+    () => {
+      loadIndex()
+      loadWeek({ silent: true })
+    }
+  )
 
   // --- lifecycle ------------------------------------------------------------------
   watch(
@@ -358,17 +444,22 @@
       if (document.visibilityState === 'visible') loadWeek({ silent: true })
     }, REFRESH_MS)
     document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('keydown', onKeydown)
   })
 
   onBeforeUnmount(() => {
     clearInterval(timer)
     document.removeEventListener('visibilitychange', onVisibility)
+    window.removeEventListener('keydown', onKeydown)
   })
 
   useHead(
     computed(() => {
       const name = week.value?.entity.name
       if (!name) return {}
+      if (week.value.entity.type === 'teacher') {
+        return { title: `Orario prof. ${name} · Fermi Notify`, meta: [{ name: 'robots', content: 'noindex,nofollow' }] }
+      }
       const what = week.value.entity.type === 'class' ? `classe ${name}` : name
       return {
         title: `Orario ${what} · Fermi Notify`,
@@ -380,6 +471,7 @@
 
 <style scoped>
   .orario {
+    margin: 25px 0; /* as .section in page.css, which this view does not load */
     max-width: 1180px;
     --m3-emph-decel: cubic-bezier(0.05, 0.7, 0.1, 1);
     --m3-emph-accel: cubic-bezier(0.3, 0, 0.8, 0.15);
@@ -396,12 +488,49 @@
   }
 
   /* Controls */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .orario-beta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    color: var(--on-surface-variant);
+  }
+  .orario-beta-link {
+    color: var(--on-surface-primary);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .orario-beta-pill {
+    flex: none;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--on-surface-primary);
+    color: var(--on-surface-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
   .orario-controls {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     align-items: center;
-    margin: 24px 0 16px;
+    margin: 0 0 16px;
   }
 
   .orario-segmented {
@@ -438,42 +567,6 @@
   .orario-segmented--small button {
     min-height: 36px;
     padding: 0 14px;
-  }
-
-  .orario-select {
-    position: relative;
-    flex: 1 1 220px;
-    max-width: 320px;
-  }
-  .orario-select select {
-    appearance: none;
-    width: 100%;
-    min-height: 48px;
-    padding: 0 44px 0 18px;
-    border-radius: 16px;
-    border: 1px solid var(--divider);
-    background: var(--surface-variant);
-    color: var(--on-surface);
-    font: inherit;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: border-color 150ms var(--m3-standard);
-  }
-  .orario-select select:hover {
-    border-color: var(--on-surface-variant);
-  }
-  .orario-select select:focus-visible {
-    outline: 2px solid var(--on-surface-primary);
-    outline-offset: 2px;
-  }
-  .orario-select .material-symbols-outlined {
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    color: var(--on-surface-variant);
   }
 
   /* Toolbar */
@@ -602,6 +695,34 @@
   /* Body */
   .orario-body {
     transition: opacity 200ms var(--m3-standard);
+  }
+
+  .orario-swipe--day {
+    touch-action: pan-y; /* horizontal moves are ours (see useSwipe) */
+  }
+
+  /* prev/next: the new content comes in from the side it was swiped from */
+  .orario-slide-next-enter-active,
+  .orario-slide-prev-enter-active {
+    transition:
+      opacity 220ms var(--m3-emph-decel),
+      transform 260ms var(--m3-emph-decel);
+  }
+  .orario-slide-next-leave-active,
+  .orario-slide-prev-leave-active {
+    transition:
+      opacity 120ms var(--m3-emph-accel),
+      transform 120ms var(--m3-emph-accel);
+  }
+  .orario-slide-next-enter-from,
+  .orario-slide-prev-leave-to {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+  .orario-slide-next-leave-to,
+  .orario-slide-prev-enter-from {
+    opacity: 0;
+    transform: translateX(-32px);
   }
 
   .orario-swap-enter-active {
@@ -743,12 +864,6 @@
   }
 
   @media (max-width: 700px) {
-    .orario-controls {
-      margin-top: 16px;
-    }
-    .orario-select {
-      max-width: none;
-    }
     .orario-toolbar {
       flex-direction: column-reverse;
       align-items: stretch;
@@ -771,7 +886,11 @@
       animation: none;
     }
     .orario-swap-enter-active,
-    .orario-swap-leave-active {
+    .orario-swap-leave-active,
+    .orario-slide-next-enter-active,
+    .orario-slide-next-leave-active,
+    .orario-slide-prev-enter-active,
+    .orario-slide-prev-leave-active {
       transition: none;
     }
   }

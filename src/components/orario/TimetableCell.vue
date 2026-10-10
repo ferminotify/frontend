@@ -2,20 +2,28 @@
   <component
     :is="interactive ? 'button' : 'div'"
     :type="interactive ? 'button' : undefined"
+    :aria-haspopup="interactive ? 'menu' : undefined"
     class="tt-cell"
     :class="[`tt-cell--${view.tone}`, { 'tt-cell--compact': compact, 'tt-cell--plain': view.plain }]"
     :style="cell.color && !view.plain ? { '--subject': cell.color } : null"
-    @click="interactive && $emit('select', cell)"
+    @click="interactive && $emit('select', cell, $event.currentTarget)"
   >
     <span v-if="view.badge" class="tt-cell-badge">
       <span class="material-symbols-outlined" aria-hidden="true">{{ badgeIcon }}</span>
       {{ view.badge }}
     </span>
     <span class="tt-cell-title">{{ view.title }}</span>
-    <span v-for="line in view.lines" :key="line" class="tt-cell-line">{{ line }}</span>
+    <span v-for="line in view.lines" :key="line.text" class="tt-cell-line">
+      {{ line.text }}
+      <s v-if="line.was" class="tt-cell-was"><span class="sr-only">invece di </span>{{ line.was }}</s>
+    </span>
     <span v-if="view.original" class="tt-cell-original">{{ view.original }}</span>
     <template v-if="!compact && cell.variations.length">
       <span v-for="v in cell.variations" :key="v.uid" class="tt-cell-raw" :title="v.summary">{{ v.summary }}</span>
+      <span v-if="readingNote" class="tt-cell-reading">
+        <span class="material-symbols-outlined" aria-hidden="true">{{ readingNote.icon }}</span>
+        {{ readingNote.text }}
+      </span>
     </template>
   </component>
 </template>
@@ -33,6 +41,13 @@
   defineEmits(['select'])
 
   const view = computed(() => describeCell(props.cell, props.entityType))
+  // The event title was hard to read: re-read by the AI, or uncertain (see backend confidence.js).
+  const readingNote = computed(() => {
+    const vs = props.cell.variations || []
+    if (vs.some((v) => v.ai)) return { icon: 'auto_awesome', text: 'Interpretata con l’AI' }
+    if (vs.some((v) => v.confidence != null && v.confidence < 60)) return { icon: 'help', text: 'Lettura incerta: controlla il testo originale' }
+    return null
+  })
   const badgeIcon = computed(
     () => ({ changed: 'swap_horiz', cancelled: 'event_busy', freed: 'meeting_room', added: 'add_circle' })[view.value.tone]
   )
@@ -74,6 +89,14 @@
   button.tt-cell:active {
     transform: scale(0.98);
   }
+  /* Its menu is open (see CellMenu) */
+  button.tt-cell.is-menu-open {
+    outline: 2px solid var(--on-surface-primary);
+    outline-offset: 2px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    transform: scale(1.02);
+    z-index: 2;
+  }
   button.tt-cell:focus-visible {
     outline: 2px solid var(--on-surface-primary);
     outline-offset: 2px;
@@ -100,6 +123,19 @@
     color: var(--on-surface-variant);
     overflow-wrap: anywhere;
   }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .tt-cell-was {
+    margin-left: 4px;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
   .tt-cell-original {
     font-size: 0.75rem;
     color: var(--muted);
@@ -115,6 +151,18 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .tt-cell-reading {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .tt-cell-reading .material-symbols-outlined {
+    font-size: 14px;
   }
 
   .tt-cell-badge {

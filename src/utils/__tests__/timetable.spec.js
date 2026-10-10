@@ -2,27 +2,33 @@ import { describe, it, expect } from 'vitest'
 import { describeCell, cellEnd, hourNumber, weekRangeLabel, groupEntities, prettySubject } from '../timetable'
 
 const base = { start: '09:00', slots: ['09:00'], span: 1, subject: 'MATEMATICA', detail: 'Aula 94', color: '#fff', occupant: null }
+const texts = (d) => d.lines.map((l) => l.text)
 const v = (o) => ({ uid: 'x', kind: 'change', label: null, summary: '', classes: ['3F'], room: null, teachers: [], absent: [], ...o })
 
 describe('describeCell (class)', () => {
   it('regular lesson shows subject and room', () => {
-    expect(describeCell({ ...base, status: 'regular', variations: [] }, 'class')).toMatchObject({
-      tone: 'regular', badge: null, title: 'Matematica', lines: ['Aula 94'],
-    })
+    const d = describeCell({ ...base, status: 'regular', variations: [] }, 'class')
+    expect(d).toMatchObject({ tone: 'regular', badge: null, title: 'Matematica' })
+    expect(texts(d)).toEqual(['Aula 94'])
   })
 
   it('room change strikes the original room and lists teachers/absent', () => {
     const cell = { ...base, status: 'changed', variations: [v({ room: 'Aula 46', teachers: ['Esempio'], absent: ['Ipotetico'] })] }
-    expect(describeCell(cell, 'class')).toMatchObject({
-      tone: 'changed', badge: 'Variazione', lines: ['Aula 46', 'Prof. Esempio', 'Assente: Ipotetico'], original: 'Aula 94',
-    })
+    const d = describeCell(cell, 'class')
+    expect(d).toMatchObject({ tone: 'changed', badge: 'Variazione' })
+    expect(d.lines).toEqual([
+      { text: 'Aula 46', was: 'Aula 94' },
+      { text: 'Prof. Esempio', was: null },
+      { text: 'Assente: Ipotetico', was: null },
+    ])
   })
 
   it('substitution in the same room does not strike anything', () => {
     const cell = { ...base, status: 'changed', variations: [v({ room: 'AULA 94', teachers: ['Esempio', 'Anonimo'] })] }
     const d = describeCell(cell, 'class')
     expect(d.original).toBeNull()
-    expect(d.lines).toContain('Proff. Esempio, Anonimo')
+    expect(d.lines.every((l) => !l.was)).toBe(true)
+    expect(texts(d)).toContain('Proff. Esempio, Anonimo')
   })
 
   it('cancelled lesson uses the variation label as badge', () => {
@@ -32,7 +38,9 @@ describe('describeCell (class)', () => {
 
   it('added activity in a free hour', () => {
     const cell = { ...base, subject: null, detail: null, status: 'added', variations: [v({ kind: 'study', label: 'Studio autonomo', room: 'Aula 40' })] }
-    expect(describeCell(cell, 'class')).toMatchObject({ tone: 'added', title: 'Studio autonomo', lines: ['Studio autonomo', 'Aula 40'] })
+    const d = describeCell(cell, 'class')
+    expect(d).toMatchObject({ tone: 'added', title: 'Studio autonomo' })
+    expect(texts(d)).toEqual(['Studio autonomo', 'Aula 40'])
   })
 })
 
@@ -40,11 +48,20 @@ describe('describeCell (room)', () => {
   const roomCell = { ...base, detail: '3F' }
   it('freed room explains why', () => {
     const cell = { ...roomCell, status: 'freed', variations: [v({ room: 'Aula 916' })] }
-    expect(describeCell(cell, 'room')).toMatchObject({ tone: 'freed', badge: 'Aula libera', lines: ['3F: spostata in Aula 916'] })
+    const d = describeCell(cell, 'room')
+    expect(d).toMatchObject({ tone: 'freed', badge: 'Aula libera' })
+    expect(texts(d)).toEqual(['3F: spostata in Aula 916'])
   })
   it('class moving in shows the occupant and strikes the original lesson', () => {
     const cell = { ...roomCell, status: 'changed', occupant: '2B', variations: [v({ classes: ['2B'], teachers: ['Esempio'] })] }
     expect(describeCell(cell, 'room')).toMatchObject({ tone: 'changed', title: '2B', original: 'Matematica · 3F' })
+  })
+})
+
+describe('describeCell (teacher)', () => {
+  it('substitution in another class is a change, not an addition', () => {
+    const cell = { ...base, detail: '3F · Aula 94', status: 'added', occupant: '2B', variations: [v({ classes: ['2B'], room: 'Aula 12', teachers: ['Esempio'] })] }
+    expect(describeCell(cell, 'teacher')).toMatchObject({ tone: 'changed', badge: 'Supplenza', title: '2B' })
   })
 })
 

@@ -15,6 +15,8 @@ const ArchiveView = () => import('../views/ArchiveView.vue')
 const TestView = () => import('../views/TestView.vue')
 const FeedbackView = () => import('../views/FeedbackView.vue')
 const OrarioView = () => import('../views/OrarioView.vue')
+const SegnalaView = () => import('../views/SegnalaView.vue')
+const OrarioTestView = () => import('../views/OrarioTestView.vue')
 const AuthCallbackView = () => import('../views/AuthCallbackView.vue')
 const CompleteProfileView = () => import('../views/CompleteProfileView.vue')
 
@@ -105,7 +107,27 @@ export const routes = [
     },
   },
   {
-    path: '/orario/:type(classe|aula)?/:ref?',
+    path: '/orario/test',
+    name: 'orario-test',
+    component: OrarioTestView,
+    meta: {
+      title: 'Test variazioni · Fermi Notify',
+      description: 'Prova come Fermi Notify legge un evento del calendario.',
+      robots: 'noindex,nofollow',
+    },
+  },
+  {
+    path: '/orario/segnala',
+    name: 'orario-segnala',
+    component: SegnalaView,
+    meta: {
+      title: 'Segnala un problema · Fermi Notify',
+      description: 'Segnala un errore nell’orario di Fermi Notify.',
+      robots: 'noindex,follow',
+    },
+  },
+  {
+    path: '/orario/:type(classe|aula|docente)?/:ref?',
     name: 'orario',
     component: OrarioView,
     meta: {

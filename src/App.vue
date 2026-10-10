@@ -89,6 +89,10 @@
         return
       }
       const targetRect = targetEl.getBoundingClientRect()
+      if (!targetRect.width) {
+        indicatorStyle.value = { opacity: 0 }
+        return
+      }
       
       if (initialLoad) {
         // First set position with scale 0, then animate to scale 1
@@ -148,6 +152,9 @@
   watch(() => route.hash, (hash, prev) => {
     if (hash && hash !== prev) scrollToHash(hash)
   })
+
+  // Views that handle their own param changes (e.g. /orario/classe/1a → /2b) stay mounted
+  const viewKey = (r) => (r.name === 'orario' ? 'orario' : r.path)
 
   const onViewAfterLeave = () => {
     if (typeof window !== 'undefined') {
@@ -533,14 +540,14 @@
         </RouterLink>
 
         <RouterLink v-if="!isStandalone" to="/app" custom v-slot="{ href, navigate, isExactActive }">
-          <a :href="href" @click="installApp(navigate, $event)" class="sidebar-link" id="app" :class="{ active: isExactActive }">
+          <a :href="href" @click="installApp(navigate, $event)" class="sidebar-link sidebar-desktop" id="app" :class="{ active: isExactActive }">
             <span class="material-symbols-outlined sidebar-icon">download</span>
             <span class="sidebar-link-text">Installa l'app</span>
           </a>
         </RouterLink>
 
         <RouterLink to="/orario" custom v-slot="{ href, navigate }">
-          <a :href="href" @click="navigate" class="sidebar-link sidebar-desktop" id="orario" :class="{ active: route.path.startsWith('/orario') }">
+          <a :href="href" @click="navigate" class="sidebar-link" id="orario" :class="{ active: route.path.startsWith('/orario') }">
             <span class="material-symbols-outlined sidebar-icon">calendar_view_week</span>
             <span class="sidebar-link-text">Orario</span>
           </a>
@@ -599,9 +606,11 @@
           </button>
           <div id="mobile-menu" class="nav-links" :class="{ open: menuOpen }" :inert="!menuOpen" @click.self="closeMenu">
             <ul>
-              <li :style="{ '--i': 0 }">
-                <RouterLink to="/orario" class="sidebar-menu-link" @click="closeMenu">
-                  <span class="material-symbols-outlined">calendar_view_week</span> Orario
+              <li v-if="!isStandalone" :style="{ '--i': 0 }">
+                <RouterLink to="/app" custom v-slot="{ href, navigate }">
+                  <a :href="href" class="sidebar-menu-link" @click="closeMenu(); installApp(navigate, $event)">
+                    <span class="material-symbols-outlined">download</span> Installa l'app
+                  </a>
                 </RouterLink>
               </li>
               <li :style="{ '--i': 1 }">
@@ -647,7 +656,7 @@
     <main class="main">
       <RouterView v-slot="{ Component, route: viewRoute }">
         <Transition appear mode="out-in" name="fade-up" @after-leave="onViewAfterLeave" @after-enter="onViewAfterEnter">
-          <div :key="viewRoute.path" style="width: 100%;">
+          <div :key="viewKey(viewRoute)" style="width: 100%;">
             <component :is="Component" />
           </div>
         </Transition>

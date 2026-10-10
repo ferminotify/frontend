@@ -60,7 +60,7 @@
             :entity-type="entityType"
             compact
             interactive
-            @select="$emit('select-day', day.date, cell.start)"
+            @select="(c, el) => $emit('cell-menu', { day, cell: c, el })"
           />
         </div>
       </template>
@@ -81,7 +81,7 @@
     entityName: { type: String, default: '' },
     window: { type: Object, required: true },
   })
-  defineEmits(['select-day'])
+  defineEmits(['cell-menu'])
 
   // On narrow screens the grid scrolls sideways: start on today's column.
   // Waits until the grid is actually laid out (it may mount behind the boot loading screen).
@@ -214,6 +214,9 @@
     position: relative;
     z-index: 1;
     min-width: 0;
+  }
+  .tt-week-slot:has(.is-menu-open) {
+    z-index: 3;
   }
 
   @media (max-width: 700px) {

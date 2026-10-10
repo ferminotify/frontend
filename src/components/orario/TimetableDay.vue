@@ -9,17 +9,25 @@
 
     <ol v-else class="tt-day-list">
       <li
-        v-for="cell in day.cells"
-        :key="cell.start"
-        :ref="(el) => setRef(cell.start, el)"
+        v-for="row in rows"
+        :key="row.start"
+        :ref="(el) => setRef(row.start, el)"
         class="tt-day-row"
-        :class="{ 'is-focused': focus === cell.start, 'is-now': isNow(cell) }"
+        :class="{ 'is-focused': focus === row.start, 'is-now': isNow(row), 'is-free': !row.cell }"
+        :style="row.span > 1 ? { gridRow: `span ${row.span}` } : null"
       >
         <div class="tt-day-time">
-          <span class="tt-day-hour">{{ hourLabel(cell) }}</span>
-          <span class="tt-day-clock">{{ cell.start }}<span class="tt-day-clock-sep"> – </span><wbr />{{ cellEnd(cell, times) }}</span>
+          <span class="tt-day-hour">{{ hourLabel(row) }}</span>
+          <span class="tt-day-clock">{{ row.start }}<span class="tt-day-clock-sep"> – </span><wbr />{{ cellEnd(row, times) }}</span>
         </div>
-        <TimetableCell :cell="cell" :entity-type="entityType" />
+        <TimetableCell
+          v-if="row.cell"
+          :cell="row.cell"
+          :entity-type="entityType"
+          interactive
+          @select="(c, el) => $emit('cell-menu', { day, cell: c, el })"
+        />
+        <div v-else class="tt-day-free" aria-label="Nessuna lezione"></div>
       </li>
     </ol>
 
@@ -36,7 +44,7 @@
 </template>
 
 <script setup>
-  import { nextTick, onMounted, watch } from 'vue'
+  import { computed, nextTick, onMounted, watch } from 'vue'
   import TimetableCell from './TimetableCell.vue'
   import { cellEnd, hourNumber } from '@/utils/timetable'
 
@@ -49,9 +57,26 @@
     nowTime: { type: String, default: '' },
     focus: { type: String, default: null }, // slot start to scroll to
   })
+  defineEmits(['cell-menu'])
 
   const refs = new Map()
   const setRef = (start, el) => (el ? refs.set(start, el) : refs.delete(start))
+
+  // Every slot of the week, like the week grid: lessons plus empty rows for the free hours.
+  const rows = computed(() => {
+    const byStart = new Map(props.day.cells.map((c) => [c.start, c]))
+    const out = []
+    for (let i = 0; i < props.times.length; i++) {
+      const cell = byStart.get(props.times[i])
+      if (cell) {
+        out.push({ start: cell.start, slots: cell.slots, span: cell.span, cell })
+        i += cell.span - 1
+      } else {
+        out.push({ start: props.times[i], slots: [props.times[i]], span: 1, cell: null })
+      }
+    }
+    return out
+  })
 
   const hourLabel = (cell) => {
     const first = hourNumber(cell.start)
@@ -72,12 +97,13 @@
 </script>
 
 <style scoped>
+  /* One grid track per hour: a 2-3 hour lesson spans 2-3 tracks, so its length shows. */
   .tt-day-list {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-auto-rows: minmax(60px, auto);
     gap: 8px;
   }
 
@@ -126,6 +152,15 @@
   .tt-day-row.is-now .tt-day-hour::after {
     content: ' · ora';
     font-weight: 500;
+  }
+
+  .tt-day-free {
+    border-radius: 12px;
+    /* plain: a dashed border means "Aggiunta" in the legend */
+    background: color-mix(in srgb, var(--on-surface) 4%, transparent);
+  }
+  .tt-day-row.is-free .tt-day-time {
+    padding-top: 6px;
   }
 
   .tt-day-hint,
