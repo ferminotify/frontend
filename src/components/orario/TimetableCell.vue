@@ -41,10 +41,9 @@
   defineEmits(['select'])
 
   const view = computed(() => describeCell(props.cell, props.entityType))
-  // The event title was hard to read: re-read by the AI, or uncertain (see backend confidence.js).
+  // The event title was hard to read (see backend confidence.js).
   const readingNote = computed(() => {
     const vs = props.cell.variations || []
-    if (vs.some((v) => v.ai)) return { icon: 'auto_awesome', text: 'Interpretata con l’AI' }
     if (vs.some((v) => v.confidence != null && v.confidence < 60)) return { icon: 'help', text: 'Lettura incerta: controlla il testo originale' }
     return null
   })

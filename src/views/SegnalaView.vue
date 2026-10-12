@@ -6,9 +6,6 @@
     </RouterLink>
 
     <h1 class="segnala-title">Segnala un problema</h1>
-    <p class="segnala-intro">
-      L’orario è in <span class="segnala-pill">Beta</span>: se qualcosa non torna (lezione, aula, docente, variazione) diccelo. Non serve un account.
-    </p>
 
     <div v-if="sent" class="segnala-done" role="status">
       <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
@@ -37,22 +34,18 @@
         </dl>
       </section>
 
-      <label class="segnala-field">
-        <span>Cosa non va? <em>obbligatorio</em></span>
+      <div class="material-textfield segnala-text">
         <textarea
+          id="segnala-description"
           ref="descriptionEl"
           v-model="description"
           rows="4"
           maxlength="3000"
           required
-          placeholder="Es. la 3ª ora risulta in Aula 12 ma siamo in Aula 46"
+          placeholder=" "
         ></textarea>
-      </label>
-
-      <label class="segnala-field">
-        <span>Come dovrebbe essere? <em>facoltativo</em></span>
-        <textarea v-model="expected" rows="2" maxlength="3000" placeholder="Es. Matematica in Aula 46 con la prof. Rossi"></textarea>
-      </label>
+        <label for="segnala-description">Descrivi il problema</label>
+      </div>
 
       <div class="segnala-field">
         <span id="segnala-shot-label">Screenshot <em>facoltativo</em></span>
@@ -70,10 +63,10 @@
         </label>
       </div>
 
-      <label class="segnala-field">
-        <span>La tua email <em>facoltativa, solo per ricontattarti</em></span>
-        <input v-model="email" type="email" name="email" autocomplete="email" maxlength="200" placeholder="nome@esempio.it" />
-      </label>
+      <div class="material-textfield segnala-text">
+        <input id="segnala-email" v-model="email" type="email" name="email" autocomplete="email" maxlength="200" placeholder=" " />
+        <label for="segnala-email">Email (facoltativa)</label>
+      </div>
 
       <!-- Honeypot: hidden from people, bots fill it in -->
       <label class="segnala-hp" aria-hidden="true">
@@ -151,7 +144,6 @@
   }
 
   const description = ref('')
-  const expected = ref('')
   const email = ref('')
   const website = ref('')
   const busy = ref(false)
@@ -236,7 +228,6 @@
         context,
         card: cardForEmail(),
         description: description.value,
-        expected: expected.value,
         email: email.value.trim(),
         screenshot: shot.value ? { data: shot.value.data } : null,
         website: website.value,
@@ -275,25 +266,8 @@
     font-size: 18px;
   }
   .segnala-title {
-    margin: 16px 0 8px;
+    margin: 16px 0 24px;
     font-size: 1.75rem;
-  }
-  .segnala-intro {
-    margin: 0 0 24px;
-    color: var(--on-surface-variant);
-    line-height: 1.5;
-  }
-  .segnala-pill {
-    display: inline-block;
-    padding: 1px 8px;
-    border-radius: 999px;
-    border: 1px solid var(--on-surface-primary);
-    color: var(--on-surface-primary);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    vertical-align: 0.1em;
   }
 
   .segnala-form {
@@ -351,22 +325,39 @@
     color: var(--muted);
     margin-left: 4px;
   }
-  .segnala-field textarea,
-  .segnala-field input {
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid var(--divider);
-    background: var(--surface);
-    color: var(--on-surface);
+  /* Site's .material-textfield (style.css) covers inputs; the textarea copies it here. */
+  .segnala-text input,
+  .segnala-text textarea {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .segnala-text textarea {
+    display: block;
     font: inherit;
-    font-size: 0.9375rem;
-    font-weight: 400;
+    font-size: 1rem;
+    border: 0;
+    outline: 1px solid var(--muted);
+    border-radius: 10px;
+    padding: 1rem 0.7rem;
+    color: var(--on-surface);
+    background-color: var(--surface);
+    transition: 0.1s ease-out;
     resize: vertical;
   }
-  .segnala-field textarea:focus,
-  .segnala-field input:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: -1px;
+  .segnala-text textarea + label {
+    top: 1.5rem;
+  }
+  .segnala-text textarea:focus {
+    outline-color: var(--on-primary);
+  }
+  .segnala-text textarea:focus + label {
+    color: var(--on-primary);
+    top: 0;
+    transform: translateY(-50%) scale(0.9);
+  }
+  .segnala-text textarea:not(:placeholder-shown) + label {
+    top: 0;
+    transform: translateY(-50%) scale(0.9);
   }
 
   .segnala-upload {

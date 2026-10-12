@@ -23,6 +23,19 @@ describe('describeCell (class)', () => {
     ])
   })
 
+  it('two events for one lesson: the room that differs wins, absences add up', () => {
+    const absent = v({ uid: 'a', room: 'Aula 94', teachers: ['Esempio'], absent: ['Ipotetico'] })
+    const moved = v({ uid: 'b', room: 'Sala Eros' })
+    for (const variations of [[absent, moved], [moved, absent]]) {
+      const d = describeCell({ ...base, status: 'changed', variations }, 'class')
+      expect(d.lines).toEqual([
+        { text: 'Sala Eros', was: 'Aula 94' },
+        { text: 'Prof. Esempio', was: null },
+        { text: 'Assente: Ipotetico', was: null },
+      ])
+    }
+  })
+
   it('substitution in the same room does not strike anything', () => {
     const cell = { ...base, status: 'changed', variations: [v({ room: 'AULA 94', teachers: ['Esempio', 'Anonimo'] })] }
     const d = describeCell(cell, 'class')
@@ -46,6 +59,12 @@ describe('describeCell (class)', () => {
 
 describe('describeCell (room)', () => {
   const roomCell = { ...base, detail: '3F' }
+  it('freed room: the event that moves the class explains why', () => {
+    const variations = [v({ uid: 'b', room: 'Sala Eros' }), v({ uid: 'a', room: 'Aula 94', absent: ['Ipotetico'] })]
+    const d = describeCell({ ...roomCell, status: 'freed', movedTo: 'Sala Eros', variations }, 'room')
+    expect(texts(d)[0]).toMatch(/spostata in Sala Eros$/)
+  })
+
   it('freed room explains why', () => {
     const cell = { ...roomCell, status: 'freed', variations: [v({ room: 'Aula 916' })] }
     const d = describeCell(cell, 'room')

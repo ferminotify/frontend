@@ -256,7 +256,10 @@
     storage.set(LAST_KEY, { ...last, [t]: entity.key.toLowerCase(), type: t })
   }
 
-  const isCurrentWeek = computed(() => week.value && week.value.days.some((d) => d.date === week.value.today))
+  // The week "Oggi" leads to: on weekends (no lessons) the upcoming one, so no button there.
+  const isCurrentWeek = computed(
+    () => week.value && (week.value.currentWeek ? week.value.weekStart === week.value.currentWeek : week.value.days.some((d) => d.date === week.value.today))
+  )
 
   function goWeek(date) {
     router.push({ query: { ...route.query, settimana: date } })

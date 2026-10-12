@@ -95,6 +95,29 @@ const replacedTeachers = (cell, v) => {
 }
 
 /**
+ * Several events often hit the same lesson: the office writes one for the absent teacher
+ * ("CLASSE 3A - AULA 42 (PROF. ROSSI ASSENTE)") and, when the room changes too, another one
+ * ("CLASSE 3A - SALA EROS"). Read together: the room is the one that differs from the
+ * timetable's, teachers and absences add up.
+ * @param {string|null} originalRoom  the lesson's room on the timetable, if any
+ */
+function combine(vs, main, originalRoom) {
+  if (vs.length < 2) return main
+  const uniq = (list) => [...new Set(list)]
+  const absent = uniq(vs.flatMap((v) => v.absent || []))
+  const moved = originalRoom ? vs.find((v) => v.room && !sameRoom(v.room, originalRoom)) : null
+  return {
+    ...main,
+    room: moved?.room || main.room || vs.find((v) => v.room)?.room || null,
+    teachers: uniq(vs.flatMap((v) => v.teachers || [])).filter((t) => !absent.includes(t)),
+    absent,
+    label: main.label || vs.find((v) => v.label)?.label || null,
+    activity: main.activity || vs.find((v) => v.activity)?.activity || null,
+    group: main.group || vs.find((v) => v.group)?.group || null,
+  }
+}
+
+/**
  * What to render in a cell, independent of layout.
  * @returns {{ badge: string|null, title: string, lines: {text: string, was: string|null}[], original: string|null, tone: string }}
  *   tone: regular | changed | cancelled | freed | added
@@ -102,6 +125,9 @@ const replacedTeachers = (cell, v) => {
  *   original: the whole lesson the cell replaces, struck through
  * @param {'class'|'room'|'teacher'} entityType
  */
+// Kinds that take the class away from its lessons (late entry, early exit, trip, suspended lesson).
+const CANCELLING = ['entry', 'exit', 'trip', 'off']
+
 export function describeCell(cell, entityType) {
   const view = entityType === 'teacher' ? describeTeacherCell(cell) : describeLessonCell(cell, entityType)
   const seen = new Set()
@@ -116,8 +142,8 @@ function describeLessonCell(cell, entityType) {
   const subject = prettySubject(cell.subject)
   const vs = cell.variations || []
   // The variation that decided the status (a cancelling one wins over a plain change).
-  const main =
-    vs.find((v) => cell.status === 'cancelled' && ['entry', 'exit', 'trip'].includes(v.kind)) ||
+  let main =
+    vs.find((v) => cell.status === 'cancelled' && CANCELLING.includes(v.kind)) ||
     vs.find((v) => cell.occupant && v.classes?.join(', ') === cell.occupant) ||
     vs[vs.length - 1]
 
@@ -129,11 +155,12 @@ function describeLessonCell(cell, entityType) {
     if (cell.status === 'freed') {
       // The class that normally uses the room, not every class named by the event (e.g. a trip).
       const who = cell.detail || main.classes?.join(', ')
-      const why = main.label || (main.room ? `spostata in ${main.room}` : 'spostata')
+      const away = vs.find((v) => CANCELLING.includes(v.kind)) || vs.find((v) => cell.movedTo && v.room === cell.movedTo) || main
+      const why = away.label || (cell.movedTo || away.room ? `spostata in ${cell.movedTo || away.room}` : 'spostata')
       return {
         badge: 'Aula libera',
         title: subject,
-        lines: [`${who ? `${who}: ` : ''}${why}`, groupLine(main)],
+        lines: [`${who ? `${who}: ` : ''}${why}`, groupLine(away)],
         original: null,
         tone: 'freed',
       }
@@ -142,7 +169,7 @@ function describeLessonCell(cell, entityType) {
       return {
         badge: cell.status === 'added' ? 'Occupata' : 'Variazione',
         title: cell.occupant,
-        lines: [main.label, groupLine(main), teachersLine(main), absentLine(main)].filter(Boolean),
+        lines: [main.label, main.activity, groupLine(main), teachersLine(main), absentLine(main)].filter(Boolean),
         plain: true, // the subject colour belongs to the original lesson, not to the occupant
         original: cell.subject ? [subject, cell.detail, cellTeachers(cell)].filter(Boolean).join(' · ') : null,
         tone: cell.status === 'added' ? 'added' : 'changed',
@@ -157,13 +184,15 @@ function describeLessonCell(cell, entityType) {
   // Room view: the class that normally is here stays, with a change (substitute, …).
   // Class view: substitution / room change / extra activity.
   // (In the room view the detail is the class, not a room: the room never "moves".)
+  if (entityType === 'class' && cell.status !== 'added') main = combine(vs, main, cell.detail)
   const movedRoom = entityType === 'class' && main.room && !sameRoom(main.room, cell.detail) ? main.room : null
   // Room and teacher can both change: each new value carries the one it replaces.
   return {
     badge: cell.status === 'added' ? 'Aggiunta' : 'Variazione',
-    title: cell.status === 'added' ? main.label || 'Attività' : subject,
+    title: cell.status === 'added' ? main.label || main.activity || 'Attività' : subject,
     lines: [
       main.label,
+      cell.status === 'added' && !main.label ? null : main.activity,
       groupLine(main),
       movedRoom
         ? { text: movedRoom, was: cell.detail }
@@ -176,7 +205,6 @@ function describeLessonCell(cell, entityType) {
   }
 }
 
-const CANCELLING = ['entry', 'exit', 'trip']
 
 /** Teacher view: detail is "class · room"; events name the teacher as absent, substitute or on duty. */
 function describeTeacherCell(cell) {
@@ -187,7 +215,7 @@ function describeTeacherCell(cell) {
   if (cell.status === 'regular') {
     return { badge: null, title: subject, lines: [cell.detail].filter(Boolean), original: null, tone: 'regular' }
   }
-  const main = vs.find((v) => cell.occupant && v.classes?.join(', ') === cell.occupant) || vs[vs.length - 1]
+  let main = vs.find((v) => cell.occupant && v.classes?.join(', ') === cell.occupant) || vs[vs.length - 1]
 
   if (cell.status === 'cancelled') {
     // Either the class is away (entry/exit/trip) or the teacher is absent.
@@ -206,7 +234,7 @@ function describeTeacherCell(cell) {
     return {
       badge: main.kind === 'trip' ? main.label : cell.status === 'added' ? 'Supplenza' : 'Variazione',
       title: cell.occupant,
-      lines: [main.label && main.kind !== 'trip' ? main.label : null, main.room, absentLine(main)].filter(Boolean),
+      lines: [main.label && main.kind !== 'trip' ? main.label : null, main.activity, main.room, absentLine(main)].filter(Boolean),
       plain: true,
       original: cell.subject ? `${subject} · ${cell.detail}` : null,
       // A substitution is a change to the timetable, not an extra lesson: same colour as "Variazione".
@@ -215,11 +243,12 @@ function describeTeacherCell(cell) {
   }
 
   // Own class, changed (room change, co-teacher absent, …).
+  main = combine(vs, main, room)
   const movedRoom = main.room && !sameRoom(main.room, room) ? main.room : null
   return {
     badge: 'Variazione',
     title: subject,
-    lines: [main.label, className, movedRoom ? { text: movedRoom, was: room } : room, teachersLine(main), absentLine(main)],
+    lines: [main.label, main.activity, className, movedRoom ? { text: movedRoom, was: room } : room, teachersLine(main), absentLine(main)],
     original: null,
     tone: 'changed',
   }

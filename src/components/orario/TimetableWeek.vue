@@ -1,4 +1,5 @@
 <template>
+  <div class="tt-week-wrap">
   <div ref="scroller" class="tt-week-scroll">
     <div
       class="tt-week"
@@ -66,12 +67,30 @@
       </template>
     </div>
   </div>
+
+  <!-- Events not placed in the grid (no time, no lesson to attach to, or only possibly
+       about this timetable): listed so that nothing is lost. -->
+  <div v-if="notedDays.length" class="tt-week-notes">
+    <h3>Altre variazioni della settimana</h3>
+    <ul>
+      <template v-for="day in notedDays" :key="`notes-${day.date}`">
+        <li v-for="n in day.notes" :key="n.uid" :class="{ 'is-maybe': n.maybe }">
+          <span class="tt-week-notes-when">
+            {{ weekdayLong(day.weekday) }} {{ dayOfMonth(day.date) }} · {{ n.start ? `${n.start} – ${n.end}` : 'tutto il giorno' }}
+          </span>
+          <span v-if="n.maybe" class="tt-week-notes-maybe">Possibile variazione</span>
+          {{ n.summary }}
+        </li>
+      </template>
+    </ul>
+  </div>
+  </div>
 </template>
 
 <script setup>
-  import { onBeforeUnmount, onMounted, ref } from 'vue'
+  import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
   import TimetableCell from './TimetableCell.vue'
-  import { weekdayShort, dayOfMonth, hourNumber } from '@/utils/timetable'
+  import { weekdayShort, weekdayLong, dayOfMonth, hourNumber } from '@/utils/timetable'
 
   const props = defineProps({
     days: { type: Array, required: true },
@@ -82,6 +101,8 @@
     window: { type: Object, required: true },
   })
   defineEmits(['cell-menu'])
+
+  const notedDays = computed(() => props.days.filter((d) => d.notes?.length))
 
   // On narrow screens the grid scrolls sideways: start on today's column.
   // Waits until the grid is actually laid out (it may mount behind the boot loading screen).
@@ -111,6 +132,43 @@
 </script>
 
 <style scoped>
+  .tt-week-notes {
+    margin-top: 24px;
+  }
+  .tt-week-notes h3 {
+    margin: 0 0 8px;
+    font-size: 0.9375rem;
+  }
+  .tt-week-notes ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  .tt-week-notes li {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .tt-week-notes-maybe {
+    align-self: flex-start;
+    padding: 1px 8px;
+    border: 1px solid var(--on-surface-primary);
+    border-radius: 999px;
+    color: var(--on-surface-primary);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .tt-week-notes-when {
+    color: var(--text-secondary, inherit);
+    font-size: 0.8125rem;
+  }
   .tt-week-scroll {
     width: 100%;
     overflow-x: auto;

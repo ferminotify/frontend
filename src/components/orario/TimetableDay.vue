@@ -34,8 +34,9 @@
     <div v-if="day.notes.length" class="tt-day-notes">
       <h3>Altre variazioni del giorno</h3>
       <ul>
-        <li v-for="n in day.notes" :key="n.uid">
+        <li v-for="n in day.notes" :key="n.uid" :class="{ 'is-maybe': n.maybe }">
           <span class="tt-day-clock">{{ n.start ? `${n.start} – ${n.end}` : 'Tutto il giorno' }}</span>
+          <span v-if="n.maybe" class="tt-day-notes-maybe">Possibile variazione</span>
           {{ n.summary }}
         </li>
       </ul>
@@ -192,6 +193,17 @@
     gap: 8px;
     font-size: 0.875rem;
     line-height: 1.4;
+  }
+  .tt-day-notes-maybe {
+    align-self: flex-start;
+    padding: 1px 8px;
+    border: 1px solid var(--on-surface-primary);
+    border-radius: 999px;
+    color: var(--on-surface-primary);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
   .tt-day-notes li {
     display: flex;

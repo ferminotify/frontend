@@ -60,41 +60,25 @@
           </li>
         </ul>
         <p v-else class="otest-muted otest-small">Nessun problema: formato atteso, classi e aule trovate.</p>
-        <p v-if="['agree', 'disagree'].includes(result.reading.check?.state)" class="otest-ai">
-          <span class="material-symbols-outlined" aria-hidden="true">{{ result.reading.check.state === 'agree' ? 'verified' : 'report' }}</span>
-          <template v-if="result.reading.check.state === 'agree'">Doppio controllo AI: stessa lettura del parser</template>
-          <template v-else>Doppio controllo AI: legge diversamente ({{ result.reading.check.diffs.join('; ') }})</template>
-          <template v-if="result.reading.check.confidence != null"> · sicura al {{ result.reading.check.confidence }}%</template>.
-        </p>
-        <p v-if="result.aiBudget" class="otest-muted otest-small">
-          Budget AI: {{ result.aiBudget.lastMinute }}/{{ result.aiBudget.perMinute }} al minuto, {{ result.aiBudget.today }}/{{ result.aiBudget.perDay }} nelle ultime 24 h, {{ result.aiBudget.queued }} in coda{{ result.aiBudget.paused ? ' · in pausa (limite del provider)' : '' }}.
-        </p>
-        <p class="otest-ai">
-          <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
-          <template v-if="result.reading.ai">
-            Sotto il {{ result.aiThreshold }}%: interpretato con l’AI ({{ result.reading.ai.model }}<template v-if="result.reading.ai.confidence != null">, sicura al {{ result.reading.ai.confidence }}%</template>).
-            <em v-if="result.reading.ai.reason">“{{ result.reading.ai.reason }}”</em>
-          </template>
-          <template v-else-if="result.reading.score >= result.aiThreshold">AI non necessaria (soglia {{ result.aiThreshold }}%).</template>
-          <template v-else-if="result.reading.aiRejected">
-            Sotto il {{ result.aiThreshold }}%: chiesto all’AI, ma era sicura solo al {{ result.reading.aiRejected.confidence }}%, quindi resta la lettura del parser.
-            <em v-if="result.reading.aiRejected.reason">“{{ result.reading.aiRejected.reason }}”</em>
-          </template>
-          <template v-else-if="!result.aiEnabled">Sotto il {{ result.aiThreshold }}%, ma l’AI non è configurata sul server.</template>
-          <template v-else>Sotto il {{ result.aiThreshold }}%, ma l’AI non ha risposto: resta la lettura del parser.</template>
+        <p v-if="result.reading.score < result.uncertainBelow" class="otest-muted otest-small">
+          Sotto il {{ result.uncertainBelow }}%: nell’orario la variazione è segnata come “lettura incerta”.
         </p>
       </section>
 
       <section class="otest-card" :class="{ 'is-loading': loading }">
-        <h2>Come viene letto<template v-if="result.reading.ai"> (dall’AI)</template></h2>
+        <h2>Come viene letto</h2>
         <dl class="otest-dl">
           <dt>Tipo</dt>
-          <dd>{{ kindLabel }}</dd>
+          <dd>{{ kindLabel }}<strong v-if="p.cancelled"> · annullata</strong></dd>
           <dt>Classi scritte</dt>
           <dd>
             <template v-if="p.classes.length">{{ p.classes.join(', ') }}</template>
             <span v-else class="otest-muted">nessuna</span>
           </dd>
+          <template v-if="p.activity">
+            <dt>Attività</dt>
+            <dd>{{ p.activity }}</dd>
+          </template>
           <template v-if="p.group">
             <dt>Solo</dt>
             <dd>{{ p.group }}</dd>
@@ -119,11 +103,6 @@
             <span v-else class="otest-muted">nessuna (nota del giorno)</span>
           </dd>
         </dl>
-
-        <details v-if="result.parser" class="otest-parser">
-          <summary>Lettura del parser (sostituita dall’AI)</summary>
-          <pre>{{ JSON.stringify(result.parser, null, 2) }}</pre>
-        </details>
 
         <ul v-if="warnings.length" class="otest-warnings">
           <li v-for="w in warnings" :key="w">
@@ -226,7 +205,7 @@
 
   const scoreTone = computed(() => {
     const s = result.value?.reading.score ?? 100
-    return s >= 90 ? 'good' : s >= result.value.aiThreshold ? 'mid' : 'low'
+    return s >= 90 ? 'good' : s >= result.value.uncertainBelow ? 'mid' : 'low'
   })
 
   const warnings = computed(() => {
@@ -247,6 +226,7 @@
     if (p.value.room && !r.matches.some((m) => m.type === 'room')) {
       out.push(`Aula “${p.value.room}” non trovata nell’orario: la classe risulta spostata lì, ma la pagina dell’aula non cambia.`)
     }
+    if (p.value.cancelled) out.push('Il titolo dice che è annullata: non viene applicata all’orario.')
     if (p.value.group) out.push(`Riguarda solo ${p.value.group}: nell’orario è mostrata come variazione per tutta la classe, con la nota “Solo ${p.value.group}”.`)
     return out
   })
@@ -500,36 +480,6 @@
     min-width: 2.6em;
     color: #ef5350;
     font-variant-numeric: tabular-nums;
-  }
-  .otest-ai {
-    padding-left: 24px;
-    text-indent: -24px;
-    margin: 12px 0 0;
-    font-size: 0.875rem;
-    color: var(--on-surface-variant);
-  }
-  .otest-ai .material-symbols-outlined {
-    width: 24px;
-    text-indent: 0;
-    font-size: 18px;
-    vertical-align: -4px;
-  }
-  .otest-ai em {
-    display: block;
-    margin-top: 2px;
-    text-indent: 0;
-  }
-  .otest-parser {
-    margin-top: 10px;
-    font-size: 0.8125rem;
-    color: var(--on-surface-variant);
-  }
-  .otest-parser pre {
-    padding: 10px;
-    border-radius: 10px;
-    background: var(--surface-variant);
-    font-size: 0.75rem;
-    overflow: auto;
   }
   .otest-dl {
     display: grid;
