@@ -44,17 +44,43 @@ export function hourNumber(time) {
   return e !== -1 ? e + 1 : null
 }
 
-/** End time of a cell: the next slot's start, or +55' for the last one. */
-export function cellEnd(cell, times) {
-  const last = cell.slots[cell.slots.length - 1]
-  const next = times[times.indexOf(last) + 1]
-  if (next) return next
-  const [h, m] = last.split(':').map(Number)
-  const t = h * 60 + m + 55
+/**
+ * End time of a cell: its own end for an event with real times, else when its last lesson ends.
+ * Lessons last 55 minutes (08:05–09:00, 09:00–09:55, 13:00–13:55, …), evening ones 50
+ * (18:15–19:05, …): the school site gives only the start times.
+ * (`times` and `extraTimes` are kept for the callers; the end no longer depends on them.)
+ */
+// eslint-disable-next-line no-unused-vars -- kept for the callers (see above)
+export function cellEnd(cell, times, extraTimes = []) {
+  if (cell.end) return cell.end
+  const [h, m] = cell.slots[cell.slots.length - 1].split(':').map(Number)
+  const t = h * 60 + m + (h >= 18 ? 50 : 55)
   return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`
 }
 
-const teachersLine = (v) => (v.teachers?.length ? `${v.teachers.length > 1 ? 'Proff.' : 'Prof.'} ${v.teachers.join(', ')}` : null)
+const minutes = (t) => {
+  const [h, m] = t.split(':').map(Number)
+  return h * 60 + m
+}
+
+/**
+ * Where an overlay (a variation with real times over the lessons) sits on the rows of its
+ * slots: from the first to the last slot, inset at the top and bottom in proportion to the
+ * minutes (10:30–11:30 over 10:05–12:05 → 21% from the top, 29% from the bottom).
+ * @returns {{ from: string, to: string, top: number, bottom: number }} top/bottom in %
+ */
+export function overlayBox(overlay, times, extraTimes = []) {
+  const from = overlay.slots[0]
+  const last = overlay.slots[overlay.slots.length - 1]
+  const to = cellEnd({ slots: [last] }, times, extraTimes)
+  const a = minutes(from)
+  const len = Math.max(1, minutes(to) - a)
+  const clamp = (x) => Math.min(45, Math.max(0, Math.round((x / len) * 100)))
+  return { from, to: last, top: clamp(minutes(overlay.start) - a), bottom: clamp(minutes(to) - minutes(overlay.end)) }
+}
+
+// Names only, like the timetable's own teachers (no "Prof."/"Proff.").
+const teachersLine = (v) => (v.teachers?.length ? v.teachers.join(', ') : null)
 // Teachers of the timetable itself (logged-in school accounts only).
 const cellTeachers = (cell) => (cell.teachers?.length ? cell.teachers.join(', ') : null)
 const absentLine = (v) => (v.absent?.length ? `Assente: ${v.absent.join(', ')}` : null)
@@ -94,6 +120,23 @@ const replacedTeachers = (cell, v) => {
   return gone.length === cell.teachers.length ? gone.join(', ') : null
 }
 
+// Teachers with the absent ones struck after them: "Morselli ~~Golfrè~~"; only absent: "~~Rossi~~".
+function withAbsent(v, replaced) {
+  const absent = (v.absent || []).filter((a) => !(v.teachers || []).includes(a))
+  const gone = [...new Set([replaced, ...absent].filter(Boolean))]
+  const was = gone.length ? gone.join(', ') : null
+  return { text: teachersLine(v), was, list: true, ...(v.teachers?.length ? {} : { wasFirst: true }) }
+}
+
+// Who is substituted: the lesson's teachers (logged-in timetable) or the absent ones in the event.
+const substitutedTeachers = (cell, vs) => {
+  const named = vs.flatMap((v) => v.teachers || [])
+  const own = (cell.teachers || []).filter((t) => !mentions(named, t))
+  if (own.length) return own.join(', ')
+  const absent = [...new Set(vs.flatMap((v) => v.absent || []))]
+  return absent.length ? absent.join(', ') : null
+}
+
 /**
  * Several events often hit the same lesson: the office writes one for the absent teacher
  * ("CLASSE 3A - AULA 42 (PROF. ROSSI ASSENTE)") and, when the room changes too, another one
@@ -129,12 +172,31 @@ function combine(vs, main, originalRoom) {
 const CANCELLING = ['entry', 'exit', 'trip', 'off']
 
 export function describeCell(cell, entityType) {
+  // "Possible": an event names this class/room/teacher but could not be read as a change of
+  // this lesson. The lesson as it is, flagged to check (its text is in the cell / menu).
+  if (cell.status === 'maybe') {
+    if (cell.subject) {
+      const plain = describeCell({ ...cell, status: 'regular', variations: [] }, entityType)
+      return { ...plain, badge: 'Variazione', tone: 'maybe' }
+    }
+    // A free hour: what the event says (activity, room, teachers).
+    const v = (cell.variations || [])[0] || {}
+    const lines = [v.room, teachersLine(v)].filter(Boolean).map((text) => ({ text, was: null }))
+    const title = v.label || v.activity || v.classes?.join(', ') || v.summary?.split(' - ')[0] || 'Evento'
+    return { badge: 'Variazione', title, lines, original: null, tone: 'maybe', plain: true }
+  }
   const view = entityType === 'teacher' ? describeTeacherCell(cell) : describeLessonCell(cell, entityType)
+  // An hour of the joint class, taught with the other part (3MENE with 3ITEL).
+  if (cell.jointWith) view.lines.push(`Con ${cell.jointWith}`)
+  // Real times, not the lesson hours (e.g. 10:30–11:30 over two lessons): said in the cell.
+  // Not for an extra row (cell.end, not an overlay): its row already shows them.
+  const real = (!cell.end || cell.overlay) && (cell.variations || []).find((v) => v.offGrid && v.start && v.end)
+  if (real) view.lines.unshift(`Dalle ${real.start} alle ${real.end}`)
   const seen = new Set()
   view.lines = view.lines
     .filter(Boolean)
-    .map((l) => (typeof l === 'string' ? { text: l, was: null } : { text: l.text, was: l.was || null }))
-    .filter((l) => l.text && !seen.has(l.text) && seen.add(l.text))
+    .map((l) => (typeof l === 'string' ? { text: l, was: null } : { text: l.text || '', was: l.was || null, ...(l.wasFirst ? { wasFirst: true } : {}), ...(l.list && l.was && l.text ? { list: true } : {}) }))
+    .filter((l) => (l.text || l.was) && !seen.has(`${l.text}|${l.was}`) && seen.add(`${l.text}|${l.was}`))
   return view
 }
 
@@ -187,18 +249,33 @@ function describeLessonCell(cell, entityType) {
   if (entityType === 'class' && cell.status !== 'added') main = combine(vs, main, cell.detail)
   const movedRoom = entityType === 'class' && main.room && !sameRoom(main.room, cell.detail) ? main.room : null
   // Room and teacher can both change: each new value carries the one it replaces.
+  // Another teacher: a substitution, not that subject. ANTICIPA: the later lesson moved here.
+  const role = cell.status === 'added' ? null : cell.role
   return {
-    badge: cell.status === 'added' ? 'Aggiunta' : 'Variazione',
-    title: cell.status === 'added' ? main.label || main.activity || 'Attività' : subject,
+    badge: cell.status === 'added' ? 'Aggiunta' : role === 'substitute' ? 'Supplenza' : role === 'early' ? 'Anticipata' : 'Variazione',
+    title:
+      cell.status === 'added'
+        ? main.label || main.activity || 'Attività'
+        : role === 'substitute'
+          ? subject // struck through (titleStruck): not that lesson
+          : role === 'early' && cell.roleSubject
+            ? prettySubject(cell.roleSubject)
+            : subject,
+    titleStruck: role === 'substitute',
     lines: [
+      // Anticipated lesson: the subject it takes the place of, struck under the new one.
+      role === 'early' && cell.roleSubject && cell.roleSubject !== cell.subject && subject
+        ? { text: '', was: subject, wasFirst: true }
+        : null,
       main.label,
       cell.status === 'added' && !main.label ? null : main.activity,
       groupLine(main),
       movedRoom
         ? { text: movedRoom, was: cell.detail }
         : cell.status === 'added' && entityType === 'class' ? main.room : cell.detail,
-      { text: teachersLine(main), was: cell.status === 'added' ? null : replacedTeachers(cell, main) },
-      absentLine(main),
+      role === 'substitute'
+        ? { text: teachersLine(main), was: substitutedTeachers(cell, vs), wasFirst: true } // no comma: one replaces the other // ~~Rossi~~ Verdi
+        : withAbsent(main, cell.status === 'added' ? null : replacedTeachers(cell, main)),
     ],
     original: null,
     tone: cell.status === 'added' ? 'added' : 'changed',
@@ -328,13 +405,19 @@ export function colorSubjects(week) {
   }
 
   for (const day of week.days) {
-    for (const c of day.cells) c.color = c.subject ? SUBJECT_PALETTE[colorOf.get(c.subject)] : null
+    for (const c of day.cells) {
+      // An anticipated lesson takes the colour of the subject it brings forward.
+      const shown = c.role === 'early' && c.roleSubject && colorOf.has(c.roleSubject) ? c.roleSubject : c.subject
+      c.color = shown ? SUBJECT_PALETTE[colorOf.get(shown)] : null
+    }
+    // Overlays take the colour of the lesson they change (its subject is known).
+    for (const o of day.overlays || []) o.color = o.subject && colorOf.has(o.subject) ? SUBJECT_PALETTE[colorOf.get(o.subject)] : null
   }
   return week
 }
 
 const ENTITY_LABEL = { class: 'Classe', room: 'Aula', teacher: 'Docente' }
-const STATUS_LABEL = { regular: 'Normale', changed: 'Variazione', cancelled: 'Annullata', freed: 'Aula libera', added: 'Aggiunta' }
+const STATUS_LABEL = { regular: 'Normale', maybe: 'Variazione incerta', changed: 'Variazione', cancelled: 'Annullata', freed: 'Aula libera', added: 'Aggiunta' }
 
 /** "9 ottobre 2026" */
 export function longDate(date) {
@@ -355,7 +438,7 @@ export function reportQuery(week, day, cell, from) {
     const first = hourNumber(cell.slots[0])
     const last = hourNumber(cell.slots[cell.slots.length - 1])
     const hours = first ? (last && last !== first ? `${first}ª–${last}ª ora` : `${first}ª ora`) : null
-    q.ora = [hours, `${cell.slots[0]}–${cellEnd(cell, week.times)}`].filter(Boolean).join(' · ')
+    q.ora = [hours, `${cell.slots[0]}–${cellEnd(cell, week.times, week.extraTimes || [])}`].filter(Boolean).join(' · ')
     if (cell.subject) q.materia = prettySubject(cell.subject)
     if (cell.occupant) q.materia = [q.materia, `occupata da ${cell.occupant}`].filter(Boolean).join(' · ')
     if (cell.detail) q.dettaglio = cell.detail
@@ -368,7 +451,7 @@ export function reportQuery(week, day, cell, from) {
 
 /**
  * Small notes on how sure the app is about a cell's variations, for the cell menu:
- * parser confidence, AI double check, AI confidence.
+ * parser confidence.
  * @returns {{ title: string|null, items: { icon: string, text: string, tone: 'good'|'warn'|'muted' }[] }[]}
  */
 export function readingInfo(cell) {
@@ -382,15 +465,6 @@ export function readingInfo(cell) {
         tone: v.confidence >= 90 ? 'good' : v.confidence >= 60 ? 'warn' : 'bad',
       })
     }
-    const c = v.check
-    const sure = c?.confidence != null ? ` · AI sicura al ${c.confidence}%` : ''
-    if (v.ai) items.push({ icon: 'auto_awesome', text: `Testo poco chiaro: letto dall’AI${sure}`, tone: 'warn' })
-    else if (c?.state === 'agree') items.push({ icon: 'verified', text: `Verificata dall’AI${sure}`, tone: 'good' })
-    else if (c?.state === 'disagree') {
-      items.push({ icon: 'report', text: `L’AI legge diversamente${sure}`, tone: 'warn' })
-      for (const d of c.diffs.slice(0, 3)) items.push({ icon: 'subdirectory_arrow_right', text: d, tone: 'muted' })
-    } else if (c?.state === 'queued') items.push({ icon: 'hourglass_top', text: 'Verifica AI in corso', tone: 'muted' })
-    else if (c?.state === 'failed') items.push({ icon: 'cloud_off', text: 'Verifica AI non riuscita', tone: 'muted' })
     return { title: vs.length > 1 ? v.summary : null, items }
   })
 }

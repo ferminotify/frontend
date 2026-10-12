@@ -539,17 +539,17 @@
           </a>
         </RouterLink>
 
+        <RouterLink to="/orario" custom v-slot="{ href, navigate }">
+          <a :href="href" @click="navigate" class="sidebar-link" id="orario" :class="{ active: route.path.startsWith('/orario') }">
+            <span class="material-symbols-outlined sidebar-icon">view_agenda</span>
+            <span class="sidebar-link-text">Orario</span>
+          </a>
+        </RouterLink>
+
         <RouterLink v-if="!isStandalone" to="/app" custom v-slot="{ href, navigate, isExactActive }">
           <a :href="href" @click="installApp(navigate, $event)" class="sidebar-link sidebar-desktop" id="app" :class="{ active: isExactActive }">
             <span class="material-symbols-outlined sidebar-icon">download</span>
             <span class="sidebar-link-text">Installa l'app</span>
-          </a>
-        </RouterLink>
-
-        <RouterLink to="/orario" custom v-slot="{ href, navigate }">
-          <a :href="href" @click="navigate" class="sidebar-link" id="orario" :class="{ active: route.path.startsWith('/orario') }">
-            <span class="material-symbols-outlined sidebar-icon">calendar_view_week</span>
-            <span class="sidebar-link-text">Orario</span>
           </a>
         </RouterLink>
 

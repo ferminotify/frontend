@@ -64,6 +64,27 @@
             @select="(c, el) => $emit('cell-menu', { day, cell: c, el })"
           />
         </div>
+        <!-- Variations with real times (10:30–11:30): on top of the lessons, at those times -->
+        <div
+          v-for="o in day.overlays || []"
+          :key="`${day.date}-o-${o.variations[0].uid}`"
+          class="tt-overlay tt-week-overlay"
+          :style="{ ...overlayArea(o), ...overlayInset(o) }"
+          role="cell"
+        >
+          <div class="tt-overlay-card tt-week-overlay-card">
+            <!-- Taps cycle: one line → full card → lesson menu → one line again -->
+            <TimetableCell
+              :brief="!stage.has(keyOf(day, o))"
+              :aria-expanded="stage.has(keyOf(day, o))"
+              :cell="o"
+              :entity-type="entityType"
+              compact
+              interactive
+              @select="(c, el) => cycle(keyOf(day, o), () => $emit('cell-menu', { day, cell: c, el }), el)"
+            />
+          </div>
+        </div>
       </template>
     </div>
   </div>
@@ -78,7 +99,7 @@
           <span class="tt-week-notes-when">
             {{ weekdayLong(day.weekday) }} {{ dayOfMonth(day.date) }} · {{ n.start ? `${n.start} – ${n.end}` : 'tutto il giorno' }}
           </span>
-          <span v-if="n.maybe" class="tt-week-notes-maybe">Possibile variazione</span>
+          <span v-if="n.maybe" class="tt-notes-maybe">Variazione</span>
           {{ n.summary }}
         </li>
       </template>
@@ -89,18 +110,40 @@
 
 <script setup>
   import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+  import { useOverlayCycle } from '@/composables/useOverlayCycle'
+  import './orario.css'
   import TimetableCell from './TimetableCell.vue'
-  import { weekdayShort, weekdayLong, dayOfMonth, hourNumber } from '@/utils/timetable'
+  import { weekdayShort, weekdayLong, dayOfMonth, hourNumber, overlayBox } from '@/utils/timetable'
 
   const props = defineProps({
     days: { type: Array, required: true },
     times: { type: Array, required: true },
+    extraTimes: { type: Array, default: () => [] }, // rows of events out of the lessons (no hour number)
     today: { type: String, required: true },
     entityType: { type: String, required: true },
     entityName: { type: String, default: '' },
     window: { type: Object, required: true },
   })
   defineEmits(['cell-menu'])
+
+  // Overlays opened to the full card (by day + event).
+  const keyOf = (day, o) => `${day.date}-${o.variations[0].uid}`
+  const { stage, cycle } = useOverlayCycle()
+
+  function overlayArea(o) {
+    const box = overlayBox(o, props.times, props.extraTimes)
+    const first = props.times.indexOf(box.from)
+    const span = props.times.indexOf(box.to) - first + 1
+    const col = props.days.findIndex((d) => (d.overlays || []).includes(o)) + 2
+    return { gridColumn: col, gridRow: `${first + 2} / span ${span}` }
+  }
+  function overlayInset(o) {
+    const box = overlayBox(o, props.times, props.extraTimes)
+    // In the flow of the grid: space above and below in proportion to the minutes; when the
+    // text needs more room the rows grow (the lessons beside get taller), nothing is covered.
+    // At least the lesson's title (two lines in the grid) stays visible above it.
+    return { gridTemplateRows: `minmax(46px, ${box.top}fr) auto ${box.bottom}fr` }
+  }
 
   const notedDays = computed(() => props.days.filter((d) => d.notes?.length))
 
@@ -153,17 +196,6 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-  }
-  .tt-week-notes-maybe {
-    align-self: flex-start;
-    padding: 1px 8px;
-    border: 1px solid var(--on-surface-primary);
-    border-radius: 999px;
-    color: var(--on-surface-primary);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
   }
   .tt-week-notes-when {
     color: var(--text-secondary, inherit);
@@ -275,6 +307,14 @@
   }
   .tt-week-slot:has(.is-menu-open) {
     z-index: 3;
+  }
+  /* .tt-overlay / .tt-overlay-card in orario.css; here the week grid's inset and shadow */
+  .tt-week-overlay {
+    padding-left: 10px;
+  }
+  .tt-week-overlay-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 0.45);
   }
 
   @media (max-width: 700px) {

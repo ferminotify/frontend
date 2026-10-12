@@ -123,7 +123,7 @@
                   v-for="e in g.items"
                   :key="e.key"
                   type="button"
-                  class="op-chip"
+                  class="chip op-chip"
                   :class="{ selected: isSelected(col.type, e.key), best: isBest(col.type, e.key) }"
                   :aria-pressed="isSelected(col.type, e.key)"
                   @click="choose(col.type, e)"
@@ -337,7 +337,6 @@
 <style scoped>
   .op {
     width: 100%;
-    --m3-standard: cubic-bezier(0.2, 0, 0, 1);
   }
 
   .sr-only {
@@ -414,6 +413,10 @@
     font-size: 20px;
   }
 
+  /* No blue flash on tap (mobile browsers): the toggle, the chips, the panel buttons */
+  .op :is(button, a) {
+    -webkit-tap-highlight-color: transparent;
+  }
   .op-toggle {
     display: flex;
     align-items: center;
@@ -508,19 +511,14 @@
     flex-wrap: wrap;
     gap: 6px;
   }
+  /* .chip (style.css) + the rounded-square shape of the picker */
   .op-chip {
     min-height: 34px;
-    max-width: 100%;
     padding: 0 12px;
     border-radius: 10px;
-    border: 1px solid var(--divider);
-    background: transparent;
     color: var(--on-surface);
     font-size: 0.875rem;
     font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     transition:
       background-color 120ms var(--m3-standard),
       border-color 120ms var(--m3-standard);
@@ -673,7 +671,7 @@
     font-size: 0.8125rem;
   }
   .op-login-error {
-    color: #ef5350;
+    color: var(--error);
   }
   .op-login-note {
     display: flex;

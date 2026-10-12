@@ -5,7 +5,7 @@
       {{ day.date > window.to ? 'Le variazioni di questo giorno non sono ancora pubblicate: vedi l’orario normale.' : 'Variazioni non più disponibili per questo giorno.' }}
     </p>
 
-    <p v-if="!day.cells.length" class="tt-day-empty">Nessuna lezione in questo giorno.</p>
+    <p v-if="!day.cells.length && !(day.overlays || []).length" class="tt-day-empty">Nessuna lezione in questo giorno.</p>
 
     <ol v-else class="tt-day-list">
       <li
@@ -14,11 +14,11 @@
         :ref="(el) => setRef(row.start, el)"
         class="tt-day-row"
         :class="{ 'is-focused': focus === row.start, 'is-now': isNow(row), 'is-free': !row.cell }"
-        :style="row.span > 1 ? { gridRow: `span ${row.span}` } : null"
+        :style="{ gridRow: `${row.track} / span ${row.span}` }"
       >
         <div class="tt-day-time">
           <span class="tt-day-hour">{{ hourLabel(row) }}</span>
-          <span class="tt-day-clock">{{ row.start }}<span class="tt-day-clock-sep"> – </span><wbr />{{ cellEnd(row, times) }}</span>
+          <span class="tt-day-clock">{{ row.start }}<span class="tt-day-clock-sep"> – </span><wbr />{{ cellEnd(row.cell || row, times, extraTimes) }}</span>
         </div>
         <TimetableCell
           v-if="row.cell"
@@ -29,6 +29,25 @@
         />
         <div v-else class="tt-day-free" aria-label="Nessuna lezione"></div>
       </li>
+      <!-- Variations with real times (10:30–11:30): on top of the lessons, at those times -->
+      <li
+        v-for="o in overlays"
+        :key="`o-${o.cell.variations[0].uid}`"
+        class="tt-overlay tt-day-overlay"
+        :style="{ gridRow: o.area, gridTemplateRows: `minmax(36px, ${o.box.top}fr) auto ${o.box.bottom}fr` }"
+      >
+        <div class="tt-overlay-card tt-day-overlay-card">
+          <!-- Taps cycle: one line → full card → lesson menu → one line again -->
+          <TimetableCell
+            :brief="!stage.has(o.key)"
+            :aria-expanded="stage.has(o.key)"
+            :cell="o.cell"
+            :entity-type="entityType"
+            interactive
+            @select="(c, el) => cycle(o.key, () => $emit('cell-menu', { day, cell: c, el }), el)"
+          />
+        </div>
+      </li>
     </ol>
 
     <div v-if="day.notes.length" class="tt-day-notes">
@@ -36,7 +55,7 @@
       <ul>
         <li v-for="n in day.notes" :key="n.uid" :class="{ 'is-maybe': n.maybe }">
           <span class="tt-day-clock">{{ n.start ? `${n.start} – ${n.end}` : 'Tutto il giorno' }}</span>
-          <span v-if="n.maybe" class="tt-day-notes-maybe">Possibile variazione</span>
+          <span v-if="n.maybe" class="tt-notes-maybe">Variazione</span>
           {{ n.summary }}
         </li>
       </ul>
@@ -46,12 +65,15 @@
 
 <script setup>
   import { computed, nextTick, onMounted, watch } from 'vue'
+  import { useOverlayCycle } from '@/composables/useOverlayCycle'
+  import './orario.css'
   import TimetableCell from './TimetableCell.vue'
-  import { cellEnd, hourNumber } from '@/utils/timetable'
+  import { cellEnd, hourNumber, overlayBox } from '@/utils/timetable'
 
   const props = defineProps({
     day: { type: Object, required: true },
     times: { type: Array, required: true },
+    extraTimes: { type: Array, default: () => [] },
     entityType: { type: String, required: true },
     window: { type: Object, required: true },
     today: { type: String, required: true },
@@ -67,16 +89,37 @@
   const rows = computed(() => {
     const byStart = new Map(props.day.cells.map((c) => [c.start, c]))
     const out = []
+    let track = 1 // grid row of each list row: explicit, so overlays can sit on top
     for (let i = 0; i < props.times.length; i++) {
       const cell = byStart.get(props.times[i])
       if (cell) {
-        out.push({ start: cell.start, slots: cell.slots, span: cell.span, cell })
+        out.push({ start: cell.start, slots: cell.slots, span: cell.span, cell, track })
+        track += cell.span
         i += cell.span - 1
-      } else {
-        out.push({ start: props.times[i], slots: [props.times[i]], span: 1, cell: null })
+      } else if (!props.extraTimes.includes(props.times[i])) {
+        // Extra rows (an event out of the lessons, on some day of the week): only where used.
+        out.push({ start: props.times[i], slots: [props.times[i]], span: 1, cell: null, track })
+        track += 1
       }
     }
     return out
+  })
+
+  // Overlays opened to the full card.
+  const { stage, cycle } = useOverlayCycle()
+
+  // Overlays over the list rows of their slots (see overlayBox for the inset).
+  const overlays = computed(() => {
+    const trackOf = new Map()
+    for (const r of rows.value) r.slots.forEach((s, k) => trackOf.set(s, r.track + Math.min(k, r.span - 1)))
+    return (props.day.overlays || [])
+      .map((o) => {
+        const box = overlayBox(o, props.times, props.extraTimes)
+        const a = trackOf.get(box.from)
+        const b = trackOf.get(box.to)
+        return a && b ? { cell: o, box, area: `${a} / ${b + 1}`, key: o.variations[0].uid } : null
+      })
+      .filter(Boolean)
   })
 
   const hourLabel = (cell) => {
@@ -86,7 +129,7 @@
   }
 
   const isNow = (cell) =>
-    props.day.date === props.today && props.nowTime >= cell.start && props.nowTime < cellEnd(cell, props.times)
+    props.day.date === props.today && props.nowTime >= cell.start && props.nowTime < cellEnd(cell.cell || cell, props.times, props.extraTimes)
 
   async function scrollToFocus() {
     if (!props.focus) return
@@ -108,7 +151,20 @@
     gap: 8px;
   }
 
+  /* .tt-overlay / .tt-overlay-card in orario.css; here: over the lesson column only */
+  .tt-day-overlay {
+    grid-column: 1;
+    margin-left: 102px; /* time column + gap + a little: the lesson below stays visible */
+    list-style: none;
+  }
+  .tt-day-overlay-card {
+    flex-direction: column;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 0.5);
+  }
+
   .tt-day-row {
+    grid-column: 1;
     display: grid;
     grid-template-columns: 76px minmax(0, 1fr);
     gap: 12px;
@@ -194,17 +250,6 @@
     font-size: 0.875rem;
     line-height: 1.4;
   }
-  .tt-day-notes-maybe {
-    align-self: flex-start;
-    padding: 1px 8px;
-    border: 1px solid var(--on-surface-primary);
-    border-radius: 999px;
-    color: var(--on-surface-primary);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
   .tt-day-notes li {
     display: flex;
     flex-direction: column;
@@ -215,6 +260,9 @@
     .tt-day-row {
       grid-template-columns: 52px minmax(0, 1fr);
       gap: 8px;
+    }
+    .tt-day-overlay {
+      margin-left: 74px;
     }
     .tt-day-clock {
       white-space: normal;

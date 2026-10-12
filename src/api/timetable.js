@@ -92,6 +92,11 @@ export function fetchTimetableTest({ summary, date, start, end, allDay }) {
   return get(`/timetable/test?${q}`)
 }
 
+/** Test page: a few random events from the calendar to try. */
+export function fetchTimetableExamples() {
+  return get('/timetable/test/examples')
+}
+
 async function post(path, body) {
   return fetch(`${API_URL}${path}`, {
     method: 'POST',

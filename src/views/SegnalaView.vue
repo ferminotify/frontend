@@ -1,22 +1,13 @@
 <template>
-  <div class="section segnala">
-    <RouterLink :to="backTo" class="segnala-back">
+  <div class="section page-narrow segnala">
+    <RouterLink :to="backTo" class="back-link">
       <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
       Torna all’orario
     </RouterLink>
 
     <h1 class="segnala-title">Segnala un problema</h1>
 
-    <div v-if="sent" class="segnala-done" role="status">
-      <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
-      <div>
-        <h2>Grazie, segnalazione inviata!</h2>
-        <p>La controlleremo il prima possibile{{ email ? ', e se serve ti scriviamo.' : '.' }}</p>
-        <RouterLink :to="backTo" class="btn filled">Torna all’orario</RouterLink>
-      </div>
-    </div>
-
-    <form v-else class="segnala-form" novalidate @submit.prevent="submit">
+    <form class="segnala-form" novalidate @submit.prevent="submit">
       <section v-if="cell" class="segnala-lesson" aria-label="Lezione segnalata">
         <p class="segnala-lesson-meta">{{ metaLine }}</p>
         <div class="segnala-lesson-card">
@@ -40,7 +31,6 @@
           ref="descriptionEl"
           v-model="description"
           rows="4"
-          maxlength="3000"
           required
           placeholder=" "
         ></textarea>
@@ -77,8 +67,10 @@
       <p v-if="error" class="segnala-error" role="alert">{{ error }}</p>
 
       <div class="segnala-actions">
-        <button type="submit" class="btn filled" :disabled="busy || shotBusy">
-          {{ busy ? 'Invio…' : 'Invia segnalazione' }}
+        <!-- Same loading grid as the login button; size kept while it spins -->
+        <button ref="submitEl" type="submit" class="btn filled submit-btn" :style="busySize" :disabled="shotBusy" :aria-busy="busy">
+          <div v-if="busy" class="submit-lds-grid" aria-label="Invio…"><div v-for="n in 9" :key="n"></div></div>
+          <template v-else>Invia segnalazione</template>
         </button>
       </div>
     </form>
@@ -87,13 +79,15 @@
 
 <script setup>
   import { computed, nextTick, onMounted, ref } from 'vue'
-  import { useRoute } from 'vue-router'
+  import { useRoute, useRouter } from 'vue-router'
   import { useUserStore } from '@/stores/user'
   import { sendTimetableReport } from '@/api/timetable'
   import TimetableCell from '@/components/orario/TimetableCell.vue'
   import { describeCell } from '@/utils/timetable'
+  import { generateAlert } from '@/utils/alertbanner'
 
   const route = useRoute()
+  const router = useRouter()
   const userStore = useUserStore()
 
   const q = (key) => (typeof route.query[key] === 'string' ? route.query[key].slice(0, 2000) : '')
@@ -134,6 +128,7 @@
     return {
       badge: view.badge,
       title: view.title,
+      titleStruck: Boolean(view.titleStruck),
       lines: view.lines,
       original: view.original,
       tone: view.tone,
@@ -147,8 +142,9 @@
   const email = ref('')
   const website = ref('')
   const busy = ref(false)
+  const submitEl = ref(null)
+  const busySize = ref(null)
   const error = ref('')
-  const sent = ref(false)
   const descriptionEl = ref(null)
 
   onMounted(async () => {
@@ -213,13 +209,16 @@
   }
 
   async function submit() {
+    if (busy.value) return // not disabled while sending: keeps the filled look, like login
     error.value = ''
-    if (description.value.trim().length < 5) {
-      error.value = 'Descrivi il problema (almeno qualche parola).'
+    if (!description.value.trim()) {
+      error.value = 'Descrivi il problema.'
       await nextTick()
       descriptionEl.value?.focus()
       return
     }
+    const { width, height } = submitEl.value?.getBoundingClientRect() || {}
+    busySize.value = width ? { width: `${width}px`, height: `${height}px` } : null
     busy.value = true
     try {
       const context = Object.fromEntries(CONTEXT.map(([key, field]) => [field, q(key)]).filter(([, v]) => v))
@@ -233,38 +232,18 @@
         website: website.value,
       })
       removeShot()
-      sent.value = true
-      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+      generateAlert('success', 'Segnalazione inviata')
+      router.replace(backTo.value)
     } catch (e) {
       error.value = e.message
     } finally {
       busy.value = false
+      busySize.value = null
     }
   }
 </script>
 
 <style scoped>
-  .segnala {
-    max-width: 720px;
-    margin: 25px auto;
-    padding: 0 16px;
-    box-sizing: border-box;
-    color: var(--on-surface);
-  }
-  .segnala-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--on-surface-variant);
-    text-decoration: none;
-    font-size: 0.875rem;
-  }
-  .segnala-back:hover {
-    color: var(--on-surface);
-  }
-  .segnala-back .material-symbols-outlined {
-    font-size: 18px;
-  }
   .segnala-title {
     margin: 16px 0 24px;
     font-size: 1.75rem;
@@ -325,39 +304,10 @@
     color: var(--muted);
     margin-left: 4px;
   }
-  /* Site's .material-textfield (style.css) covers inputs; the textarea copies it here. */
   .segnala-text input,
   .segnala-text textarea {
     width: 100%;
     box-sizing: border-box;
-  }
-  .segnala-text textarea {
-    display: block;
-    font: inherit;
-    font-size: 1rem;
-    border: 0;
-    outline: 1px solid var(--muted);
-    border-radius: 10px;
-    padding: 1rem 0.7rem;
-    color: var(--on-surface);
-    background-color: var(--surface);
-    transition: 0.1s ease-out;
-    resize: vertical;
-  }
-  .segnala-text textarea + label {
-    top: 1.5rem;
-  }
-  .segnala-text textarea:focus {
-    outline-color: var(--on-primary);
-  }
-  .segnala-text textarea:focus + label {
-    color: var(--on-primary);
-    top: 0;
-    transform: translateY(-50%) scale(0.9);
-  }
-  .segnala-text textarea:not(:placeholder-shown) + label {
-    top: 0;
-    transform: translateY(-50%) scale(0.9);
   }
 
   .segnala-upload {
@@ -416,7 +366,7 @@
 
   .segnala-error {
     margin: 0;
-    color: #ef5350;
+    color: var(--error);
     font-size: 0.875rem;
   }
   .segnala-actions {
@@ -424,24 +374,4 @@
     justify-content: flex-end;
   }
 
-  .segnala-done {
-    display: flex;
-    gap: 14px;
-    padding: 20px;
-    border-radius: 16px;
-    border: 1px solid var(--divider);
-    background: var(--surface-variant);
-  }
-  .segnala-done > .material-symbols-outlined {
-    font-size: 32px;
-    color: #66bb6a;
-  }
-  .segnala-done h2 {
-    margin: 2px 0 6px;
-    font-size: 1.125rem;
-  }
-  .segnala-done p {
-    margin: 0 0 14px;
-    color: var(--on-surface-variant);
-  }
 </style>

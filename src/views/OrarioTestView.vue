@@ -1,42 +1,44 @@
 <template>
-  <div class="section otest">
-    <RouterLink to="/orario" class="otest-back">
+  <div class="section page-narrow otest">
+    <RouterLink to="/orario" class="back-link">
       <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
       Orario
     </RouterLink>
     <h1 class="otest-title">Test variazioni</h1>
-    <p class="otest-intro">
-      Scrivi il titolo di un evento come nel calendario: vedi come viene letto, quali classi, aule e docenti riguarda e come
-      appare nell’orario. L’evento è solo una prova: non viene salvato.
-    </p>
 
     <form class="otest-form" @submit.prevent="run">
-      <label class="otest-field otest-field--wide">
-        <span>Titolo dell’evento</span>
+      <div class="material-textfield otest-field otest-field--wide">
         <textarea
+          id="otest-summary"
           v-model="summary"
           rows="2"
           maxlength="500"
           spellcheck="false"
-          placeholder="CLASSE 3AIIN - AULA 46 - PROF. ROSSI (PROF.ssa BIANCHI: ASSENTE)"
+          placeholder=" "
           @keydown.enter.exact.prevent="run"
         ></textarea>
-      </label>
-      <div class="otest-examples" aria-label="Esempi">
-        <button v-for="ex in EXAMPLES" :key="ex" type="button" class="otest-chip" @click="useExample(ex)">{{ ex }}</button>
+        <label for="otest-summary">Titolo dell’evento</label>
       </div>
-      <label class="otest-field">
-        <span>Giorno</span>
-        <input v-model="date" type="date" required />
-      </label>
-      <label class="otest-field">
-        <span>Dalle</span>
-        <input v-model="start" type="time" step="300" :disabled="allDay" />
-      </label>
-      <label class="otest-field">
-        <span>Alle</span>
-        <input v-model="end" type="time" step="300" :disabled="allDay" />
-      </label>
+      <div class="otest-examples" aria-label="Eventi dal calendario">
+        <button v-for="ex in examples" :key="ex.summary" type="button" class="chip otest-chip" :title="ex.summary" @click="useExample(ex)">
+          {{ ex.summary }}
+        </button>
+        <button type="button" class="chip otest-chip otest-chip--icon" aria-label="Altri eventi" title="Altri eventi" :disabled="examplesLoading" @click="loadExamples">
+          <span class="material-symbols-outlined" aria-hidden="true">shuffle</span>
+        </button>
+      </div>
+      <div class="material-textfield otest-field otest-field--fixed">
+        <input id="otest-date" v-model="date" type="date" required />
+        <label for="otest-date">Giorno</label>
+      </div>
+      <div class="material-textfield otest-field otest-field--fixed">
+        <input id="otest-start" v-model="start" type="time" step="300" :disabled="allDay" />
+        <label for="otest-start">Dalle</label>
+      </div>
+      <div class="material-textfield otest-field otest-field--fixed">
+        <input id="otest-end" v-model="end" type="time" step="300" :disabled="allDay" />
+        <label for="otest-end">Alle</label>
+      </div>
       <label class="otest-check">
         <input v-model="allDay" type="checkbox" />
         Tutto il giorno
@@ -117,7 +119,7 @@
         <p v-if="!result.matches.length" class="otest-muted">Nessuna classe, aula o docente dell’orario.</p>
         <ul v-else class="otest-matches">
           <li v-for="m in result.matches" :key="`${m.type}-${m.key}`">
-            <RouterLink :to="entityLink(m)" class="otest-chip otest-chip--link">
+            <RouterLink :to="entityLink(m)" class="chip otest-chip otest-chip--link">
               <span class="material-symbols-outlined" aria-hidden="true">{{ TYPE_ICON[m.type] }}</span>
               {{ m.name }}
             </RouterLink>
@@ -156,21 +158,23 @@
 </template>
 
 <script setup>
-  import { computed, ref, watch } from 'vue'
+  import { computed, onMounted, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import TimetableCell from '@/components/orario/TimetableCell.vue'
-  import { fetchTimetableTest } from '@/api/timetable'
+  import { fetchTimetableExamples, fetchTimetableTest } from '@/api/timetable'
   import { cellEnd, colorSubjects, hourNumber } from '@/utils/timetable'
 
   const route = useRoute()
   const router = useRouter()
 
-  const EXAMPLES = [
+  // Used when the calendar cannot be read.
+  const FALLBACK_EXAMPLES = [
     'CLASSE 5EELEET (ALUNNI IRC) - SALA MENSA',
     'CLASSE 3AIIN - AULA 46 - PROF. ROSSI (PROF.ssa BIANCHI: ASSENTE)',
     'CLASSE 4EAU - USCITA ANTICIPATA',
     'CLASSI 5C, 5D - USCITA DIDATTICA - PROFF. ROSSI, VERDI',
-  ]
+  ].map((summary) => ({ summary }))
+
   const KIND_LABEL = {
     change: 'Variazione (aula, docente o attività)',
     entry: 'Entrata posticipata',
@@ -251,8 +255,31 @@
   }
   const entityLink = (m) => ({ path: `/orario/${TYPE_PATH[m.type]}/${m.key.toLowerCase()}`, query: { settimana: date.value } })
 
+  // Examples: random events from the calendar, with their own day and hours.
+  const examples = ref([])
+  const examplesLoading = ref(false)
+  async function loadExamples() {
+    examplesLoading.value = true
+    try {
+      const { examples: list } = await fetchTimetableExamples()
+      examples.value = list.length ? list : FALLBACK_EXAMPLES
+    } catch {
+      if (!examples.value.length) examples.value = FALLBACK_EXAMPLES
+    } finally {
+      examplesLoading.value = false
+    }
+  }
+  onMounted(loadExamples)
+
   function useExample(ex) {
-    summary.value = ex
+    summary.value = ex.summary
+    if (!ex.date) return
+    date.value = ex.date
+    allDay.value = ex.allDay || !ex.start
+    if (ex.start) {
+      start.value = ex.start
+      end.value = ex.end || ex.start
+    }
   }
 
   async function run() {
@@ -294,73 +321,42 @@
 
 <style scoped>
   .otest {
-    max-width: 820px;
-    margin: 25px auto;
-    padding: 0 16px;
-    box-sizing: border-box;
-    color: var(--on-surface);
-  }
-  .otest-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--on-surface-variant);
-    text-decoration: none;
-    font-size: 0.875rem;
-  }
-  .otest-back .material-symbols-outlined {
-    font-size: 18px;
+    --page-max: 820px;
   }
   .otest-title {
-    margin: 16px 0 8px;
+    margin: 16px 0 24px;
     font-size: 1.75rem;
-  }
-  .otest-intro {
-    margin: 0 0 20px;
-    color: var(--on-surface-variant);
-    line-height: 1.5;
   }
 
   .otest-form {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-    gap: 12px;
+    gap: 18px 12px;
     align-items: end;
     margin-bottom: 20px;
   }
   .otest-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 0.8125rem;
-    color: var(--on-surface-variant);
     min-width: 0;
   }
   .otest-field--wide,
   .otest-examples {
     grid-column: 1 / -1;
   }
-  .otest-field textarea,
-  .otest-field input {
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid var(--divider);
-    background: var(--surface);
-    color: var(--on-surface);
-    font: inherit;
-    font-size: 0.9375rem;
+  .otest-field input,
+  .otest-field textarea {
+    width: 100%;
+    box-sizing: border-box;
     min-width: 0;
     color-scheme: light dark;
   }
+  /* The site's .material-textfield textarea, in monospace: the title as typed in the calendar */
   .otest-field textarea {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.875rem;
-    resize: vertical;
   }
-  .otest-field textarea:focus,
-  .otest-field input:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: -1px;
+  .otest-field--fixed label {
+    top: 0;
+    transform: translateY(-50%) scale(0.9);
   }
   .otest-field input:disabled {
     opacity: 0.5;
@@ -380,23 +376,16 @@
     gap: 6px;
     margin-top: -4px;
   }
+  /* .chip (style.css) + the pill shape of this page */
   .otest-chip {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    max-width: 100%;
     padding: 4px 10px;
     border-radius: 999px;
-    border: 1px solid var(--divider);
-    background: none;
     color: var(--on-surface-variant);
-    font: inherit;
     font-size: 0.75rem;
     text-decoration: none;
-    cursor: pointer;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
   .otest-chip:hover {
     color: var(--on-surface);
@@ -405,6 +394,13 @@
   .otest-chip--link {
     font-size: 0.875rem;
     color: var(--on-surface);
+  }
+  .otest-chip--icon {
+    padding: 4px 8px;
+  }
+  .otest-chip:disabled {
+    opacity: 0.5;
+    cursor: progress;
   }
   .otest-chip .material-symbols-outlined {
     font-size: 16px;
@@ -458,13 +454,13 @@
     transition: width 200ms ease;
   }
   .otest-score--good {
-    --score: #66bb6a;
+    --score: var(--success);
   }
   .otest-score--mid {
-    --score: #f9a825;
+    --score: var(--warning);
   }
   .otest-score--low {
-    --score: #ef5350;
+    --score: var(--error);
   }
   .otest-issues {
     list-style: none;
@@ -478,7 +474,7 @@
   .otest-penalty {
     display: inline-block;
     min-width: 2.6em;
-    color: #ef5350;
+    color: var(--error);
     font-variant-numeric: tabular-nums;
   }
   .otest-dl {
@@ -511,7 +507,7 @@
   }
   .otest-warnings .material-symbols-outlined {
     font-size: 18px;
-    color: #f9a825;
+    color: var(--warning);
   }
   .otest-matches {
     list-style: none;
@@ -558,7 +554,7 @@
     font-size: 0.8125rem;
   }
   .otest-error {
-    color: #ef5350;
+    color: var(--error);
   }
   .otest-raw {
     margin: 8px 0 40px;

@@ -167,13 +167,13 @@
     margin-top: 1px;
   }
   .cell-menu-info-item.is-good .material-symbols-outlined {
-    color: #66bb6a;
+    color: var(--success);
   }
   .cell-menu-info-item.is-warn .material-symbols-outlined {
-    color: #f9a825;
+    color: var(--warning);
   }
   .cell-menu-info-item.is-bad .material-symbols-outlined {
-    color: #ef5350;
+    color: var(--error);
   }
   .cell-menu-info-item.is-muted {
     color: var(--muted);

@@ -40,41 +40,24 @@
           <button type="button" class="orario-icon-btn" aria-label="Settimana precedente" :disabled="!week" @click="stepWeek(-1)">
             <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
           </button>
-          <span class="orario-weeklabel">{{ week ? weekRangeLabel(week.days) : '…' }}</span>
+          <!-- The week, and the view switch: a tap toggles week ↔ day -->
+          <button
+            type="button"
+            class="orario-weeklabel"
+            :disabled="!week"
+            :aria-label="`${week ? weekRangeLabel(week.days) : ''}, vista ${viewMode}: tocca per la vista ${viewMode === 'settimana' ? 'giorno' : 'settimana'}`"
+            @click="setView(viewMode === 'settimana' ? 'giorno' : 'settimana')"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">{{ viewMode === 'settimana' ? 'calendar_view_week' : 'view_day' }}</span>
+            {{ week ? weekRangeLabel(week.days) : '…' }}
+          </button>
           <button type="button" class="orario-icon-btn" aria-label="Settimana successiva" :disabled="!week" @click="stepWeek(1)">
             <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
           </button>
-          <button v-if="week && !isCurrentWeek" type="button" class="orario-today-btn" @click="goToday">Oggi</button>
         </div>
 
-        <div class="orario-segmented orario-segmented--small" role="radiogroup" aria-label="Vista">
-          <button
-            v-for="opt in VIEW_OPTIONS"
-            :key="opt.value"
-            type="button"
-            role="radio"
-            :aria-checked="viewMode === opt.value"
-            :class="{ active: viewMode === opt.value }"
-            @click="setView(opt.value)"
-          >
-            {{ opt.label }}
-          </button>
-        </div>
-      </div>
-
-      <p v-if="error" class="orario-message orario-message--error">
-        <span class="material-symbols-outlined" aria-hidden="true">cloud_off</span>
-        {{ error }}
-        <button type="button" class="btn text" @click="loadWeek()">Riprova</button>
-      </p>
-
-      <div v-if="loading && !week" class="orario-skeleton" aria-busy="true" aria-label="Caricamento orario">
-        <div v-for="n in 6" :key="n" class="orario-skeleton-row"></div>
-      </div>
-
-      <div v-else-if="week" class="orario-body" :class="{ 'is-refreshing': loading }">
         <!-- Day picker (day view) -->
-        <div v-if="viewMode === 'giorno'" class="orario-days" role="tablist" aria-label="Giorno">
+        <div v-if="week && viewMode === 'giorno'" class="orario-days" role="tablist" aria-label="Giorno">
           <button
             v-for="d in week.days"
             :key="d.date"
@@ -90,7 +73,20 @@
             <span v-if="hasChanges(d)" class="orario-day-chip-dot" aria-label="con variazioni"></span>
           </button>
         </div>
+        <button v-if="week && !isCurrentWeek" type="button" class="orario-today-btn" @click="goToday">Oggi</button>
+      </div>
 
+      <p v-if="error" class="orario-message orario-message--error">
+        <span class="material-symbols-outlined" aria-hidden="true">cloud_off</span>
+        {{ error }}
+        <button type="button" class="btn text" @click="loadWeek()">Riprova</button>
+      </p>
+
+      <div v-if="loading && !week" class="orario-skeleton" aria-busy="true" aria-label="Caricamento orario">
+        <div v-for="n in 6" :key="n" class="orario-skeleton-row"></div>
+      </div>
+
+      <div v-else-if="week" class="orario-body" :class="{ 'is-refreshing': loading }">
         <div ref="swipeEl" class="orario-swipe" :class="{ 'orario-swipe--day': viewMode === 'giorno' }">
         <Transition :name="slideDir ? `orario-slide-${slideDir}` : 'orario-swap'" mode="out-in">
           <TimetableWeek
@@ -98,6 +94,7 @@
             :key="`w-${week.weekStart}-${week.entity.key}`"
             :days="week.days"
             :times="week.times"
+            :extra-times="week.extraTimes || []"
             :today="week.today"
             :entity-type="week.entity.type"
             :entity-name="week.entity.name"
@@ -109,6 +106,7 @@
             :key="`d-${currentDay.date}-${week.entity.key}`"
             :day="currentDay"
             :times="week.times"
+            :extra-times="week.extraTimes || []"
             :today="week.today"
             :now-time="nowTime"
             :entity-type="week.entity.type"
@@ -132,6 +130,7 @@
             <li><span class="swatch swatch--cancelled"></span>Annullata</li>
             <li v-if="week.entity.type === 'room'"><span class="swatch swatch--freed"></span>Aula libera</li>
             <li><span class="swatch swatch--added"></span>Aggiunta</li>
+            <li v-if="hasMaybe"><span class="swatch swatch--maybe"></span>Variazione incerta</li>
           </ul>
           <p class="orario-updated">
             <span v-if="week.stale" class="orario-stale">Dati non aggiornati ·</span>
@@ -164,10 +163,6 @@
   import { useSwipe } from '@/composables/useSwipe'
 
   const ROUTE_TYPE = { class: 'classe', room: 'aula', teacher: 'docente' }
-  const VIEW_OPTIONS = [
-    { value: 'settimana', label: 'Settimana' },
-    { value: 'giorno', label: 'Giorno' },
-  ]
   const LAST_KEY = 'orario:last'
   const VIEW_KEY = 'orario:view'
   const REFRESH_MS = 2 * 60 * 1000
@@ -369,9 +364,27 @@
 
   const step = (delta) => (viewMode.value === 'giorno' ? stepDay(delta) : stepWeek(delta))
 
+  // Haptic tick on a swipe (Android; iOS Safari has no Vibration API): short for another day,
+  // a double one when the swipe moves to another week. Off with "reduce motion".
+  function haptic(pattern) {
+    try {
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+      navigator.vibrate?.(pattern)
+    } catch {
+      // not allowed (e.g. no user activation yet): no vibration
+    }
+  }
+
+  function swipeDay(delta) {
+    const days = week.value?.days || []
+    const sameWeek = Boolean(days[days.findIndex((d) => d.date === selectedDay.value) + delta])
+    haptic(sameWeek ? 8 : [8, 60, 8])
+    stepDay(delta)
+  }
+
   const swipeEl = ref(null)
   // Swipe only in the day view; the week view keeps the arrows (and the grid scrolls sideways on phones).
-  useSwipe(swipeEl, (dir) => stepDay(dir === 'left' ? 1 : -1), {
+  useSwipe(swipeEl, (dir) => swipeDay(dir === 'left' ? 1 : -1), {
     enabled: () => viewMode.value === 'giorno' && Boolean(week.value) && !loading.value,
   })
 
@@ -384,7 +397,8 @@
   }
 
   const currentDay = computed(() => week.value?.days.find((d) => d.date === selectedDay.value) || null)
-  const hasChanges = (d) => d.cells.some((c) => c.status !== 'regular') || d.notes.length > 0
+  const hasMaybe = computed(() => Boolean(week.value?.days.some((d) => d.cells.some((c) => c.status === 'maybe'))))
+  const hasChanges = (d) => d.cells.some((c) => c.status !== 'regular') || (d.overlays || []).length > 0 || d.notes.length > 0
 
   // --- clock + refresh ------------------------------------------------------------
   const nowTime = ref('')
@@ -465,7 +479,7 @@
       }
       const what = week.value.entity.type === 'class' ? `classe ${name}` : name
       return {
-        title: `Orario ${what} · Fermi Notify`,
+        title: `Orario ${name} · Fermi Notify`,
         meta: [{ name: 'description', content: `Orario settimanale ${what} dell’IS Fermi di Mantova con le variazioni del giorno.` }],
       }
     })
@@ -476,9 +490,6 @@
   .orario {
     margin: 25px 0; /* as .section in page.css, which this view does not load */
     max-width: 1180px;
-    --m3-emph-decel: cubic-bezier(0.05, 0.7, 0.1, 1);
-    --m3-emph-accel: cubic-bezier(0.3, 0, 0.8, 0.15);
-    --m3-standard: cubic-bezier(0.2, 0, 0, 1);
   }
 
   .sr-only {
@@ -536,49 +547,18 @@
     margin: 0 0 16px;
   }
 
-  .orario-segmented {
-    display: inline-flex;
-    padding: 4px;
-    gap: 4px;
-    border-radius: 999px;
-    background: var(--surface-variant);
-  }
-  .orario-segmented button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 40px;
-    padding: 0 16px;
-    border-radius: 999px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--on-surface-variant);
-    transition:
-      background-color 200ms var(--m3-standard),
-      color 200ms var(--m3-standard);
-  }
-  .orario-segmented button .material-symbols-outlined {
-    font-size: 20px;
-  }
-  .orario-segmented button:hover {
-    color: var(--on-surface);
-  }
-  .orario-segmented button.active {
-    background: var(--primary);
-    color: var(--on-primary);
-  }
-  .orario-segmented--small button {
-    min-height: 36px;
-    padding: 0 14px;
+
+  /* No blue flash on tap (mobile browsers) */
+  .orario :is(button, a) {
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Toolbar */
   .orario-toolbar {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
     align-items: center;
-    gap: 12px;
+    gap: 12px 24px;
     margin-bottom: 16px;
   }
   .orario-weeknav {
@@ -587,10 +567,41 @@
     gap: 4px;
   }
   .orario-weeklabel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     min-width: 11ch;
-    text-align: center;
+    min-height: 40px;
+    padding: 0 8px 0 4px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--on-surface);
+    font: inherit;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Hover: a round background behind the icon only */
+  .orario-weeklabel .material-symbols-outlined {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    transition: background-color 150ms ease;
+  }
+  .orario-weeklabel:hover:not(:disabled) .material-symbols-outlined {
+    background: var(--surface-variant);
+  }
+  .orario-weeklabel:disabled {
+    cursor: default;
+  }
+  .orario-weeklabel .material-symbols-outlined {
+    font-size: 20px;
+    color: var(--on-surface-primary);
   }
   .orario-icon-btn {
     display: inline-grid;
@@ -617,14 +628,13 @@
     font-size: 18px;
   }
   .orario-icon-btn:focus-visible,
-  .orario-segmented button:focus-visible,
+  .orario-weeklabel:focus-visible,
   .orario-today-btn:focus-visible,
   .orario-day-chip:focus-visible {
     outline: 2px solid var(--on-surface-primary);
     outline-offset: 2px;
   }
   .orario-today-btn {
-    margin-left: 8px;
     min-height: 32px;
     padding: 0 14px;
     border-radius: 8px;
@@ -642,7 +652,6 @@
   .orario-days {
     display: flex;
     gap: 8px;
-    margin-bottom: 20px;
     overflow-x: auto;
     scrollbar-width: none;
   }
@@ -793,7 +802,7 @@
     font-size: 0.875rem;
   }
   .orario-message--error {
-    color: #f2b8b5;
+    color: var(--error-soft);
   }
 
   /* Footer */
@@ -836,11 +845,14 @@
     background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--on-surface) 10%, var(--surface)) 0 3px, var(--surface) 3px 6px);
   }
   .swatch--freed {
-    border: 1px solid #a8dab5;
-    background: color-mix(in srgb, #a8dab5 14%, var(--surface));
+    border: 1px solid var(--success-soft);
+    background: color-mix(in srgb, var(--success-soft) 14%, var(--surface));
   }
   .swatch--added {
     border: 1px dashed var(--on-surface-primary);
+  }
+  .swatch--maybe {
+    border: 1px dashed var(--warning-soft);
   }
   .orario-updated {
     display: inline-flex;
@@ -850,7 +862,7 @@
     font-variant-numeric: tabular-nums;
   }
   .orario-stale {
-    color: #f2b8b5;
+    color: var(--error-soft);
   }
   .orario-source {
     flex-basis: 100%;
@@ -867,19 +879,18 @@
   }
 
   @media (max-width: 700px) {
+    /* Phones: arrows + "Oggi" on the first line, the days below at full width */
     .orario-toolbar {
-      flex-direction: column-reverse;
-      align-items: stretch;
-    }
-    .orario-toolbar .orario-segmented {
-      align-self: stretch;
-    }
-    .orario-toolbar .orario-segmented button {
-      flex: 1;
-      justify-content: center;
+      gap: 12px 8px;
     }
     .orario-weeknav {
+      flex: 1;
       justify-content: space-between;
+    }
+    .orario-days {
+      order: 1;
+      flex-basis: 100%;
+      margin-bottom: 4px;
     }
   }
 
