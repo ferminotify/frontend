@@ -239,6 +239,17 @@ export const routes = [
   },
 ]
 
+// Staging only (VITE_SHADOW, staging/compose.yaml): prod vs staging notifier comparison.
+// The data comes from staging/shadow behind Caddy basic auth, never from the prod build.
+if (import.meta.env.VITE_SHADOW) {
+  routes.push({
+    path: '/shadow',
+    name: 'shadow',
+    component: () => import('../views/ShadowView.vue'),
+    meta: { title: 'Confronto notifiche · Fermi Notify', robots: 'noindex,nofollow' },
+  })
+}
+
 export function setupRouter(router) {
   // Expose the instance for non-component navigation (e.g. alert banner links).
   setRouter(router)
