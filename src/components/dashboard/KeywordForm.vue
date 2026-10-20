@@ -49,24 +49,13 @@
               @keydown="onKeydown"
               style="text-transform: uppercase" />
             <!-- Suggestions: classes, and teachers for school accounts -->
-            <ul v-show="showSuggestions" id="keyword-suggestions" class="kw-suggestions" role="listbox" aria-label="Suggerimenti">
-              <li
-                v-for="(s, i) in suggestions"
-                :id="`keyword-suggestion-${i}`"
-                :key="`${s.type}-${s.keyword}-${s.label}`"
-                role="option"
-                :aria-selected="i === activeIndex"
-                class="kw-suggestion"
-                :class="{ active: i === activeIndex }"
-                @mousedown.prevent="pickSuggestion(s)"
-                @mousemove="activeIndex = i">
-                <span class="material-symbols-outlined" aria-hidden="true">{{ s.type === 'teacher' ? 'person' : 'groups' }}</span>
-                <span class="kw-suggestion-text">
-                  <strong>{{ s.keyword }}</strong>
-                  <small>{{ s.type === 'teacher' ? s.label : 'Classe' }}</small>
-                </span>
-              </li>
-            </ul>
+            <KeywordSuggestions
+              id="keyword-suggestions"
+              :show="showSuggestions"
+              :suggestions="suggestions"
+              :active-index="activeIndex"
+              @pick="pickSuggestion"
+              @hover="activeIndex = $event" />
           </div>
           <a class="btn filled addButton submit-btn" @click="addKeyword" :disabled="isSubmitting">
             <span class="material-symbols-outlined">arrow_forward_ios</span>
@@ -116,7 +105,8 @@
   import { ref, computed } from 'vue'
   import { useUserStore } from '@/stores/user'
   import { generateAlert } from '@/utils/alertbanner.js'
-  import { fetchTimetableIndex } from '@/api/timetable'
+  import { useKeywordSuggestions } from '@/composables/useKeywordSuggestions'
+  import KeywordSuggestions from '@/components/common/KeywordSuggestions.vue'
 
   const store = useUserStore()
   const keywords = computed(() => (Array.isArray(store.user?.keywords) ? store.user.keywords : []))
@@ -136,97 +126,20 @@
   }
 
   // ------- Suggestions -------
-  // Classes from the school timetable; teachers too when the backend shows them
-  // (@fermimn.edu.it accounts). Loaded once, on first focus.
-  const index = ref(null) // { classes: [{key,name}], teachers: [{key,name}] | null }
-  let indexLoading = null
-  const focused = ref(false)
-  const activeIndex = ref(-1)
-  const MAX_SUGGESTIONS = 6
-
-  function loadIndex() {
-    indexLoading ||= fetchTimetableIndex()
-      .then((data) => (index.value = data))
-      .catch((err) => {
-        console.warn('Keyword suggestions unavailable', err)
-        indexLoading = null // retry on the next focus
-      })
-    return indexLoading
-  }
-
-  // The school lists teachers as "Surname Name": the calendar names them by surname
-  // ("PROF. ROSSI"). Two words → the first; a leading particle (De, Di, Della…) joins the next.
-  const PARTICLES = new Set(['DE', 'DI', 'DEL', 'DELLA', 'DELLE', 'DEGLI', 'DAL', 'DALLA', 'DA', 'LA', 'LO', 'LI', 'VAN', 'VON', "D'"])
-  function surnameOf(name) {
-    const words = name.toUpperCase().split(/\s+/).filter(Boolean)
-    if (words.length > 2 && PARTICLES.has(words[0])) return `${words[0]} ${words[1]}`
-    return words[0] || ''
-  }
-
-  const candidates = computed(() => {
-    if (!index.value) return []
-    const classes = (index.value.classes || []).map((c) => ({ type: 'class', keyword: c.key.toUpperCase(), label: c.name }))
-    const teachers = (index.value.teachers || [])
-      .filter((t) => !/\d/.test(t.name)) // vacant posts ("A40 …")
-      .map((t) => ({ type: 'teacher', keyword: surnameOf(t.name), label: t.name }))
-    return [...classes, ...teachers]
+  const { suggestions, showSuggestions, activeIndex, resetActive, onFocus, onBlur, onKeydown, pick } = useKeywordSuggestions({
+    input: keywordInput,
+    exclude: () => keywords.value,
+    onPick: (s) => {
+      keywordInput.value = s.keyword
+      addKeyword()
+    },
+    onEnter: () => addKeyword(),
   })
-
-  const suggestions = computed(() => {
-    const q = (keywordInput.value || '').trim().toUpperCase().replace(/\s+/g, ' ')
-    if (!q) return []
-    const have = new Set(keywords.value.map((k) => (k || '').toUpperCase()))
-    const score = (c) => {
-      const label = c.label.toUpperCase()
-      if (c.keyword.startsWith(q)) return 0
-      if (label.split(' ').some((w) => w.startsWith(q))) return 1
-      if (c.keyword.includes(q) || label.includes(q)) return 2
-      return -1
-    }
-    return candidates.value
-      .filter((c) => !have.has(c.keyword) && !(c.keyword === q && c.type === 'class'))
-      .map((c) => ({ c, rank: score(c) }))
-      .filter((x) => x.rank >= 0)
-      .sort((a, b) => a.rank - b.rank || a.c.keyword.localeCompare(b.c.keyword))
-      .slice(0, MAX_SUGGESTIONS)
-      .map((x) => x.c)
-  })
-
-  const showSuggestions = computed(() => focused.value && suggestions.value.length > 0)
+  const pickSuggestion = pick
 
   function onInput() {
     toUppercase()
-    activeIndex.value = -1
-  }
-  function onFocus() {
-    focused.value = true
-    loadIndex()
-  }
-  function onBlur() {
-    focused.value = false
-    activeIndex.value = -1
-  }
-  function onKeydown(e) {
-    const n = suggestions.value.length
-    if (e.key === 'ArrowDown' && n) {
-      e.preventDefault()
-      activeIndex.value = (activeIndex.value + 1) % n
-    } else if (e.key === 'ArrowUp' && n) {
-      e.preventDefault()
-      activeIndex.value = (activeIndex.value - 1 + n) % n
-    } else if (e.key === 'Escape') {
-      activeIndex.value = -1
-      focused.value = false
-    } else if (e.key === 'Enter') {
-      e.preventDefault()
-      if (showSuggestions.value && activeIndex.value >= 0) pickSuggestion(suggestions.value[activeIndex.value])
-      else addKeyword()
-    }
-  }
-  function pickSuggestion(s) {
-    keywordInput.value = s.keyword
-    activeIndex.value = -1
-    addKeyword()
+    resetActive()
   }
 
   async function addKeyword() {
@@ -240,8 +153,15 @@
     }
     try {
       isSubmitting.value = true
-      await store.addKeyword(kw)
+      const joints = await store.addKeyword(kw)
       keywordInput.value = ''
+      if (joints.length) {
+        const list = joints.join(', ')
+        generateAlert(
+          'info',
+          `Aggiunt${joints.length > 1 ? 'e' : 'a'} anche ${list}, classe articolata con ${kw.toUpperCase()}. Se non ti interessa, toglila.`
+        )
+      }
       // Optionally refresh similar suggestions in the future
     } catch (err) {
       console.warn('Failed to add keyword', err)
@@ -313,50 +233,5 @@
   .kw-combo .keyword-input {
     width: 100%;
     box-sizing: border-box;
-  }
-  .kw-suggestions {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    z-index: 20;
-    margin: 0;
-    padding: 4px;
-    list-style: none;
-    border-radius: 12px;
-    border: 1px solid var(--divider);
-    background: var(--surface);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  }
-  .kw-suggestion {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .kw-suggestion.active {
-    background: var(--surface-variant);
-  }
-  .kw-suggestion .material-symbols-outlined {
-    font-size: 20px;
-    color: var(--on-surface-primary);
-  }
-  .kw-suggestion-text {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-  .kw-suggestion-text strong {
-    font-weight: 600;
-  }
-  .kw-suggestion-text small {
-    color: var(--on-surface-variant);
-    font-size: 0.75rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 </style>

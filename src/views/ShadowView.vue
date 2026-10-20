@@ -71,6 +71,23 @@
             Invariate {{ n(data.pairs_now.same) }}, perse {{ n(data.pairs_now.lost) }}, nuove {{ n(data.pairs_now.added) }}.
           </template>
         </p>
+        <template v-if="data.sources">
+          <h2>Fonte degli eventi di oggi e domani</h2>
+          <p class="sh-note">
+            Prod legge il CSV ({{ data.sources.csv }} eventi), staging il calendario dal backend ({{ data.sources.calendar }}).
+            <template v-if="!data.sources.csv_only.length && !data.sources.calendar_only">Stessi eventi.</template>
+            <template v-else>
+              <template v-if="data.sources.calendar_only">{{ data.sources.calendar_only }} solo nel calendario (il CSV non li ha ancora).</template>
+              <template v-if="data.sources.csv_only.length">
+                {{ data.sources.csv_only.length }} solo nel CSV: appena creati (il backend li vede entro pochi minuti) o tolti dal calendario.
+                <template v-if="data.pairs.csv_only">{{ n(data.pairs.csv_only) }} notifiche in attesa per questo.</template>
+              </template>
+            </template>
+          </p>
+          <ul v-if="data.sources.csv_only.length" class="sh-missing">
+            <li v-for="t in data.sources.csv_only" :key="t"><span class="pill muted">solo nel CSV</span><span class="ev">{{ t }}</span></li>
+          </ul>
+        </template>
         <h2>Verifica su quanto prod ha inviato davvero</h2>
         <p v-if="!data.sent_check.total" class="sh-note">
           Prod non ha ancora inviato notifiche per gli eventi in calendario: si riempie dal mattino dei giorni di scuola.
@@ -136,6 +153,7 @@
           <option value="lost">Perse</option>
           <option value="added">Nuove</option>
           <option value="unconfirmed">Non confermati</option>
+          <option value="csv_only">Solo nel CSV</option>
         </select>
       </div>
 
@@ -357,8 +375,8 @@
   const dtFmt = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
   const fmtDay = (d) => (d ? dayFmt.format(new Date(d + 'T12:00:00')) : '')
   const fmtDateTime = (d) => (d ? dtFmt.format(new Date(d)) : '')
-  const kindLabel = (k) => ({ lost: 'persa', added: 'nuova', unconfirmed: 'non confermato' })[k] || k
-  const kindClass = (k) => ({ lost: 'bad', added: 'warn', unconfirmed: 'muted' })[k]
+  const kindLabel = (k) => ({ lost: 'persa', added: 'nuova', unconfirmed: 'non confermato', csv_only: 'solo nel CSV' })[k] || k
+  const kindClass = (k) => ({ lost: 'bad', added: 'warn', unconfirmed: 'muted', csv_only: 'muted' })[k]
 
   const allDiffs = computed(() => Object.values(diffs.value))
   const lostAll = computed(() => data.value?.pairs.lost || 0)

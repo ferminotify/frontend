@@ -160,9 +160,12 @@ export const useUserStore = defineStore('user', {
 
     async addKeyword(keyword) {
       if (!keyword) return
-      await api.put(`${API_URL}/user/keyword/add`, { keyword })
+      const res = await api.put(`${API_URL}/user/keyword/add`, { keyword })
       const current = Array.isArray(this.user?.keywords) ? this.user.keywords : []
-      this.user = { ...(this.user || {}), keywords: [...current, keyword] }
+      // The backend also adds the joint classes of a class ("5EELE" → "5EELEET")
+      const keywords = Array.isArray(res.data?.keywords) ? res.data.keywords : [...current, keyword]
+      this.user = { ...(this.user || {}), keywords }
+      return Array.isArray(res.data?.added) ? res.data.added.filter((k) => k !== keyword) : []
     },
 
     async deleteKeyword(keyword) {

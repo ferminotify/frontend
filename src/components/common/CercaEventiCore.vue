@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import csv2json from '@/utils/csv2json.js'
-import { fetchUpcomingEvents } from '@/api/timetable'
+import { searchEvents } from '@/api/timetable'
 
 const props = defineProps({
   activeFilter: {
@@ -182,6 +182,35 @@ watch(
   { deep: true }
 )
 
+// Keyword matching from the backend, the notifier's rules: { KEYWORD: Set(uid) }.
+// Keywords it did not answer for (backend down, over the limit) use the word search below.
+const MAX_MATCH_KEYWORDS = 20
+const backendMatches = ref({})
+let matchRequest = 0
+watch(
+  () => props.keywords,
+  async (list) => {
+    const kws = [...new Set((list || []).filter((k) => k && k !== '*'))].slice(0, MAX_MATCH_KEYWORDS)
+    const id = ++matchRequest
+    if (!kws.length) return (backendMatches.value = {})
+    try {
+      const { matches, optional } = await searchEvents(kws)
+      if (id !== matchRequest) return
+      const out = {}
+      for (const kw of kws) {
+        // Opt-in activities (help desks…) too: this is a search, as on the timetable page.
+        const extra = Object.values(optional?.[kw] || {}).flat()
+        out[kw.toUpperCase()] = new Set([...(matches?.[kw] || []), ...extra])
+      }
+      backendMatches.value = out
+    } catch (e) {
+      if (id === matchRequest) backendMatches.value = {}
+      console.warn('Keyword match from the backend failed, using the word search', e)
+    }
+  },
+  { immediate: true, deep: true }
+)
+
 // The Sheet CSV: only a few days ahead (see calendar-to-sheet.gs), used if the backend is down.
 const CSV_URL =
   'https://docs.google.com/spreadsheets/d/1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g/export?format=csv&id=1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g&gid=0'
@@ -201,7 +230,7 @@ function fromBackend(ev) {
 // All upcoming events from the Calendar API (via the backend), else the Sheet CSV.
 async function loadEvents() {
   try {
-    const { events } = await fetchUpcomingEvents()
+    const { events } = await searchEvents()
     return events.map(fromBackend)
   } catch (e) {
     console.warn('Events from the backend failed, using the CSV', e)
@@ -337,9 +366,11 @@ const filteredEventsByDay = computed(() => {
     // Special case: '*' shows all events
     if (keywords.includes('*')) return true
 
-    // Check if event title/summary matches any keyword using word boundaries
+    // Backend match when available, else the keyword as whole words in the title
     const title = displayTitle(ev).toUpperCase()
     return keywords.some((kw) => {
+      const uids = backendMatches.value[String(kw).toUpperCase()]
+      if (uids && ev.uid && uids.has(ev.uid)) return true
       // Use word boundary regex for more precise matching (like dashboard.ejs)
       const regex = new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&') + '\\b', 'i')
       return regex.test(title)

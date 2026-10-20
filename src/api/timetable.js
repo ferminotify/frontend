@@ -98,12 +98,20 @@ export function fetchTimetableExamples() {
 }
 
 /**
- * "Cerca eventi": calendar events from today on, as published.
- * Plain public request (no token), so browsers and proxies may cache it.
- * @returns {Promise<{ events: {uid, summary, date, start, end, allDay}[], source: string }>}
+ * Event search ("Cerca eventi", dashboard): the same endpoint and rules as the notifier
+ * (class codes as "5°CIIN" or "5 CIIN", joint classes, whole years, teachers, rooms).
+ * No keywords: every upcoming event. Public request (no token): at most 20 keywords.
+ * @param {string[]} [keywords]
+ * @returns {Promise<{ events: {uid, summary, date, start, end, allDay}[],
+ *   matches: {[kw: string]: string[]}, optional: {[kw: string]: {[cat: string]: string[]}}, source: string }>}
  */
-export async function fetchUpcomingEvents() {
-  const res = await fetch(`${API_URL}/timetable/events`, { credentials: 'omit' })
+export async function searchEvents(keywords = []) {
+  const res = await fetch(`${API_URL}/timetable/search`, {
+    method: 'POST',
+    credentials: 'omit',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ keywords }),
+  })
   if (!res.ok) throw new Error(`Errore ${res.status}`)
   return res.json()
 }

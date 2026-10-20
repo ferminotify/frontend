@@ -3,6 +3,8 @@
   import { generateAlert } from '@/utils/alertbanner.js'
   import CercaEventiCore from '@/components/common/CercaEventiCore.vue'
   import FeedbackPrompt from '@/components/FeedbackPrompt.vue'
+  import KeywordSuggestions from '@/components/common/KeywordSuggestions.vue'
+  import { useKeywordSuggestions } from '@/composables/useKeywordSuggestions'
 
   // local state for the search query
   const query = ref('')
@@ -60,6 +62,21 @@
   function toUppercase(e) {
     // force uppercase as the user types
     query.value = (e?.target?.value || '').toUpperCase()
+  }
+
+  const { suggestions, showSuggestions, activeIndex, resetActive, onFocus, onBlur, onKeydown, pick } = useKeywordSuggestions({
+    input: query,
+    exclude: () => searchKeywords.value,
+    onPick: (s) => {
+      query.value = s.keyword
+      cercaEventi()
+    },
+    onEnter: () => cercaEventi(),
+  })
+
+  function onInput(e) {
+    toUppercase(e)
+    resetActive()
   }
 
   function cercaEventi() {
@@ -254,10 +271,26 @@
               placeholder=" "
               type="text"
               id="cercaEventiInput"
+              autocomplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls="cercaEventi-suggestions"
+              :aria-expanded="showSuggestions"
+              :aria-activedescendant="activeIndex >= 0 ? `cercaEventi-suggestions-${activeIndex}` : undefined"
               v-model="query"
-              @input="toUppercase"
-              @keyup.enter="cercaEventi" />
+              @input="onInput"
+              @focus="onFocus"
+              @blur="onBlur"
+              @keydown="onKeydown" />
             <label>Keyword</label>
+            <!-- Suggestions as in the dashboard: classes, and teachers for school accounts -->
+            <KeywordSuggestions
+              id="cercaEventi-suggestions"
+              :show="showSuggestions"
+              :suggestions="suggestions"
+              :active-index="activeIndex"
+              @pick="pick"
+              @hover="activeIndex = $event" />
           </div>
           <a id="submit-btn" class="btn filled addButton" @click="cercaEventi">
             <span class="material-symbols-outlined" style="transform: translateY(0)">arrow_forward_ios</span>
