@@ -283,7 +283,7 @@
             <span class="primary-text">calendario giornaliero</span>
             una
             <span class="primary-text">keyword</span>
-            e mostra le variazioni previsti nei prossimi 3 giorni.
+            e mostra tutte le prossime variazioni pubblicate.
           </p>
           <p>
             Fai attenzione alla

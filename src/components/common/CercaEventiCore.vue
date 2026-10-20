@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import csv2json from '@/utils/csv2json.js'
+import { fetchUpcomingEvents } from '@/api/timetable'
 
 const props = defineProps({
   activeFilter: {
@@ -15,7 +16,6 @@ const props = defineProps({
 
 const events = ref([])
 const isLoading = ref(true)
-const days = [0, 1, 2, 3]
 
 // Intersection observer for scroll-triggered animations
 let observer = null
@@ -103,11 +103,7 @@ onMounted(async () => {
   )
 
   try {
-    const res = await fetch(
-      'https://docs.google.com/spreadsheets/d/1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g/export?format=csv&id=1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g&gid=0'
-    )
-    const csv = await res.text()
-    events.value = csv2json(csv)
+    events.value = await loadEvents()
 
     // Filter: keep events whose end is after the start of today.
     const todayStart = new Date()
@@ -137,8 +133,6 @@ onMounted(async () => {
     }
 
     events.value.sort(compareEvents)
-
-    console.log(events.value)
 
     // if query param 'id' is provided, scroll to that event
     const urlParams = new URLSearchParams(window.location.search)
@@ -187,6 +181,34 @@ watch(
   },
   { deep: true }
 )
+
+// The Sheet CSV: only a few days ahead (see calendar-to-sheet.gs), used if the backend is down.
+const CSV_URL =
+  'https://docs.google.com/spreadsheets/d/1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g/export?format=csv&id=1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g&gid=0'
+
+// Backend event { uid, summary, date, start, end, allDay } → the calendar fields used below
+// (local times; an all-day event starts and ends on its own day).
+function fromBackend(ev) {
+  if (ev.allDay) return { uid: ev.uid, summary: ev.summary, 'start.date': ev.date, 'end.date': ev.date }
+  return {
+    uid: ev.uid,
+    summary: ev.summary,
+    'start.dateTime': `${ev.date}T${ev.start}:00`,
+    'end.dateTime': `${ev.date}T${ev.end || ev.start}:00`,
+  }
+}
+
+// All upcoming events from the Calendar API (via the backend), else the Sheet CSV.
+async function loadEvents() {
+  try {
+    const { events } = await fetchUpcomingEvents()
+    return events.map(fromBackend)
+  } catch (e) {
+    console.warn('Events from the backend failed, using the CSV', e)
+    const res = await fetch(CSV_URL)
+    return csv2json(await res.text())
+  }
+}
 
 // Date parsing helpers
 function parseEnd(ev) {
@@ -263,20 +285,27 @@ function eventClasses(ev) {
   }
 }
 
-// Group events into buckets by day offset (0 = today, 1, 2, 3)
+// Group events into buckets by day offset (0 = today, 1, 2, …)
 const eventsByDay = computed(() => {
-  const buckets = { 0: [], 1: [], 2: [], 3: [] }
+  const buckets = {}
   for (const ev of events.value || []) {
     const start = getEventStartDate(ev)
     const off = start ? dayOffsetFromToday(start) : null
-    if (off != null && off >= 0 && off <= 3) buckets[off].push(ev)
+    if (off != null && off >= 0) (buckets[off] ||= []).push(ev)
   }
   return buckets
 })
 
+// Days that have events, in order
+const days = computed(() =>
+  Object.keys(eventsByDay.value)
+    .map(Number)
+    .sort((a, b) => a - b)
+)
+
 // Apply active filter to events per day
 const filteredEventsByDay = computed(() => {
-  const out = { 0: [], 1: [], 2: [], 3: [] }
+  const out = {}
   const filter = props.activeFilter
   const keywords = props.keywords || []
 
@@ -317,19 +346,19 @@ const filteredEventsByDay = computed(() => {
     })
   }
 
-  for (const k of [0, 1, 2, 3]) {
-    out[k] = (eventsByDay.value[k] || []).filter(match)
+  for (const k of days.value) {
+    out[k] = eventsByDay.value[k].filter(match)
   }
   return out
 })
 
-const firstDayWithEvents = computed(() => days.find((d) => eventsForDay(d).length > 0))
+const firstDayWithEvents = computed(() => days.value.find((d) => eventsForDay(d).length > 0))
 
 function eventsForDay(dayIndex) {
   return filteredEventsByDay.value[dayIndex] || []
 }
 
-const hasAnyEvents = computed(() => [0, 1, 2, 3].some((d) => (filteredEventsByDay.value?.[d]?.length || 0) > 0))
+const hasAnyEvents = computed(() => days.value.some((d) => (filteredEventsByDay.value?.[d]?.length || 0) > 0))
 
 // ------- Dates header formatting -------
 function getDateInfo(offset) {

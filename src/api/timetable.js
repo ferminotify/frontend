@@ -97,6 +97,17 @@ export function fetchTimetableExamples() {
   return get('/timetable/test/examples')
 }
 
+/**
+ * "Cerca eventi": calendar events from today on, as published.
+ * Plain public request (no token), so browsers and proxies may cache it.
+ * @returns {Promise<{ events: {uid, summary, date, start, end, allDay}[], source: string }>}
+ */
+export async function fetchUpcomingEvents() {
+  const res = await fetch(`${API_URL}/timetable/events`, { credentials: 'omit' })
+  if (!res.ok) throw new Error(`Errore ${res.status}`)
+  return res.json()
+}
+
 async function post(path, body) {
   return fetch(`${API_URL}${path}`, {
     method: 'POST',
