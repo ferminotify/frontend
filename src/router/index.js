@@ -67,6 +67,16 @@ export const routes = [
     },
   },
   {
+    path: '/collega-moodle',
+    name: 'link-moodle',
+    component: () => import('@/views/LinkMoodleView.vue'),
+    meta: {
+      title: 'Collega Moodle · Fermi Notify',
+      description: 'Collega il tuo account Moodle a Fermi Notify.',
+      robots: 'noindex,nofollow',
+    },
+  },
+  {
     path: '/complete-profile',
     name: 'complete-profile',
     component: CompleteProfileView,
@@ -242,7 +252,9 @@ export function setupRouter(router) {
     if (token && (to.path === '/login' || to.path === '/register')) {
       return consumeRedirect()
     }
-    if (!token && (to.path.startsWith('/dashboard') || to.path.startsWith('/complete-profile'))) {
+    // A Moodle signup completes its profile before any account (and token) exists.
+    const moodleSignup = to.path.startsWith('/complete-profile') && to.query.moodle === '1'
+    if (!token && !moodleSignup && (to.path.startsWith('/dashboard') || to.path.startsWith('/complete-profile'))) {
       saveRedirect(to.fullPath)
       return '/login'
     }

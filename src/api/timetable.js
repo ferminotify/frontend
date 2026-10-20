@@ -122,6 +122,9 @@ export async function schoolLogin(username, password) {
   setTicket(body.ticket)
 }
 
+/** Keeps the school session from the Moodle account login (see stores/user.js). */
+export const setSchoolTicket = (ticket) => setTicket(ticket)
+
 /** Ends the Moodle session (also on the school site). */
 export async function schoolLogout() {
   const req = schoolTicket.value ? post('/timetable/school-logout', {}).catch(() => {}) : null

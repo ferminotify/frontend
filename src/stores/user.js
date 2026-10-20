@@ -3,6 +3,8 @@ import api from '@/api/axios'
 import axios from 'axios'
 import { API_URL } from '@/utils/config'
 
+const MOODLE_SIGNUP_KEY = 'moodleSignup'
+
 export const useUserStore = defineStore('user', {
   getters: {
     genderLetter: (state) => {
@@ -57,6 +59,11 @@ export const useUserStore = defineStore('user', {
       const res = await axios.post(`${API_URL}/user/auth/login`, { email, password }) // POST login endpoint
       this.token = res.data.token // JWT token 1h
       this.onboarding = !!res.data.onboarding
+      // Moodle account: the password was checked on the school site, keep that session
+      if (res.data.ticket) {
+        const { setSchoolTicket } = await import('@/api/timetable')
+        setSchoolTicket(res.data.ticket)
+      }
       localStorage.setItem('token', this.token)
       await this.fetchProfile()
       return res.data
@@ -85,6 +92,61 @@ export const useUserStore = defineStore('user', {
     // Redirect the browser to the backend Google OAuth entry point.
     loginWithGoogle() {
       window.location.href = `${API_URL}/user/auth/google`
+    },
+
+    // "Accedi con Moodle": checked on the school site by the backend. A known account is
+    // logged in; a new one gets a signup token and goes to the profile step.
+    // Either way the school session (ticket) is kept, so the timetable shows teachers
+    // from the user's own session.
+    async loginWithMoodle(username, password) {
+      const res = await axios.post(`${API_URL}/user/auth/moodle`, { username, password })
+      const { setSchoolTicket } = await import('@/api/timetable')
+      if (res.data.ticket) setSchoolTicket(res.data.ticket)
+      if (res.data.signup) {
+        sessionStorage.setItem(MOODLE_SIGNUP_KEY, res.data.signup)
+        return { signup: true }
+      }
+      this.token = res.data.token
+      this.onboarding = !!res.data.onboarding
+      localStorage.setItem('token', this.token)
+      await this.fetchProfile()
+      return { signup: false }
+    },
+
+    hasMoodleSignup() {
+      try {
+        return Boolean(sessionStorage.getItem(MOODLE_SIGNUP_KEY))
+      } catch {
+        return false
+      }
+    },
+
+    async completeMoodleSignup({ name, surname, gender, email }) {
+      const signup = sessionStorage.getItem(MOODLE_SIGNUP_KEY)
+      const res = await axios.post(`${API_URL}/user/auth/moodle/complete`, { signup, name, surname, gender, email })
+      sessionStorage.removeItem(MOODLE_SIGNUP_KEY)
+      // The email already has an account: its owner links Moodle from the email we sent.
+      // New account: it enters once the email is confirmed (no session yet).
+      if (res.data.linkSent || res.data.confirmSent) return res.data
+      this.token = res.data.token
+      this.onboarding = !!res.data.onboarding
+      localStorage.setItem('token', this.token)
+      await this.fetchProfile()
+      return res.data
+    },
+
+    // "Collega Moodle" (link from the email): links Moodle to the account and logs in.
+    async linkMoodle(token) {
+      const res = await axios.post(`${API_URL}/user/auth/moodle/link`, { token })
+      this.token = res.data.token
+      this.onboarding = !!res.data.onboarding
+      localStorage.setItem('token', this.token)
+      await this.fetchProfile()
+    },
+
+    async moodleLinkInfo(token) {
+      const res = await axios.post(`${API_URL}/user/auth/moodle/link/info`, { token })
+      return res.data
     },
 
     async completeProfile({ name, surname, gender, password, password2 }) {
@@ -161,6 +223,9 @@ export const useUserStore = defineStore('user', {
         // use the authenticated api instance so the access token (Bearer) is sent
         await api.post(`${API_URL}/user/auth/logout`, { refreshToken: this.refreshToken })
       }
+      // The school session from "Accedi con Moodle" goes too
+      const { schoolLogout, schoolTicket } = await import('@/api/timetable')
+      if (schoolTicket.value) await schoolLogout()
       this.token = null
       this.refreshToken = null
       this.user = null
