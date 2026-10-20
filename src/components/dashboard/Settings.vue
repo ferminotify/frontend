@@ -163,6 +163,37 @@
           </p>
         </div>
       </div>
+
+      <!-- Opt-in activities: listed for a whole year, notified only if chosen -->
+      <div v-if="optInCategories.length" class="impostazioni-sect invioNotificheContainer" id="facoltative" style="padding-bottom: 15px">
+        <p style="padding-bottom: 10px" class="impostazioni-sect-title">
+          <span class="material-symbols-outlined">volunteer_activism</span>
+          Attività facoltative
+        </p>
+        <div class="impostazioni-sect-content">
+          <p style="font-size: 12px; color: var(--on-surface)">
+            Sportelli, tutoring e simili indicati per tutto l'anno ("CLASSI 2^ IT") arrivano solo se li attivi qui.
+            Se nominano la tua classe ti arrivano comunque. In Orario li vedi sempre.
+          </p>
+          <div v-for="c in optInCategories" :key="c.id" class="optin-row">
+            <div class="checkNot-container">
+              <label :for="'optin-' + c.id">{{ c.label }}</label>
+              <label class="switch">
+                <input
+                  :id="'optin-' + c.id"
+                  type="checkbox"
+                  class="checkbox"
+                  :checked="optIn.includes(c.id)"
+                  :disabled="savingOptIn"
+                  @change="toggleOptIn(c.id, $event.target.checked)" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <p class="optin-desc">{{ c.description }}</p>
+            <p class="optin-desc optin-example">Es. {{ c.example }}</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <button class="btn filled" style="margin-top: 30px" @click="onLogout" ref="logoutBtn">
@@ -185,6 +216,9 @@
 
   const preferences = ref({ email: false, telegram: false, push: false, pushNotificationTime: 'false' })
   const includeSimilar = ref(false)
+  const optInCategories = ref([])
+  const optIn = ref([])
+  const savingOptIn = ref(false)
   const notificationTime = ref('06:00')
   const notificationDay = ref('false')
   const isEditingTime = ref(false)
@@ -209,6 +243,10 @@
     // Load mdtimepicker script
     loadTimepickerScript()
     loadUserPreferences()
+    store
+      .fetchOptInCategories()
+      .then((list) => (optInCategories.value = list || []))
+      .catch((err) => console.warn('Opt-in categories unavailable', err))
     loadUserPushSubscription()
   })
 
@@ -428,6 +466,7 @@
 
     // Load similar tags preference
     includeSimilar.value = user.include_similar_tags || false
+    optIn.value = [...(user.notify_optin || [])]
 
     // Load notification time
     if (user.notification_time) {
@@ -473,6 +512,21 @@
       generateAlert('error', 'Si è verificato un errore. Riprova più tardi.')
       // Revert on error
       includeSimilar.value = !includeSimilar.value
+    }
+  }
+
+  async function toggleOptIn(id, on) {
+    const before = optIn.value
+    optIn.value = on ? [...new Set([...before, id])] : before.filter((x) => x !== id)
+    savingOptIn.value = true
+    try {
+      await store.updateNotifyOptin(optIn.value)
+    } catch (err) {
+      console.error('Failed to update opt-in categories:', err)
+      generateAlert('error', 'Si è verificato un errore. Riprova più tardi.')
+      optIn.value = before
+    } finally {
+      savingOptIn.value = false
     }
   }
 
@@ -574,5 +628,21 @@
   }
   .impostazioni-sect-content{
     padding: 0 25px;
+  }
+  .optin-row + .optin-row {
+    margin-top: 6px;
+  }
+  .optin-row .checkNot-container label:first-child {
+    cursor: pointer;
+  }
+  .optin-desc {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--on-surface-variant);
+  }
+  .optin-example {
+    font-size: 11px;
+    color: var(--muted);
+    overflow-wrap: anywhere;
   }
 </style>

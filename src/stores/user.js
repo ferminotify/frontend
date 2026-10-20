@@ -204,6 +204,18 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+    async fetchOptInCategories() {
+      const res = await api.get(`${API_URL}/user/preferences/notify-optin`)
+      return res.data.categories
+    },
+
+    async updateNotifyOptin(optin) {
+      const res = await api.post(`${API_URL}/user/preferences/notify-optin`, { optin })
+      if (this.user) {
+        this.user = { ...this.user, notify_optin: res.data.notify_optin }
+      }
+    },
+
     async updateNotificationTime(time, dayBefore) {
       await api.post(`${API_URL}/user/preferences/notification-time`, { time, day: dayBefore })
       if (this.user) {
