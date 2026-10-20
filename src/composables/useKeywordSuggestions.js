@@ -2,19 +2,36 @@ import { computed, ref } from 'vue'
 import { fetchTimetableIndex } from '@/api/timetable'
 
 // Keyword suggestions (dashboard keywords, Cerca eventi): classes from the school timetable,
-// teachers too when the backend shows them (@fermimn.edu.it accounts). One shared index,
+// teachers too when the backend shows them (confirmed accounts, Moodle sessions). One shared index,
 // loaded on the first focus of any field.
 const index = ref(null) // { classes: [{key,name}], teachers: [{key,name}] | null }
 let indexLoading = null
+let indexFor = null // the login the index was loaded with: teachers depend on it
 const MAX_SUGGESTIONS = 6
 
+const currentLogin = () => {
+  try {
+    return localStorage.getItem('token') || ''
+  } catch {
+    return ''
+  }
+}
+
 function loadIndex() {
-  indexLoading ||= fetchTimetableIndex()
-    .then((data) => (index.value = data))
-    .catch((err) => {
-      console.warn('Keyword suggestions unavailable', err)
-      indexLoading = null // retry on the next focus
-    })
+  // Loaded before logging in (Cerca eventi, then the dashboard): load it again, with teachers.
+  const login = currentLogin()
+  if (indexLoading && indexFor !== login) indexLoading = null
+  if (!indexLoading) {
+    indexFor = login
+    indexLoading = fetchTimetableIndex()
+      .then((data) => {
+        if (indexFor === login) index.value = data
+      })
+      .catch((err) => {
+        console.warn('Keyword suggestions unavailable', err)
+        if (indexFor === login) indexLoading = null // retry on the next focus
+      })
+  }
   return indexLoading
 }
 

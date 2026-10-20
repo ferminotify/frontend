@@ -234,7 +234,7 @@
       if (e.status === 404 || e.status === 403) {
         error.value =
           e.status === 403
-            ? 'L’orario dei docenti è visibile solo con un account Fermi Notify @fermimn.edu.it.'
+            ? 'L’orario dei docenti è visibile solo dopo l’accesso a Fermi Notify o con Moodle.'
             : { classe: 'Classe non trovata.', aula: 'Aula non trovata.', docente: 'Docente non trovato.' }[type.value]
         week.value = null
       } else if (!silent || !week.value) {

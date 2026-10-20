@@ -25,8 +25,8 @@ function setTicket(ticket) {
 
 const TICKET_ERRORS = ['school_ticket_invalid', 'school_session_expired']
 
-// Public endpoints, plain fetch. When logged in the token is sent too: school accounts
-// (@fermimn.edu.it) get teachers. An expired token is refreshed once; if that fails the
+// Public endpoints, plain fetch. When logged in the token is sent too: confirmed accounts
+// get teachers. An expired token is refreshed once; if that fails the
 // request is retried anonymously, so the page never breaks because of auth.
 // An expired Moodle ticket is dropped and the request retried without it.
 async function get(path) {

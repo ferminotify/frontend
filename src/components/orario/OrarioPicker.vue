@@ -62,7 +62,8 @@
           <span class="material-symbols-outlined op-notice-icon" aria-hidden="true">school</span>
           <div class="op-notice-text">
             <strong>Orario dei docenti</strong>
-            <span>Accedi con un account <b>@fermimn.edu.it</b> per cercare i docenti.</span>
+            <span v-if="loggedIn">Conferma la tua email per cercare i docenti, oppure accedi con Moodle.</span>
+            <span v-else>Accedi a Fermi Notify o con Moodle per cercare i docenti.</span>
           </div>
           <div v-if="!loginOpen" class="op-notice-actions">
             <RouterLink v-if="!loggedIn" to="/login" class="op-notice-btn op-notice-btn--outlined">Accedi</RouterLink>
@@ -291,7 +292,7 @@
     if (!props.index) return []
     return [
       column('classe', props.index.classes, 'Classi', 'groups'),
-      // Only for confirmed @fermimn.edu.it accounts (the API sends null otherwise).
+      // Only for confirmed accounts and Moodle sessions (the API sends null otherwise).
       ...(props.index.teachers?.length ? [column('docente', props.index.teachers, 'Docenti', 'school')] : []),
       column('aula', props.index.rooms, 'Aule', 'meeting_room'),
     ].filter((col) => col.count > 0) // while searching, hide columns without matches
