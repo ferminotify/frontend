@@ -27,12 +27,14 @@ async function registerServiceWorker() {
   try {
     const registration = await navigator.serviceWorker.register('/service-worker.js')
     try {
+      // The permission prompt comes only from the dashboard's push switch (Settings.vue).
+      // Here: keep an existing subscription in sync when the browser renewed its endpoint,
+      // with the permission already granted (no prompt) and someone logged in.
       const storedEndpoint = localStorage.getItem('endpoint') || null
       const existingSub = await registration.pushManager.getSubscription()
-      if (!existingSub || existingSub.endpoint !== storedEndpoint) {
+      const loggedIn = Boolean(localStorage.getItem('token'))
+      if (existingSub && existingSub.endpoint !== storedEndpoint && loggedIn && Notification.permission === 'granted') {
         await subscribeUser(true)
-      } else {
-        console.log('[push] Existing subscription matches stored endpoint — skipping subscribeUser')
       }
     } catch (e) {
       console.warn('[push] Error checking push subscription after SW registration', e)

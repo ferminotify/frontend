@@ -105,3 +105,70 @@ export function useKeywordSuggestions({ input, exclude, onPick, onEnter }) {
     pick,
   }
 }
+
+// ------- Class check: a keyword that looks like a class code but is no class -------
+// "5IIN", "5CCIN", "4CBIOIN": the notifier then only finds that exact word in the titles.
+// Same normalisation as the backend (utils/timetable/keywords.js keywordWords): no accents,
+// ordinal marks, dots or spaces ("5ºCIIN", "5 CIIN", "4E." are classes).
+const compact = (kw) =>
+  String(kw || '')
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Z0-9]/g, '')
+
+// Joint classes as the calendar writes them (backend merge.js jointCalendarName):
+// site "5EELEEET" (5EELE + 5EET) → "5EELEET".
+function jointNames(keys) {
+  const out = []
+  for (const k of keys) {
+    for (let i = 2; i < k.length - 1; i++) {
+      const a = k.slice(0, i)
+      const b = k[0] + k.slice(i)
+      if (a !== k && keys.has(a) && keys.has(b)) out.push(a + b.slice(a[1] === b[1] ? 2 : 1))
+    }
+  }
+  return out
+}
+
+function editDistance(a, b) {
+  const row = Array.from({ length: b.length + 1 }, (_, j) => j)
+  for (let i = 1; i <= a.length; i++) {
+    let prev = row[0]
+    row[0] = i
+    for (let j = 1; j <= b.length; j++) {
+      const cur = row[j]
+      row[j] = Math.min(row[j] + 1, row[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1))
+      prev = cur
+    }
+  }
+  return row[b.length]
+}
+
+const knownClasses = computed(() => {
+  if (!index.value?.classes?.length) return null
+  const keys = new Set(index.value.classes.map((c) => c.key.toUpperCase()))
+  return new Set([...keys, ...jointNames(keys)])
+})
+
+/**
+ * Keywords that look like a class and are none, with the closest classes (same year first).
+ * The class list loads on first use; until then (or if it fails) nothing is flagged.
+ */
+export function useClassCheck() {
+  loadIndex()
+  /** @returns {{ keyword: string, suggestions: string[] } | null} */
+  function check(kw) {
+    const known = knownClasses.value
+    const key = compact(kw)
+    if (!known || !/^[1-5][A-Z]/.test(key) || known.has(key)) return null
+    const suggestions = [...known]
+      .map((c) => ({ c, d: editDistance(key, c) }))
+      .filter((x) => x.d <= 2)
+      .sort((x, y) => (y.c[0] === key[0]) - (x.c[0] === key[0]) || x.d - y.d || x.c.localeCompare(y.c))
+      .slice(0, 3)
+      .map((x) => x.c)
+    return { keyword: kw, suggestions }
+  }
+  return { ready: computed(() => Boolean(knownClasses.value)), check, load: loadIndex }
+}

@@ -168,20 +168,6 @@ onUnmounted(() => {
   }
 })
 
-// Watch for changes in filtered events and re-observe new elements
-watch(
-  () => [props.activeFilter, props.keywords],
-  () => {
-    // Wait for DOM to update with new filtered events
-    setTimeout(() => {
-      document.querySelectorAll('.events-list .event:not(.event-visible)').forEach((el) => {
-        if (observer) observer.observe(el)
-      })
-    }, 50)
-  },
-  { deep: true }
-)
-
 // Keyword matching from the backend, the notifier's rules: { KEYWORD: Set(uid) }.
 // Keywords it did not answer for (backend down, over the limit) use the word search below.
 const MAX_MATCH_KEYWORDS = 20
@@ -382,6 +368,18 @@ const filteredEventsByDay = computed(() => {
   }
   return out
 })
+
+// Re-observe new event elements whenever the shown list changes: filters, keywords, and the
+// backend's matches, which arrive after the keywords (else those events stay invisible).
+watch(
+  () => filteredEventsByDay.value,
+  () => {
+    document.querySelectorAll('.events-list .event:not(.event-visible)').forEach((el) => {
+      if (observer) observer.observe(el)
+    })
+  },
+  { flush: 'post' }
+)
 
 const firstDayWithEvents = computed(() => days.value.find((d) => eventsForDay(d).length > 0))
 
