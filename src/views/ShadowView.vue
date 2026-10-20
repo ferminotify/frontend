@@ -109,6 +109,28 @@
         </template>
       </section>
 
+      <section v-if="data.push" class="sh-panel">
+        <h2>Push</h2>
+        <p class="sh-note">
+          Prod: notifier-push (parole nel titolo, dal CSV). Staging: il giro push del notifier, stessi match di email e Telegram.
+          {{ data.push.devices }} dispositivi di {{ data.push.users }} utenti.
+        </p>
+        <p class="sh-note">
+          Invariate {{ n(data.push.pairs.same) }},
+          <strong :class="{ 'txt-bad': data.push.pairs.lost }">perse {{ n(data.push.pairs.lost) }}</strong>,
+          nuove {{ n(data.push.pairs.added) }}<template v-if="data.push.pairs.csv_only">, solo nel CSV {{ n(data.push.pairs.csv_only) }}</template>.
+          Push inviati da prod per eventi ancora in calendario: {{ n(data.push.sent_check.total) }},
+          <strong :class="{ 'txt-bad': data.push.sent_check.staging_ok < data.push.sent_check.total }">{{ n(data.push.sent_check.staging_ok) }} anche da staging</strong>.
+        </p>
+        <ul v-if="data.push.sent_check.missing.length" class="sh-missing">
+          <li v-for="m in data.push.sent_check.missing" :key="'p' + m.sub + m.uid">
+            <span class="pill" :class="m.reason === 'persa da staging' ? 'bad' : 'muted'">{{ m.reason }}</span>
+            <span class="who">#{{ m.sub }}</span>
+            <span class="ev">{{ fmtDay(m.date) }} · {{ m.summary }}</span>
+          </li>
+        </ul>
+      </section>
+
       <section v-if="data.optin?.length" class="sh-panel">
         <h2>Attività facoltative (solo a chi le attiva)</h2>
         <p class="sh-note">
@@ -253,7 +275,10 @@
           </thead>
           <tbody>
             <tr v-for="d in shown(diffRows)" :key="d.sub + d.uid">
-              <td><span class="pill" :class="kindClass(d.kind)">{{ kindLabel(d.kind) }}</span></td>
+              <td>
+                <span class="pill" :class="kindClass(d.kind)">{{ kindLabel(d.kind) }}</span>
+                <span v-if="d.channel === 'push'" class="pill muted">push</span>
+              </td>
               <td class="mono">#{{ d.sub }}</td>
               <td class="cell-main">
                 <span class="title">{{ d.summary }}</span>
@@ -379,7 +404,7 @@
   const kindClass = (k) => ({ lost: 'bad', added: 'warn', unconfirmed: 'muted', csv_only: 'muted' })[k]
 
   const allDiffs = computed(() => Object.values(diffs.value))
-  const lostAll = computed(() => data.value?.pairs.lost || 0)
+  const lostAll = computed(() => (data.value?.pairs.lost || 0) + (data.value?.push?.pairs.lost || 0))
   const seenLost = computed(() => allDiffs.value.filter((d) => d.kind === 'lost').length)
 
   const needle = computed(() => q.value.toUpperCase())
@@ -401,6 +426,7 @@
     }
     const who = new Map()
     for (const d of data.value.diffs) {
+      if (d.channel === 'push') continue // push has its own panel; here email and Telegram
       const title = data.value.event_titles[d.uid]
       const key = title + '|' + d.kind + '|' + d.sub
       if (!who.has(key)) who.set(key, { title, kind: d.kind, sub: d.sub, kw: d.kind === 'added' ? d.staging_kw : d.prod_kw })
