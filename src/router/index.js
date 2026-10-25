@@ -97,6 +97,17 @@ export const routes = [
     },
   },
   {
+    // Email footer link (and GET on the backend's one-click URL): disable notification emails
+    path: '/auth/unsubscribe',
+    name: 'unsubscribe',
+    component: () => import('@/views/UnsubscribeView.vue'),
+    meta: {
+      title: 'Disattiva le email · Fermi Notify',
+      description: 'Disattiva le notifiche via email di Fermi Notify.',
+      robots: 'noindex,nofollow',
+    },
+  },
+  {
     path: '/password_reset',
     name: 'password-reset',
     component: ResetPasswordView,
