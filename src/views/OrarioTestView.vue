@@ -126,7 +126,7 @@
           </li>
         </ul>
         <p v-if="!result.matches.some((m) => m.type === 'teacher') && p.teachers.length + p.absent.length" class="otest-muted otest-small">
-          I docenti si vedono solo dopo l’accesso a Fermi Notify o con Moodle.
+          I docenti si vedono solo con l’accesso ai docenti (account @fermimn.edu.it o Moodle).
         </p>
       </section>
 

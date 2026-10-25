@@ -1,10 +1,10 @@
 import { computed, ref } from 'vue'
 import { fetchTimetableIndex } from '@/api/timetable'
 
-// Keyword suggestions (dashboard keywords, Cerca eventi): classes from the school timetable,
-// teachers too when the backend shows them (confirmed accounts, Moodle sessions). One shared index,
-// loaded on the first focus of any field.
-const index = ref(null) // { classes: [{key,name}], teachers: [{key,name}] | null }
+// Keyword suggestions (dashboard keywords, Cerca eventi): classes from the school timetable;
+// teachers from the school's list for school accounts and Moodle sessions, else the surnames
+// the public calendar prints. One shared index, loaded on the first focus of any field.
+const index = ref(null) // { classes: [{key,name}], teachers: [{key,name}] | null, calendarTeachers: [surname] }
 let indexLoading = null
 let indexFor = null // the login the index was loaded with: teachers depend on it
 const MAX_SUGGESTIONS = 6
@@ -47,9 +47,13 @@ function surnameOf(name) {
 const candidates = computed(() => {
   if (!index.value) return []
   const classes = (index.value.classes || []).map((c) => ({ type: 'class', keyword: c.key.toUpperCase(), label: c.name }))
-  const teachers = (index.value.teachers || [])
-    .filter((t) => !/\d/.test(t.name)) // vacant posts ("A40 …")
-    .map((t) => ({ type: 'teacher', keyword: surnameOf(t.name), label: t.name }))
+  // The school's list (school accounts, Moodle sessions), else the surnames the public
+  // calendar prints (everyone; no first names, no timetables).
+  const teachers = index.value.teachers
+    ? index.value.teachers
+        .filter((t) => !/\d/.test(t.name)) // vacant posts ("A40 …")
+        .map((t) => ({ type: 'teacher', keyword: surnameOf(t.name), label: t.name }))
+    : (index.value.calendarTeachers || []).map((name) => ({ type: 'teacher', keyword: name, label: 'Docente' }))
   return [...classes, ...teachers]
 })
 
