@@ -176,6 +176,7 @@
           <option value="added">Nuove</option>
           <option value="unconfirmed">Non confermati</option>
           <option value="csv_only">Solo nel CSV</option>
+          <option value="similar">Variazioni probabili (tolte)</option>
         </select>
       </div>
 
@@ -400,8 +401,8 @@
   const dtFmt = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
   const fmtDay = (d) => (d ? dayFmt.format(new Date(d + 'T12:00:00')) : '')
   const fmtDateTime = (d) => (d ? dtFmt.format(new Date(d)) : '')
-  const kindLabel = (k) => ({ lost: 'persa', added: 'nuova', unconfirmed: 'non confermato', csv_only: 'solo nel CSV' })[k] || k
-  const kindClass = (k) => ({ lost: 'bad', added: 'warn', unconfirmed: 'muted', csv_only: 'muted' })[k]
+  const kindLabel = (k) => ({ lost: 'persa', added: 'nuova', unconfirmed: 'non confermato', csv_only: 'solo nel CSV', similar: 'probabile (tolta)' })[k] || k
+  const kindClass = (k) => ({ lost: 'bad', added: 'warn', unconfirmed: 'muted', csv_only: 'muted', similar: 'muted' })[k]
 
   const allDiffs = computed(() => Object.values(diffs.value))
   const lostAll = computed(() => (data.value?.pairs.lost || 0) + (data.value?.push?.pairs.lost || 0))

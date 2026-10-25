@@ -253,14 +253,8 @@ onBeforeUnmount(() => {
 					Tutte le variazioni aggiunte dopo l'orario scelto (negli esempi, dopo le 6:30 e le 19:30) arrivano come Last Minute Notification. Per cambiare l'orario vai nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>.
 				</p>
 			</div>
-			<div class="question">
-				<h3>8. Cosa vuol dire "Invia variazioni probabili"?</h3>
-				<p class="answer">
-					Con questa opzione attiva ricevi anche gli eventi della classe dal nome pi&ugrave; simile a una tua keyword (es. con <code>5 CIN</code> anche la <code>5CIIN</code>), indicati come <i>eventi probabili</i>. Puoi disattivarla nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>. Se una keyword non corrisponde a nessuna classe, la Dashboard te lo segnala: correggerla &egrave; il modo pi&ugrave; sicuro per ricevere le notifiche giuste.
-				</p>
-			</div>
 			<div class="question" id="emailSpam">
-				<h3>9. Le email sono contrassegnate come SPAM</h3>
+				<h3>8. Le email sono contrassegnate come SPAM</h3>
 				<p class="answer">
 					Le email vengono inviate tramite servizi di invio email esterni (Microsoft Azure e Mailgun), ma alcuni provider come Gmail o Outlook potrebbero comunque metterle nella cartella <span class="primary-text">SPAM</span> o <span class="primary-text">Promozioni</span>.<br>
 					Se trovi una notifica l&igrave;, contrassegnala come <i>non spam</i> per spostarla nella <span class="primary-text">Posta in arrivo</span>. In alternativa usa l'email istituzionale <i>@fermimn.edu.it</i> oppure ricevi le notifiche su Telegram o come notifiche push.

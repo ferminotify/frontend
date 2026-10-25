@@ -200,13 +200,6 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    async toggleProbableNotifications() {
-      await api.post(`${API_URL}/user/preferences/toggle-probable-notifications`)
-      if (this.user) {
-        this.user = { ...this.user, include_similar_tags: !this.user.include_similar_tags }
-      }
-    },
-
     async fetchOptInCategories() {
       const res = await api.get(`${API_URL}/user/preferences/notify-optin`)
       return res.data.categories
