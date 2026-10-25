@@ -36,6 +36,7 @@
       app: () => import('@/assets/img/bg/Google_Mio_DevelopInputOutput_1080x1080.mp4'),
       team: () => import('@/assets/img/bg/Google_Mio_MaterialAZ_1080x1080_(1).mp4'),
       supporter: () => import('@/assets/img/bg/Google_Mio_Shape_1080x1080.mp4'),
+      archive: () => import('@/assets/img/bg/Google_Mio_WhatsMaterial_2400x3200.mp4'),
     }
     
     if (videoMap[videoType]) {
