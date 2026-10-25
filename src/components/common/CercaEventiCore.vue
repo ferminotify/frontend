@@ -12,6 +12,11 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  // Dashboard: the days up to "Tra 3 giorni" (or the first 3 with events), then "Carica altro"
+  paged: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const events = ref([])
@@ -138,6 +143,7 @@ onMounted(async () => {
     const urlParams = new URLSearchParams(window.location.search)
     const eventId = urlParams.get('id')
     if (eventId) {
+      showAll.value = true
       setTimeout(() => {
         const el = document.getElementById(eventId)
         if (el) {
@@ -369,10 +375,32 @@ const filteredEventsByDay = computed(() => {
   return out
 })
 
+// ------- Paging (dashboard) -------
+const PAGE_DAYS = 3 // first page: up to "Tra 3 giorni"; each "Carica altro": 3 more days with events
+const loadedPages = ref(0)
+const showAll = ref(false) // a link to one event (?id=…): every day, so it can be scrolled to
+const daysWithEvents = computed(() => days.value.filter((d) => eventsForDay(d).length > 0))
+const visibleDayCount = computed(() => {
+  if (!props.paged || showAll.value) return daysWithEvents.value.length
+  const soon = daysWithEvents.value.filter((d) => d <= PAGE_DAYS).length
+  return (soon || PAGE_DAYS) + loadedPages.value * PAGE_DAYS
+})
+const visibleDays = computed(() => new Set(daysWithEvents.value.slice(0, visibleDayCount.value)))
+const hasMoreDays = computed(() => visibleDayCount.value < daysWithEvents.value.length)
+function loadMoreDays() {
+  loadedPages.value++
+}
+// Other keywords or filter: back to the first page
+watch(
+  () => [props.activeFilter, props.keywords],
+  () => (loadedPages.value = 0),
+  { deep: true }
+)
+
 // Re-observe new event elements whenever the shown list changes: filters, keywords, and the
 // backend's matches, which arrive after the keywords (else those events stay invisible).
 watch(
-  () => filteredEventsByDay.value,
+  () => [filteredEventsByDay.value, visibleDayCount.value],
   () => {
     document.querySelectorAll('.events-list .event:not(.event-visible)').forEach((el) => {
       if (observer) observer.observe(el)
@@ -382,6 +410,7 @@ watch(
 )
 
 const firstDayWithEvents = computed(() => days.value.find((d) => eventsForDay(d).length > 0))
+
 
 function eventsForDay(dayIndex) {
   return filteredEventsByDay.value[dayIndex] || []
@@ -502,6 +531,7 @@ function sameStartEnd(ev) {
     <slot v-if="!isLoading && !hasAnyEvents" name="after-first-day" />
     <template v-for="d in days" :key="d">
     <div
+      v-if="visibleDays.has(d)"
       class="events-container"
       :id="`events-${d}`"
       :style="{ display: eventsForDay(d).length ? 'block' : 'none' }">
@@ -532,12 +562,30 @@ function sameStartEnd(ev) {
     </div>
     <slot v-if="d === firstDayWithEvents" name="after-first-day" />
     </template>
+    <div v-if="!isLoading && hasMoreDays" class="events-more">
+      <button type="button" class="btn outlined" @click="loadMoreDays">
+        <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+        Carica altro
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped src="@/assets/css/cercaeventi.css"></style>
 
 <style scoped>
+/* "Carica altro" (dashboard) */
+.events-more {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 8px;
+}
+.events-more .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Fade-up entrance animation for events - triggered on scroll into view */
 @keyframes event-fade-up {
   from {
