@@ -16,7 +16,6 @@ const TestView = () => import('../views/TestView.vue')
 const FeedbackView = () => import('../views/FeedbackView.vue')
 const OrarioView = () => import('../views/OrarioView.vue')
 const SegnalaView = () => import('../views/SegnalaView.vue')
-const OrarioTestView = () => import('../views/OrarioTestView.vue')
 const AuthCallbackView = () => import('../views/AuthCallbackView.vue')
 const CompleteProfileView = () => import('../views/CompleteProfileView.vue')
 
@@ -125,16 +124,6 @@ export const routes = [
       title: 'OTP Password · Fermi Notify',
       description: 'Verifica il codice OTP per completare il recupero password su Fermi Notify.',
       robots: 'noindex,follow',
-    },
-  },
-  {
-    path: '/orario/test',
-    name: 'orario-test',
-    component: OrarioTestView,
-    meta: {
-      title: 'Test variazioni · Fermi Notify',
-      description: 'Prova come Fermi Notify legge un evento del calendario.',
-      robots: 'noindex,nofollow',
     },
   },
   {
@@ -249,17 +238,6 @@ export const routes = [
     },
   },
 ]
-
-// Staging only (VITE_SHADOW, staging/compose.yaml): prod vs staging notifier comparison.
-// The data comes from staging/shadow behind Caddy basic auth, never from the prod build.
-if (import.meta.env.VITE_SHADOW) {
-  routes.push({
-    path: '/shadow',
-    name: 'shadow',
-    component: () => import('../views/ShadowView.vue'),
-    meta: { title: 'Confronto notifiche · Fermi Notify', robots: 'noindex,nofollow' },
-  })
-}
 
 export function setupRouter(router) {
   // Expose the instance for non-component navigation (e.g. alert banner links).

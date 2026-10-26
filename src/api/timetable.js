@@ -80,24 +80,6 @@ export const fetchTimetableWeek = (type, ref, date) =>
   get(`/timetable/${type}/${encodeURIComponent(ref)}${date ? `?date=${date}` : ''}`)
 
 /**
- * Test page: how an event title is read and what it changes.
- * @param {{summary:string, date:string, start?:string, end?:string, allDay?:boolean}} ev
- */
-export function fetchTimetableTest({ summary, date, start, end, allDay }) {
-  const q = new URLSearchParams({ summary, date })
-  if (!allDay && start) {
-    q.set('start', start)
-    q.set('end', end || start)
-  } else q.set('allDay', '1')
-  return get(`/timetable/test?${q}`)
-}
-
-/** Test page: a few random events from the calendar to try. */
-export function fetchTimetableExamples() {
-  return get('/timetable/test/examples')
-}
-
-/**
  * Event search ("Cerca eventi", dashboard): the same endpoint and rules as the notifier
  * (class codes as "5°CIIN" or "5 CIIN", joint classes, whole years, teachers, rooms).
  * No keywords: every upcoming event. Public request (no token): at most 20 keywords.
