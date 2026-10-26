@@ -49,10 +49,16 @@ const candidates = computed(() => {
   const classes = (index.value.classes || []).map((c) => ({ type: 'class', keyword: c.key.toUpperCase(), label: c.name }))
   // The school's list (school accounts, Moodle sessions), else the surnames the public
   // calendar prints (everyone; no first names, no timetables).
+  // Homonyms ("Vighi Giulia", "Vighi Cristina") get the whole name: the surname alone is both.
+  const school = (index.value.teachers || []).filter((t) => !/\d/.test(t.name)) // vacant posts ("A40 …")
+  const bySurname = new Map()
+  for (const t of school) bySurname.set(surnameOf(t.name), (bySurname.get(surnameOf(t.name)) || 0) + 1)
   const teachers = index.value.teachers
-    ? index.value.teachers
-        .filter((t) => !/\d/.test(t.name)) // vacant posts ("A40 …")
-        .map((t) => ({ type: 'teacher', keyword: surnameOf(t.name), label: t.name }))
+    ? school.map((t) => {
+        const surname = surnameOf(t.name)
+        const keyword = bySurname.get(surname) > 1 ? t.name.toUpperCase().replace(/\s+/g, ' ').trim() : surname
+        return { type: 'teacher', keyword, label: t.name }
+      })
     : (index.value.calendarTeachers || []).map((name) => ({ type: 'teacher', keyword: name, label: 'Docente' }))
   return [...classes, ...teachers]
 })
