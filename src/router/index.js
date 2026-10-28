@@ -249,7 +249,8 @@ export function setupRouter(router) {
     if (typeof localStorage === 'undefined' || typeof localStorage?.getItem !== 'function') return
 
     const token = localStorage.getItem('token')
-    if (token && (to.path === '/login' || to.path === '/register')) {
+    // Already logged in: /login only to log in again with Moodle (teachers on /orario)
+    if (token && to.query.moodle !== '1' && (to.path === '/login' || to.path === '/register')) {
       return consumeRedirect()
     }
     // A Moodle signup completes its profile before any account (and token) exists.

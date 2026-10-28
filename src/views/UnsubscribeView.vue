@@ -3,7 +3,6 @@
     <img src="@/assets/icons/logo-long.svg" alt="Fermi Notify Logo" class="form-logo logo" />
     <div class="rounded-container" style="margin: 25px; width: min(100%, 480px)">
       <div class="rounded-inner">
-        <!-- A button, not on load: mail scanners open links, only the owner unsubscribes -->
         <form class="basic-form" @submit.prevent="onConfirm">
           <div class="us-head">
             <span class="us-icon material-symbols-outlined" aria-hidden="true">{{ done ? 'mark_email_read' : 'unsubscribe' }}</span>
@@ -21,9 +20,8 @@
             <RouterLink to="/dashboard" class="btn text submit-btn us-link">Vai alla Dashboard</RouterLink>
           </template>
           <template v-else>
-            <p class="us-text">Non riceverai più le notifiche di Fermi Notify via email. Telegram e notifiche push restano come sono.</p>
+            <p class="us-text">Non riceverai più le notifiche di Fermi Notify via email.</p>
             <button class="btn filled submit-btn" ref="submitBtnRef" type="submit">Disattiva le email</button>
-            <p class="us-note">Hai cambiato idea? Chiudi questa pagina: non cambia niente.</p>
           </template>
         </form>
       </div>
@@ -56,11 +54,6 @@
   .us-text {
     margin: 0;
     line-height: 1.5;
-  }
-  .us-note {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.8125rem;
   }
   .us-link {
     text-align: center;

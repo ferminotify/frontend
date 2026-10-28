@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import { API_URL } from '@/utils/config'
-import { useUserStore } from '@/stores/user'
 
 // "Accedi con Moodle": opaque ticket for the user's session on fermimn.edu.it, issued by
 // the backend (the password only goes to the backend, which forwards it to the school).
@@ -25,38 +24,23 @@ function setTicket(ticket) {
 
 const TICKET_ERRORS = ['school_ticket_invalid', 'school_session_expired']
 
-// Public endpoints, plain fetch. When logged in the token is sent too: confirmed school
-// accounts (@fermimn.edu.it) get teachers. An expired token is refreshed once; if that fails the
-// request is retried anonymously, so the page never breaks because of auth.
-// An expired Moodle ticket is dropped and the request retried without it.
+// Public endpoints, plain fetch. The Moodle ticket, when there is one, adds teachers;
+// an expired one (or an account the school does not let see them) is dropped and the
+// request retried without it, so the page never breaks because of it.
 async function get(path) {
-  const store = useUserStore()
-  const send = (token) =>
+  const send = () =>
     fetch(`${API_URL}${path}`, {
       credentials: 'omit',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(schoolTicket.value ? { 'X-School-Ticket': schoolTicket.value } : {}),
-      },
+      headers: schoolTicket.value ? { 'X-School-Ticket': schoolTicket.value } : {},
     })
 
-  let res = await send(store.token)
+  let res = await send()
   if (res.status === 401 && schoolTicket.value) {
     const body = await res.clone().json().catch(() => ({}))
     if (TICKET_ERRORS.includes(body.code)) {
       setTicket(null)
-      res = await send(store.token)
+      res = await send()
     }
-  }
-  if (res.status === 401 && store.token) {
-    let token = null
-    try {
-      await store.refreshAccessToken()
-      token = store.token
-    } catch {
-      // refresh token gone: continue as anonymous
-    }
-    res = await send(token)
   }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
@@ -67,7 +51,7 @@ async function get(path) {
   return res.json()
 }
 
-/** { classes, rooms: [{key,name}], teachers: [{key,name}] | null, schoolUser, schoolSession: boolean } */
+/** { classes, rooms: [{key,name}], teachers: [{key,name}] | null, schoolSession: boolean } */
 export const fetchTimetableIndex = () => get('/timetable')
 
 /**
@@ -98,40 +82,8 @@ export async function searchEvents(keywords = []) {
   return res.json()
 }
 
-async function post(path, body) {
-  return fetch(`${API_URL}${path}`, {
-    method: 'POST',
-    credentials: 'omit',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(schoolTicket.value ? { 'X-School-Ticket': schoolTicket.value } : {}),
-    },
-    body: JSON.stringify(body),
-  })
-}
-
-/** Logs in on fermimn.edu.it with the school (Moodle) credentials. Throws with a user-facing message. */
-export async function schoolLogin(username, password) {
-  let res
-  try {
-    res = await post('/timetable/school-login', { username, password })
-  } catch {
-    throw new Error('Connessione non riuscita, riprova.')
-  }
-  const body = await res.json().catch(() => ({}))
-  if (!res.ok || !body.ticket) throw new Error(body.error || `Errore ${res.status}`)
-  setTicket(body.ticket)
-}
-
-/** Keeps the school session from the Moodle account login (see stores/user.js). */
+/** The school session of the account's Moodle login (see stores/user.js). */
 export const setSchoolTicket = (ticket) => setTicket(ticket)
-
-/** Ends the Moodle session (also on the school site). */
-export async function schoolLogout() {
-  const req = schoolTicket.value ? post('/timetable/school-logout', {}).catch(() => {}) : null
-  setTicket(null)
-  await req
-}
 
 /**
  * "Segnala un problema" on the timetable: emailed to the admins.

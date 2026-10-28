@@ -213,6 +213,17 @@
   const moodleBtnRef = ref(null)
   const moodleBtnParams = ref(null)
 
+  // Logged in with Moodle linked (back from /orario): only the password is needed
+  watch(
+    () => user.user?.school_username,
+    (name) => {
+      if (!name || moodleUser.value) return
+      moodleUser.value = name
+      nextTick(() => moodlePswRef.value?.focus())
+    },
+    { immediate: true }
+  )
+
   async function setMoodleMode(on) {
     moodleMode.value = on
     await nextTick()
@@ -233,11 +244,13 @@
     if (!moodleBtnParams.value) moodleBtnParams.value = saveBtnParams(moodleBtnRef.value)
     loading(moodleBtnRef.value)
     try {
-      const { signup } = await user.loginWithMoodle(moodleUser.value.trim(), moodlePassword.value)
+      const { signup, teachers } = await user.loginWithMoodle(moodleUser.value.trim(), moodlePassword.value)
       moodlePassword.value = ''
       // New account: the profile step asks what the school site does not tell us.
-      if (signup) await router.push({ name: 'complete-profile', query: { moodle: '1' } })
-      else await router.push(consumeRedirect())
+      if (signup) return await router.push({ name: 'complete-profile', query: { moodle: '1' } })
+      const to = consumeRedirect()
+      if (!teachers && to.startsWith('/orario')) generateAlert('info', 'Il tuo account Moodle non è abilitato dalla scuola a vedere i docenti.')
+      await router.push(to)
     } catch (error) {
       if (!error?.response) generateAlert('error', 'Impossibile contattare il server. Controlla la connessione e riprova.')
       else generateAlert('error', error.response.data?.error || 'Si è verificato un errore. Riprova più tardi.')

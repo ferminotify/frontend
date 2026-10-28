@@ -234,7 +234,7 @@
       if (e.status === 404 || e.status === 403) {
         error.value =
           e.status === 403
-            ? 'L’orario dei docenti è visibile solo con un account @fermimn.edu.it o accedendo con Moodle.'
+            ? 'L’orario dei docenti è visibile solo accedendo con Moodle, con un account abilitato dalla scuola.'
             : { classe: 'Classe non trovata.', aula: 'Aula non trovata.', docente: 'Docente non trovato.' }[type.value]
         week.value = null
       } else if (!silent || !week.value) {

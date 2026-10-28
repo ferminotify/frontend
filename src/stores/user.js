@@ -59,11 +59,9 @@ export const useUserStore = defineStore('user', {
       const res = await axios.post(`${API_URL}/user/auth/login`, { email, password }) // POST login endpoint
       this.token = res.data.token // JWT token 1h
       this.onboarding = !!res.data.onboarding
-      // Moodle account: the password was checked on the school site, keep that session
-      if (res.data.ticket) {
-        const { setSchoolTicket } = await import('@/api/timetable')
-        setSchoolTicket(res.data.ticket)
-      }
+      // Ticket only for Moodle accounts the school enables; any older one goes
+      const { setSchoolTicket } = await import('@/api/timetable')
+      setSchoolTicket(res.data.ticket)
       localStorage.setItem('token', this.token)
       await this.fetchProfile()
       return res.data
@@ -86,7 +84,13 @@ export const useUserStore = defineStore('user', {
 
     async fetchProfile() {
       const res = await api.get(`${API_URL}/user/profile`)
-      this.user = res.data
+      const { school_ticket, ...user } = res.data
+      this.user = user
+      // Last Moodle login's school session, still valid: teachers without logging in again
+      if (school_ticket) {
+        const { schoolTicket, setSchoolTicket } = await import('@/api/timetable')
+        if (!schoolTicket.value) setSchoolTicket(school_ticket)
+      }
     },
 
     // Redirect the browser to the backend Google OAuth entry point.
@@ -94,23 +98,21 @@ export const useUserStore = defineStore('user', {
       window.location.href = `${API_URL}/user/auth/google`
     },
 
-    // "Accedi con Moodle": checked on the school site by the backend. A known account is
-    // logged in; a new one gets a signup token and goes to the profile step.
-    // Either way the school session (ticket) is kept, so the timetable shows teachers
-    // from the user's own session.
+    // "Accedi con Moodle": a known account is logged in, a new one goes to the profile step.
+    // The ticket (teachers on /orario) comes only for accounts the school enables.
     async loginWithMoodle(username, password) {
       const res = await axios.post(`${API_URL}/user/auth/moodle`, { username, password })
-      const { setSchoolTicket } = await import('@/api/timetable')
-      if (res.data.ticket) setSchoolTicket(res.data.ticket)
       if (res.data.signup) {
         sessionStorage.setItem(MOODLE_SIGNUP_KEY, res.data.signup)
         return { signup: true }
       }
+      const { setSchoolTicket } = await import('@/api/timetable')
+      setSchoolTicket(res.data.ticket)
       this.token = res.data.token
       this.onboarding = !!res.data.onboarding
       localStorage.setItem('token', this.token)
       await this.fetchProfile()
-      return { signup: false }
+      return { signup: false, teachers: Boolean(res.data.ticket) }
     },
 
     hasMoodleSignup() {
@@ -231,9 +233,9 @@ export const useUserStore = defineStore('user', {
         // use the authenticated api instance so the access token (Bearer) is sent
         await api.post(`${API_URL}/user/auth/logout`, { refreshToken: this.refreshToken })
       }
-      // The school session from "Accedi con Moodle" goes too
-      const { schoolLogout, schoolTicket } = await import('@/api/timetable')
-      if (schoolTicket.value) await schoolLogout()
+      // This browser only: the school session stays on the account for its other logins
+      const { setSchoolTicket } = await import('@/api/timetable')
+      setSchoolTicket(null)
       this.token = null
       this.refreshToken = null
       this.user = null

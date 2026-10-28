@@ -160,6 +160,15 @@ describe('describeCell: substituted teacher', () => {
   })
 })
 
+describe('describeCell: co-teacher absent', () => {
+  it('subject kept, the absent one struck, the other timetable teachers not', () => {
+    const v = { uid: 'c', kind: 'change', summary: 'x', classes: ['1A'], room: null, teachers: ['Verdi'], absent: ['Neri'] }
+    const d = describeCell({ ...base, teachers: ['Rossi Mario', 'Neri Anna'], status: 'changed', variations: [v] }, 'class')
+    expect(d.titleStruck).toBe(false)
+    expect(d.lines).toContainEqual({ text: 'Verdi', was: 'Neri', list: true })
+  })
+})
+
 describe('describeCell: only an absent teacher', () => {
   it('shows the name struck, no prefix', () => {
     const v = { uid: 'x', kind: 'change', summary: 'CLASSE 1A - AULA 94 (PROF. ROSSI ASSENTE)', classes: ['1A'], room: 'AULA 94', teachers: [], absent: ['Rossi'] }

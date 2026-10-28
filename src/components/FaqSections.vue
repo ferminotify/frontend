@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
 					Il nome utente e la password che inserisci vengono controllati direttamente sul sito della scuola. Noi salviamo solo il nome utente: la password <span class="primary-text">non viene mai salvata</span>.
 				</p>
 				<p class="answer answer-staccato">
-					Dopo la registrazione puoi entrare con il pulsante Moodle oppure con la tua email e la password di Moodle (o quella di Fermi Notify, se ne hai impostata una).
+					Dopo la registrazione puoi entrare con il pulsante Moodle oppure con la tua email e la password di Moodle (o quella di Fermi Notify, se ne hai impostata una). Per l'orario dei docenti usiamo la sessione del tuo ultimo accesso con Moodle finch&eacute; &egrave; valida (al massimo 13 giorni), anche se entri in un altro modo; poi ti chiediamo di nuovo la password di Moodle.
 				</p>
 				<p class="answer answer-staccato">
 					Hai gi&agrave; un account con la stessa email? Accedi con Moodle e indica quell'email: ti mandiamo un'email <i>Collega Moodle</i> con un link valido 30 minuti. Aprendolo e confermando, Moodle viene collegato al tuo account. Se non sei stat&#601; tu, ignora l'email.
@@ -163,7 +163,7 @@ onBeforeUnmount(() => {
 					Un'uscita anticipata o un'entrata posticipata cancellano le lezioni di quella parte della giornata; gli eventi dopo l'ultima lezione (come uno sportello) restano visibili. Nei giorni di gita, se una parte della classe resta a scuola, l'orario mostra la giornata di chi resta e la gita come nota.
 				</p>
 				<p class="answer answer-staccato">
-					L'orario dei docenti viene dall'area riservata del sito della scuola: lo vede solo chi ha un account <i>@fermimn.edu.it</i> confermato o accede con Moodle.
+					L'orario dei docenti viene dall'area riservata del sito della scuola: lo vede solo chi accede con Moodle con un account che la scuola abilita a vederlo.
 				</p>
 			</div>
 			<div class="question">
@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>2. Come aggiungo le keywords?</h3>
 				<p class="answer">
-					Scrivila nella casella della <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>: mentre scrivi ti suggeriamo classi e docenti. I docenti vengono dalla lista della scuola se hai un account <i>@fermimn.edu.it</i> o accedi con Moodle; altrimenti sono i cognomi che compaiono nel calendario pubblico.
+					Scrivila nella casella della <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>: mentre scrivi ti suggeriamo classi e docenti. I docenti vengono dalla lista della scuola se accedi con Moodle con un account abilitato; altrimenti sono i cognomi che compaiono nel calendario pubblico.
 				</p>
 				<p class="answer answer-staccato">
 					Maiuscole e minuscole non contano. Se scrivi qualcosa che sembra una classe ma non esiste (es. <code>5CCIN</code>), ti proponiamo le classi pi&ugrave; simili: puoi sceglierne una o aggiungerla comunque.
@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
 					<li style="margin: 6px 0"><span class="primary-text">account</span>: nome, cognome, email, genere, l'hash della password (se ne imposti una), la data dell'ultimo accesso;</li>
 					<li style="margin: 6px 0"><span class="primary-text">preferenze</span>: keywords, canali e orario delle notifiche, attivit&agrave; facoltative scelte;</li>
 					<li style="margin: 6px 0"><span class="primary-text">accesso con Google</span>: l'identificativo dell'account Google;</li>
-					<li style="margin: 6px 0"><span class="primary-text">accesso con Moodle</span>: il nome utente Moodle. La password viene inviata solo al sito della scuola per verificarla e non viene salvata;</li>
+					<li style="margin: 6px 0"><span class="primary-text">accesso con Moodle</span>: il nome utente Moodle e, se la scuola ti fa vedere i docenti, la sessione del tuo ultimo accesso (cifrata). La password viene inviata solo al sito della scuola per verificarla e non viene salvata;</li>
 					<li style="margin: 6px 0"><span class="primary-text">Telegram</span>, se lo colleghi: il tuo ID Telegram;</li>
 					<li style="margin: 6px 0"><span class="primary-text">notifiche push</span>, per ogni dispositivo su cui le attivi: l'indirizzo e le chiavi per inviarle, un identificativo del dispositivo e una sua breve descrizione (es. browser e sistema);</li>
 					<li style="margin: 6px 0"><span class="primary-text">notifiche inviate</span>: quali eventi ti abbiamo gi&agrave; notificato, per non mandarli due volte;</li>
@@ -317,7 +317,7 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>4. Dati dei docenti</h3>
 				<p class="answer">
-					L'orario dei docenti viene dall'area riservata del sito della scuola e lo mostriamo solo a chi ha un account <i>@fermimn.edu.it</i> confermato o accede con Moodle. A tutti gli altri suggeriamo come keyword solo i cognomi gi&agrave; scritti nel calendario pubblico delle variazioni, senza orari. Non mostriamo mai nomi di studenti.
+					L'orario dei docenti viene dall'area riservata del sito della scuola e lo mostriamo solo a chi accede con Moodle con un account che la scuola abilita a vederlo. A tutti gli altri suggeriamo come keyword solo i cognomi gi&agrave; scritti nel calendario pubblico delle variazioni, senza orari. Non mostriamo mai nomi di studenti.
 				</p>
 			</div>
 			<div class="question">
@@ -339,13 +339,13 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>6. Per quanto tempo conserviamo i dati</h3>
 				<p class="answer">
-					I dati dell'account restano finch&eacute; l'account esiste e vengono eliminati quando ne chiedi la cancellazione. La sessione Moodle salvata nel tuo browser dura al massimo 13 giorni; il link <i>Collega Moodle</i> scade dopo 30 minuti.
+					I dati dell'account restano finch&eacute; l'account esiste e vengono eliminati quando ne chiedi la cancellazione. La sessione Moodle (nel browser e nel tuo account) dura al massimo 13 giorni; il link <i>Collega Moodle</i> scade dopo 30 minuti.
 				</p>
 			</div>
 			<div class="question">
 				<h3>7. Come proteggiamo i dati</h3>
 				<p class="answer">
-					Le password sono salvate come hash (bcrypt), le comunicazioni passano su connessioni cifrate (HTTPS) e la sessione Moodle salvata nel browser &egrave; cifrata (AES-256-GCM), cos&igrave; nessuno pu&ograve; leggerla o modificarla. I dati degli account sono in un database protetto di Microsoft Azure, in Italia (Italy North).
+					Le password sono salvate come hash (bcrypt), le comunicazioni passano su connessioni cifrate (HTTPS) e la sessione Moodle, nel browser e sul server, &egrave; cifrata (AES-256-GCM), cos&igrave; nessuno pu&ograve; leggerla o modificarla. I dati degli account sono in un database protetto di Microsoft Azure, in Italia (Italy North).
 				</p>
 			</div>
 			<div class="question">

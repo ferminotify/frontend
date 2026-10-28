@@ -62,50 +62,18 @@
           <span class="material-symbols-outlined op-notice-icon" aria-hidden="true">school</span>
           <div class="op-notice-text">
             <strong>Orario dei docenti</strong>
-            <span>Accedi con un account <b>@fermimn.edu.it</b> o con Moodle per cercare i docenti.</span>
+            <span>Accedi o registrati con Moodle per cercare i docenti (solo account abilitati dalla scuola).</span>
           </div>
-          <div v-if="!loginOpen" class="op-notice-actions">
-            <RouterLink v-if="!loggedIn" to="/login" class="op-notice-btn op-notice-btn--outlined">Accedi</RouterLink>
-            <button type="button" class="op-notice-btn" @click="openLogin">Accedi con Moodle</button>
+          <div class="op-notice-actions">
+            <button type="button" class="op-notice-btn" @click="moodleLogin">Accedi con Moodle</button>
           </div>
-
-          <form v-else class="op-login" @submit.prevent="submitLogin">
-            <label class="op-login-field">
-              <span>Nome utente Moodle</span>
-              <input
-                ref="userInput"
-                v-model="loginUser"
-                name="username"
-                autocomplete="username"
-                autocapitalize="none"
-                spellcheck="false"
-                required
-                maxlength="150"
-              />
-            </label>
-            <label class="op-login-field">
-              <span>Password</span>
-              <input v-model="loginPass" type="password" name="password" autocomplete="current-password" required maxlength="256" />
-            </label>
-            <p v-if="loginError" class="op-login-error" role="alert">{{ loginError }}</p>
-            <p class="op-login-note">
-              <span class="material-symbols-outlined" aria-hidden="true">lock</span>
-              Le credenziali servono solo ad accedere a fermimn.edu.it e non vengono salvate.
-            </p>
-            <div class="op-login-actions">
-              <button type="button" class="op-login-cancel" :disabled="loginBusy" @click="loginOpen = false">Annulla</button>
-              <button type="submit" class="op-notice-btn" :disabled="loginBusy">
-                {{ loginBusy ? 'Accesso…' : 'Accedi' }}
-              </button>
-            </div>
-          </form>
         </div>
         </Transition>
         <p v-if="q && !best" class="op-empty">
           Nessuna classe o aula per “{{ query.trim() }}”.
           <template v-if="index.teachers === null">
             <br />Cerchi un docente?
-            <button type="button" class="op-link-btn" @click="showLogin">Accedi con Moodle</button>
+            <button type="button" class="op-link-btn" @click="moodleLogin">Accedi con Moodle</button>
             per vederli.
           </template>
         </p>
@@ -137,7 +105,6 @@
         <p v-if="index.schoolSession" class="op-hint op-hint--teachers">
           <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
           Docenti visibili tramite Moodle.
-          <button type="button" class="op-link-btn" @click="logoutMoodle">Esci</button>
         </p>
         <p v-if="index.teachers?.length === 0" class="op-hint op-hint--teachers">
           <span class="material-symbols-outlined" aria-hidden="true">cloud_off</span>
@@ -149,10 +116,10 @@
 </template>
 
 <script setup>
-  import { computed, nextTick, onMounted, ref, watch } from 'vue'
+  import { computed, onMounted, ref, watch } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
   import { groupEntities } from '@/utils/timetable'
-  import { schoolLogin, schoolLogout } from '@/api/timetable'
-  import { useUserStore } from '@/stores/user'
+  import { saveRedirect } from '@/utils/redirect.js'
 
   const props = defineProps({
     /** { classes, rooms, teachers: [{key,name}] | null } or null while loading; teachers null = not allowed */
@@ -189,16 +156,13 @@
     return listOf(props.type).find((e) => e.key === props.selected)?.name || props.selectedName || ''
   })
 
-  const userStore = useUserStore()
-  const loggedIn = computed(() => Boolean(userStore.token))
-
-  // --- "Accedi con Moodle" (the view reloads when the ticket changes) ---
-  const loginOpen = ref(false)
-  const loginUser = ref('')
-  const loginPass = ref('')
-  const loginBusy = ref(false)
-  const loginError = ref('')
-  const userInput = ref(null)
+  // Teachers: a Fermi Notify account logged in with Moodle, then back here
+  const route = useRoute()
+  const router = useRouter()
+  function moodleLogin() {
+    saveRedirect(route.fullPath)
+    router.push({ path: '/login', query: { moodle: '1' } })
+  }
 
   // The teachers notice can be hidden; remembered per browser.
   const NOTICE_KEY = 'orarioTeacherNoticeHidden'
@@ -212,7 +176,6 @@
   })
   function hideNotice() {
     noticeHidden.value = true
-    loginOpen.value = false
     try {
       localStorage.setItem(NOTICE_KEY, '1')
     } catch {
@@ -228,36 +191,6 @@
       // ignore
     }
   }
-
-  /** From the "no results" hint: bring the notice back with the form open. */
-  function showLogin() {
-    query.value = ''
-    reopenNotice()
-    openLogin()
-  }
-
-  function openLogin() {
-    loginOpen.value = true
-    loginError.value = ''
-    nextTick(() => userInput.value?.focus())
-  }
-
-  async function submitLogin() {
-    loginBusy.value = true
-    loginError.value = ''
-    try {
-      await schoolLogin(loginUser.value.trim(), loginPass.value)
-      loginOpen.value = false
-      loginUser.value = ''
-    } catch (err) {
-      loginError.value = err.message
-    } finally {
-      loginPass.value = ''
-      loginBusy.value = false
-    }
-  }
-
-  const logoutMoodle = () => schoolLogout()
 
   const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '')
   const q = computed(() => norm(query.value))
@@ -291,7 +224,7 @@
     if (!props.index) return []
     return [
       column('classe', props.index.classes, 'Classi', 'groups'),
-      // Only for confirmed @fermimn.edu.it accounts and Moodle sessions (the API sends null otherwise).
+      // Only for Moodle sessions that see them on the school site (the API sends null otherwise).
       ...(props.index.teachers?.length ? [column('docente', props.index.teachers, 'Docenti', 'school')] : []),
       column('aula', props.index.rooms, 'Aule', 'meeting_room'),
     ].filter((col) => col.count > 0) // while searching, hide columns without matches
@@ -625,92 +558,18 @@
     font-weight: 500;
     text-decoration: none;
   }
-  .op-notice-btn--outlined {
-    background: transparent;
-    color: var(--on-surface);
-    box-shadow: inset 0 0 0 1px var(--divider);
-  }
-  .op-notice-btn:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
-  .op-notice:has(.op-login) {
-    flex-wrap: wrap;
-  }
-  .op-login {
-    flex-basis: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px 12px;
-    padding-left: 36px;
-  }
-  .op-login-field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 0.8125rem;
-    color: var(--on-surface-variant);
-  }
-  .op-login-field input {
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid var(--divider);
-    background: var(--surface);
-    color: var(--on-surface);
-    font: inherit;
-    font-size: 0.9375rem;
-  }
-  .op-login-field input:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: -1px;
-  }
-  .op-login-error,
-  .op-login-note {
-    grid-column: 1 / -1;
-    margin: 0;
-    font-size: 0.8125rem;
-  }
-  .op-login-error {
-    color: var(--error);
-  }
-  .op-login-note {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--on-surface-variant);
-  }
-  .op-login-note .material-symbols-outlined {
-    font-size: 16px;
-  }
-  .op-login-actions {
-    grid-column: 1 / -1;
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-  .op-login-cancel,
   .op-link-btn {
+    padding: 0 4px;
     border: 0;
     background: none;
     color: var(--primary);
     font: inherit;
     font-weight: 500;
-    cursor: pointer;
-  }
-  .op-login-cancel {
-    padding: 8px 12px;
-    color: var(--on-surface-variant);
-  }
-  .op-link-btn {
-    padding: 0 4px;
     text-decoration: underline;
+    cursor: pointer;
   }
 
   @media (max-width: 480px) {
-    .op-login {
-      grid-template-columns: 1fr;
-      padding-left: 0;
-    }
     .op-notice {
       flex-wrap: wrap;
     }

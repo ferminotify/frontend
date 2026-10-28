@@ -115,7 +115,7 @@ const mentions = (names, full) => {
 }
 /** Timetable teachers replaced by the event's ones (a substitute): shown struck through. */
 const replacedTeachers = (cell, v) => {
-  if (!v.teachers?.length || !cell.teachers?.length) return null
+  if (!v.teachers?.length || !cell.teachers?.length || v.absent?.length) return null // absent ones written: only them
   const gone = cell.teachers.filter((t) => !mentions(v.teachers, t))
   return gone.length === cell.teachers.length ? gone.join(', ') : null
 }
