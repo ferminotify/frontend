@@ -4,7 +4,7 @@
       <span class="material-symbols-outlined">calendar_month</span>
       Eventi in programma
     </h2>
-    <CercaEventiCore v-if="hasKeywords" :keywords="keywords" />
+    <CercaEventiCore v-if="hasKeywords" :keywords="keywords" paged />
     <p v-else style="color: var(--on-surface-primary)">Nessuna keyword inserita</p>
   </div>
 </template>

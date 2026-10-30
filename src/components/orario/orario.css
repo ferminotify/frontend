@@ -1,0 +1,39 @@
+/* Shared by TimetableWeek and TimetableDay (not scoped: imported by both, loaded once). */
+
+/* "Variazione" pill on the notes under the grid */
+.tt-notes-maybe {
+  align-self: flex-start;
+  padding: 1px 8px;
+  border: 1px solid var(--on-surface-primary);
+  border-radius: 999px;
+  color: var(--on-surface-primary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* A variation with real times, over the lessons: in the flow of the grid (space above and
+   below in proportion to the minutes, set inline), so taller text makes the rows grow
+   instead of covering the next lesson. */
+.tt-overlay {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* one line, cut with … to the column */
+  min-width: 0;
+  pointer-events: none;
+}
+.tt-overlay:has(.is-menu-open) {
+  z-index: 4;
+}
+.tt-overlay-card {
+  grid-row: 2;
+  position: relative;
+  display: flex;
+  pointer-events: auto;
+}
+.tt-overlay-card > .tt-cell {
+  flex: 1;
+  min-width: 0;
+}

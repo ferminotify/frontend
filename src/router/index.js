@@ -14,6 +14,8 @@ const TeamView = () => import('../views/TeamView.vue')
 const ArchiveView = () => import('../views/ArchiveView.vue')
 const TestView = () => import('../views/TestView.vue')
 const FeedbackView = () => import('../views/FeedbackView.vue')
+const OrarioView = () => import('../views/OrarioView.vue')
+const SegnalaView = () => import('../views/SegnalaView.vue')
 const AuthCallbackView = () => import('../views/AuthCallbackView.vue')
 const CompleteProfileView = () => import('../views/CompleteProfileView.vue')
 
@@ -64,6 +66,16 @@ export const routes = [
     },
   },
   {
+    path: '/collega-moodle',
+    name: 'link-moodle',
+    component: () => import('@/views/LinkMoodleView.vue'),
+    meta: {
+      title: 'Collega Moodle · Fermi Notify',
+      description: 'Collega il tuo account Moodle a Fermi Notify.',
+      robots: 'noindex,nofollow',
+    },
+  },
+  {
     path: '/complete-profile',
     name: 'complete-profile',
     component: CompleteProfileView,
@@ -84,6 +96,17 @@ export const routes = [
     },
   },
   {
+    // Email footer link (and GET on the backend's one-click URL): disable notification emails
+    path: '/auth/unsubscribe',
+    name: 'unsubscribe',
+    component: () => import('@/views/UnsubscribeView.vue'),
+    meta: {
+      title: 'Disattiva le email · Fermi Notify',
+      description: 'Disattiva le notifiche via email di Fermi Notify.',
+      robots: 'noindex,nofollow',
+    },
+  },
+  {
     path: '/password_reset',
     name: 'password-reset',
     component: ResetPasswordView,
@@ -101,6 +124,26 @@ export const routes = [
       title: 'OTP Password · Fermi Notify',
       description: 'Verifica il codice OTP per completare il recupero password su Fermi Notify.',
       robots: 'noindex,follow',
+    },
+  },
+  {
+    path: '/orario/segnala',
+    name: 'orario-segnala',
+    component: SegnalaView,
+    meta: {
+      title: 'Segnala un problema · Fermi Notify',
+      description: 'Segnala un errore nell’orario di Fermi Notify.',
+      robots: 'noindex,follow',
+    },
+  },
+  {
+    path: '/orario/:type(classe|aula|docente)?/:ref?',
+    name: 'orario',
+    component: OrarioView,
+    meta: {
+      title: 'Orario · Fermi Notify',
+      description:
+        "Orario settimanale di classi e aule dell'IS E. Fermi di Mantova, aggiornato in tempo reale con le variazioni del calendario giornaliero.",
     },
   },
   {
@@ -206,10 +249,13 @@ export function setupRouter(router) {
     if (typeof localStorage === 'undefined' || typeof localStorage?.getItem !== 'function') return
 
     const token = localStorage.getItem('token')
-    if (token && (to.path === '/login' || to.path === '/register')) {
+    // Already logged in: /login only to log in again with Moodle (teachers on /orario)
+    if (token && to.query.moodle !== '1' && (to.path === '/login' || to.path === '/register')) {
       return consumeRedirect()
     }
-    if (!token && (to.path.startsWith('/dashboard') || to.path.startsWith('/complete-profile'))) {
+    // A Moodle signup completes its profile before any account (and token) exists.
+    const moodleSignup = to.path.startsWith('/complete-profile') && to.query.moodle === '1'
+    if (!token && !moodleSignup && (to.path.startsWith('/dashboard') || to.path.startsWith('/complete-profile'))) {
       saveRedirect(to.fullPath)
       return '/login'
     }

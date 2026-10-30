@@ -1,6 +1,7 @@
 .alertbanner,
 #alertbanner {
   position: fixed;
+  z-index: 10001; /* over everything: timetable cells, modals, mobile menu */
   bottom: 25px;
   right: 5vw;
   padding: 15px;

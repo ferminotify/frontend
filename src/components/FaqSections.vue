@@ -112,41 +112,67 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>1. Cos'&egrave; Fermi Notify?</h3>
 				<p class="answer">
-					Fermi Notify &egrave; un servizio che ti permette di ricevere notifiche via email o via Telegram quando viene aggiunto un evento o una variazione dell'orario sul
-					<a href="https://www.fermimn.edu.it/variazioni-orario/" class="link">calendario giornaliero</a>, come una sostituzione o un cambio aula.
+					Fermi Notify ti avvisa via email, Telegram o notifica push quando sul <a href="https://www.fermimn.edu.it/variazioni-orario/" class="link">calendario giornaliero</a> compare una variazione dell'orario o un evento che ti riguarda, come una sostituzione, un cambio aula o un'uscita anticipata.
+				</p>
+				<p class="answer answer-staccato">
+					Puoi anche cercare gli eventi in <RouterLink to="/" class="link">Cerca eventi</RouterLink> e vedere l'orario settimanale di classi e aule, con le variazioni gi&agrave; applicate in <RouterLink to="/orario" class="link">Orario</RouterLink>.
 				</p>
 			</div>
-
 			<div class="question">
 				<h3>2. Come faccio a registrarmi?</h3>
 				<p class="answer">
-					Per registrarti clicca <RouterLink to="/register" class="link">qui</RouterLink>. L'email utilizzata nella registrazione sarà quella che riceverà le notifiche.
-				</p>
-			</div>
-
-			<div class="question">
-				<h3>3. Come viene protetta la password?</h3>
-				<p class="answer">La password viene criptata attraverso un processo di hashing ricorsivi a un numero adeguato di round.</p>
-			</div>
-
-			<div class="question">
-				<h3>4. Quando arrivano le notifiche?</h3>
-				<p class="answer">
-					Nel caso in cui l'evento che ti riguarda venga pubblicato in qualsiasi momento prima del giorno stesso, ti arriver&agrave; una notifica <i>Daily Notification</i> che racchiude tutti gli eventi in programma.<br>
-					Le Daily Notification vengono inviate di default alle <span class="primary-text">6:00</span> del giorno stesso delle variazioni dell'orario.<br>
-					Puoi cambiare l'orario di invio delle Daily Notification nella
-					<RouterLink to="/dashboard" class="link">Dashboard</RouterLink>. Maggiori informazioni nella sezione <RouterLink to="/faq?page=configurazione" class="link">Configurazione</RouterLink>.
+					Per registrarti clicca <RouterLink to="/register" class="link">qui</RouterLink> con email, Google o Moodle.
 				</p>
 				<p class="answer answer-staccato">
-					Nel caso in cui l'evento che ti riguarda venga pubblicato la Daily Notification (come una sostituzione dell'ultimo minuto), riceverai la notifica <i>Last Minute Notification</i> <span class="primary-text">all'istante</span>.
+					L'email che indichi &egrave; quella che riceve le notifiche. Prima di poter usare l'account devi confermarla con il link che ti mandiamo.
 				</p>
 			</div>
-
 			<div class="question">
-				<h3>5. Fermi Notify e l'Istituto Superiore "Enrico Fermi" Mantova.</h3>
+				<h3>3. Come funziona l'accesso con Moodle?</h3>
 				<p class="answer">
-					Fermi Notify non &egrave; un servizio ufficiale dell'Istituto Superiore "Enrico Fermi" di Mantova. Il sistema non è riconosciuto dalla presidenza. Eventuali malfunzionamenti sono a carico dello staff e non sono valide
-					giustificazioni in uffici di segreteria e presidenza
+					Utilizza username e la password di Moodle Fermi. Vengono controllati direttamente sul sito del Fermi. Viene salviato su Fermi Notify solo il nome utente: la password <span class="primary-text">non viene mai salvata</span>.
+				</p>
+				<p class="answer answer-staccato">
+					I docenti che effettuano l'accesso con Moodle possono visualizzare l'orario dei docenti con le variazioni applicate. Usiamo la tua sessione del tuo ultimo accesso con Moodle finch&eacute; &egrave; valida (al massimo 13 giorni) per accedere all'orario; quando scale, dovrai riaccedere con Moodle.
+				</p>
+				<p class="answer answer-staccato">
+					Hai gi&agrave; un account con email? Accedi con Moodle e indica quell'email per collegarla.
+				</p>
+			</div>
+			<div class="question">
+				<h3>4. Come viene protetta la password?</h3>
+				<p class="answer">
+					La password di Fermi Notify viene criptata attraverso un processo di hashing ricorsivi a un numero adeguato di round, un algoritmo impossibile da decifrare. La password di Moodle viene inviata direttamente al sito del Fermi e non viene mai salvata. 
+				</p>
+			</div>
+			<div class="question">
+				<h3>5. Quando arrivano le notifiche?</h3>
+				<p class="answer">
+					Se l'evento che ti riguarda &egrave; pubblicato prima del giorno stesso, ricevi una <i>Daily Notification</i> che raccoglie tutti gli eventi della giornata, di default alle <span class="primary-text">6:00</span>. Puoi cambiare l'orario nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>. Maggiori informazioni nella sezione <RouterLink to="/faq?page=configurazione" class="link">Configurazione</RouterLink>.
+				</p>
+				<p class="answer answer-staccato">
+					Se l'evento viene pubblicato dopo la Daily Notification, per esempio una sostituzione dell'ultimo minuto, ricevi una <i>Last Minute Notification</i> <span class="primary-text">entro pochi minuti</span>: il calendario viene controllato ogni 5 minuti.
+				</p>
+			</div>
+			<div class="question">
+				<h3>6. Come funziona la pagina Orario?</h3>
+				<p class="answer">
+					In <RouterLink to="/orario" class="link">Orario</RouterLink> trovi l'orario settimanale di ogni classe e aula, con le variazioni del calendario applicate in modo dinamico.
+				</p>
+				<p class="answer answer-staccato">
+					L'orario dei docenti dinamico con le variazioni applicate &egrave; disponibile solo per chi ha l'account abilitato per visualizzarli sul sito del Fermi.
+				</p>
+			</div>
+			<div class="question">
+				<h3>7. Come funziona Cerca eventi?</h3>
+				<p class="answer">
+					In <RouterLink to="/" class="link">Cerca eventi</RouterLink> scrivi una o pi&ugrave; keyword e vedi tutti gli eventi in programma che le riguardano, con le stesse regole usate per le notifiche (vedi <RouterLink to="/faq?page=configurazione" class="link">Cosa sono le keywords</RouterLink>). Le keyword cercate restano salvate solo sul tuo dispositivo.
+				</p>
+			</div>
+			<div class="question">
+				<h3>8. Fermi Notify e l'Istituto Superiore "Enrico Fermi" Mantova.</h3>
+				<p class="answer">
+					Fermi Notify non &egrave; un servizio ufficiale dell'Istituto Superiore "Enrico Fermi" di Mantova e non &egrave; riconosciuto dalla presidenza. Eventuali malfunzionamenti sono a carico dello staff e non sono valide giustificazioni in uffici di segreteria e presidenza.
 				</p>
 			</div>
 		</div>
@@ -159,79 +185,66 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>1. Cosa sono le keywords?</h3>
 				<p class="answer">
-					Le <span class="primary-text">keywords</span> sono le parole chiave che inserisci nella tua lista per ricevere la notifica se &egrave; presente un evento che la riguarda nel calendario giornaliero.
+					Le <span class="primary-text">keywords</span> sono le parole chiave che inserisci nella tua lista per ricevere la notifica se è presente un evento che la riguarda nel calendario giornaliero. Ti consigliamo di aggiungere la tua <span class="primary-text">classe</span> e il tuo <span class="primary-text">cognome</span>.
 				</p>
-				<p class="answer answer-staccato">
-					Esempio: se aggiungi <code>4CIIN</code> come keyword, riceverai una notifica se nel calendario giornaliero &egrave; presente un evento che contiene la parola <i>4CIIN</i>. Fai attenzione alla
-					<span class="primary-text">formattazione</span> della keyword, dev'essere uguale a quella scritta nel calendario giornaliero (<code>4CIIN</code>, non "4 CIIN" o "4CIN")!
-				</p>
-				<p class="answer answer-staccato">
-					Consiglio: aggiungi la tua <span class="primary-text">classe</span> per ricevere le notifiche riguardanti la classe (come una sostituzione o un cambio aula), puoi aggiungere anche:
-				</p>
-				<ul style="line-height: 1.5em; ">
-					<li>
-						il tuo <span class="primary-text">cognome</span> per le notifiche riguardanti solo te (come la prenotazione di un aula);
-					</li>
-					<li>
-						il nome di un <span class="primary-text">corso</span> che segui per le notifiche riguardanti le attivit&agrave; extrascolastiche (es. <i>Corso FUSION</i>).
-					</li>
+				<ul style="line-height: 1.5em;">
+					<li style="margin: 6px 0"><span class="primary-text">classe</span> (es. <code>4CIIN</code>): gli eventi della classe e quelli per tutto il suo anno o gruppo (es. <i>CLASSI QUARTE</i>, <i>TRIENNIO</i>).</li>
+					<li style="margin: 6px 0"><span class="primary-text">cognome</span>: gli eventi in cui &egrave; nominato (es. <i>PEER TUTORING</i>, <i>ASSENTE</i>);</li>
+					<li style="margin: 6px 0"><span class="primary-text">aula</span>: gli eventi in quell'aula;</li>
+					<li style="margin: 6px 0">qualsiasi altra <span class="primary-text">parola</span> (es. <code>Corso FUSION</code>): gli eventi che la contengono nel titolo.</li>
 				</ul>
 			</div>
-
 			<div class="question">
 				<h3>2. Come aggiungo le keywords?</h3>
 				<p class="answer">
-					Puoi aggiungere le keywords nella casella dedicata nella <RouterLink to="/dashboard">Dashboard</RouterLink>. Una volta aggiunte, appariranno nella lista. Le keywords <span class="primary-text">non</span> sono case sensitive, quindi puoi
-					aggiungerle in maiuscolo o minuscolo (4CIIN o 4Ciin o 4ciin non cambia).
+					Puoi aggiungere le keywords nella tua <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>.
 				</p>
 			</div>
-
 			<div class="question">
 				<h3>3. Come rimuovo le keywords?</h3>
 				<p class="answer">
-					Per rimuovere una keyword, <span class="primary-text">riscrivila</span> nella casella che hai utilizzato per aggiungerla nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>. Quindi la keyword verr&agrave; rimossa dalla lista.
+					Nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink> premi il pulsante di modifica accanto alla lista, poi tocca la keyword per rimuoverla.
 				</p>
 			</div>
-
 			<div class="question">
-				<h3>4. Come funziona la notifica tramite Telegram?</h3>
+				<h3>4. Cosa sono le attivit&agrave; facoltative?</h3>
 				<p class="answer">
-					Per essere notificato su Telegram, invia il <span class="primary-text">codice</span> presente nella <RouterLink to="/dashboard#Telegram" class="link">Dashboard</RouterLink> al bot
-					<a href="https://t.me/FermiNotifierBot" class="link">@FermiNotifierBot</a>.
+					Sportelli, peer tutoring, olimpiadi e incontri per i rappresentanti sono attivit&agrave; che non riguardano tutta la classe o sono attività opzionali. Verrai notificato solo se hai attivato quella categoria in <RouterLink to="/dashboard#facoltative" class="link">Attivit&agrave; facoltative</RouterLink>.
+				</p>
+				<!--p class="answer answer-staccato"> TODO rivedere
+					Se il titolo nomina proprio la tua classe, la notifica arriva comunque. In Orario e in Cerca eventi queste attivit&agrave; si vedono sempre.
+				</p-->
+			</div>
+			<div class="question">
+				<h3>5. Come funziona la notifica tramite Telegram?</h3>
+				<p class="answer">
+					Per essere notificat&#601; su Telegram, invia il <span class="primary-text">codice</span> presente nella <RouterLink to="/dashboard#Telegram" class="link">Dashboard</RouterLink> al bot <a href="https://t.me/FermiNotifierBot" class="link">@FermiNotifierBot</a>.
 				</p>
 			</div>
-
 			<div class="question">
-				<h3>5. Come cambio l'orario di invio delle Daily Notification?</h3>
+				<h3>6. Come funzionano le notifiche push?</h3>
 				<p class="answer">
-					La Daily Notification viene inviata di default alle <span class="primary-text">6:00</span> del giorno stesso delle variazioni dell'orario (es. <u>marted&igrave;</u> <i>Entrata posticipata</i>
-					<i class="fa-solid fa-arrow-right"></i> notifica alle 6:00 di <u>marted&igrave;</u>).
-					Puoi cambiare l'orario di invio delle Daily Notification e impostarla nei seguenti modi:
+					Attiva le notifiche push nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>, quindi approva il popup del browser per consentire le notifiche <b>in modo permanente</b>, altrimenti le notifiche si disattivano automaticamente da solo.
 				</p>
-				<ul style="line-height: 1.5em; ">
-					<li style="margin: 10px 0">
-						Alla <span class="primary-text">mattina</span> tra le <span class="primary-text">00:00</span> e le <span class="primary-text">8:10</span> in cui verranno raggruppati le tutte variazioni del giorno (es. <u>luned&igrave;</u>
-						<i>Entrata posticipata</i>, <i>Riunione MyFermi</i> <i class="fa-solid fa-arrow-right"></i> notifica alle 6:30 di <u>luned&igrave;</u>);
-					</li>
-					<li style="margin: 10px 0">
-						Il <span class="primary-text">giorno prima</span> in cui verranno raggruppati le variazioni del giorno successivo (es. <u>luned&igrave;</u> <i>Entrata posticipata</i>, <i>Riunione MyFermi</i>
-						<i class="fa-solid fa-arrow-right"></i> notifica alle 19:30 di <u>domenica</u>).
-					</li>
+			</div>
+			<div class="question">
+				<h3>7. Come cambio l'orario di invio delle Daily Notification?</h3>
+				<p class="answer">
+					La Daily Notification viene inviata di default alle <span class="primary-text">6:00</span> del giorno stesso delle variazioni (es. <u>marted&igrave;</u> <i>Entrata posticipata</i> <i class="fa-solid fa-arrow-right"></i> notifica alle 6:00 di <u>marted&igrave;</u>). Puoi impostarla:
+				</p>
+				<ul style="line-height: 1.5em;">
+					<li style="margin: 6px 0">alla <span class="primary-text">mattina</span>, tra le <span class="primary-text">00:00</span> e le <span class="primary-text">8:10</span>, con tutte le variazioni del giorno (es. <u>luned&igrave;</u> <i>Entrata posticipata</i>, <i>Riunione MyFermi</i> <i class="fa-solid fa-arrow-right"></i> notifica alle 6:30 di <u>luned&igrave;</u>);</li>
+					<li style="margin: 6px 0">il <span class="primary-text">giorno prima</span>, fino alle 23:55, con le variazioni del giorno successivo (es. <u>luned&igrave;</u> <i>Entrata posticipata</i>, <i>Riunione MyFermi</i> <i class="fa-solid fa-arrow-right"></i> notifica alle 19:30 di <u>domenica</u>).</li>
 				</ul>
-				<p class="answer">
-					Tutte le variazioni aggiunte dopo l'orario specificato (negli esempi, dopo le 6:30 e le 19:30) verranno inviati come Last Minute Notification all'istante in cui vengono individuate nel calendario giornaliero.<br>
-					Per cambiare l'orario di invio delle Daily Notification, vai nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink> e seleziona l'orario desiderato.
+				<p class="answer answer-staccato">
+					Tutte le variazioni aggiunte dopo l'orario scelto (negli esempi, dopo le 6:30 e le 19:30) arrivano come Last Minute Notification. Per cambiare l'orario vai nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>.
 				</p>
 			</div>
-
 			<div class="question" id="emailSpam">
-				<h3>6. Le email sono contrassegnate come SPAM</h3>
+				<h3>8. Le email sono contrassegnate come SPAM</h3>
 				<p class="answer">
-					Tutte le nostre email vengono inviate dai nostri server <i>self-hosted</i> senza dipendere da servizi di terze parti. Pertanto, i provider di email come Gmail o Outlook potrebbero contrassegnare le email come SPAM o, in alcuni casi,
-					bloccarle completamente.<br>
-					Se trovi una notifica nella cartella <span class="primary-text">SPAM</span> o <span class="primary-text">Promozioni</span>, ti invitiamo a contrassegnarla come <i>non spam</i> per spostarla nella cartella
-					<span class="primary-text">Posta in arrivo</span>.<br>
-					Un'alternativa per evitare che le email vengano contrassegnate come SPAM &egrave; utilizzare l'email istituzionale <i>@fermimn.edu.it</i> o ricevere le notifiche tramite Telegram.
+					Le email vengono inviate tramite servizi di invio email esterni (Microsoft Azure e Mailgun), ma alcuni provider come Gmail o Outlook potrebbero comunque metterle nella cartella <span class="primary-text">SPAM</span> o <span class="primary-text">Promozioni</span>.<br>
+					Se trovi una notifica l&igrave;, contrassegnala come <i>non spam</i> per spostarla nella <span class="primary-text">Posta in arrivo</span>. In alternativa usa l'email istituzionale <i>@fermimn.edu.it</i> oppure ricevi le notifiche su Telegram o come notifiche push.
 				</p>
 			</div>
 		</div>
@@ -244,61 +257,99 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>Informativa privacy</h3>
 				<p class="answer">
-					La presente informativa descrive le modalità di gestione dei dati personali degli utenti che interagiscono con Fermi Notify. Ai sensi delle normative italiane ed europee in materia di protezione dei dati personali, la presente
-					informativa è resa in ottemperanza al Regolamento (UE) 2016/679 del Parlamento Europeo e del Consiglio del 27 aprile 2016 (GDPR).
+					Questa informativa descrive quali dati personali tratta Fermi Notify, perch&eacute; e con chi, ai sensi del Regolamento (UE) 2016/679 (GDPR). Il servizio &egrave; gestito dal <RouterLink to="/team" class="link">team</RouterLink> di Fermi Notify; per qualsiasi richiesta scrivi a <a href="mailto:mail@fn.lkev.in" class="link">mail@fn.lkev.in</a>.
 				</p>
 			</div>
 			<div class="question">
-				<h3>1. Raccolta dei dati</h3>
+				<h3>1. Quali dati raccogliamo</h3>
 				<p class="answer">
-					Fermi Notify richiede la raccolta di dati personali specifici esclusivamente nel contesto della registrazione al servizio per usufruire delle funzionalità avanzate, come le notifiche. I dati necessari per la registrazione includono nome e
-					cognome, indirizzo email e genere. Facoltativamente, l'utente può fornire il proprio Telegram ID. La raccolta di tali informazioni è vincolata alla volontà dell'utente di usufruire dei servizi di registrazione e notifica. La fruizione di
-					altre funzionalità del servizio, che non implicano la registrazione, è consentita senza la necessità di fornire tali dati personali.
+					Cerca eventi e Orario si usano senza registrazione. Se crei un account raccogliamo solo quello che serve al servizio:
+				</p>
+				<ul style="line-height: 1.5em;">
+					<li style="margin: 6px 0"><span class="primary-text">account</span>: nome, cognome, email, genere, l'hash della password (se ne imposti una), la data dell'ultimo accesso;</li>
+					<li style="margin: 6px 0"><span class="primary-text">preferenze</span>: keywords, canali e orario delle notifiche, attivit&agrave; facoltative scelte;</li>
+					<li style="margin: 6px 0"><span class="primary-text">accesso con Google</span>: l'identificativo dell'account Google;</li>
+					<li style="margin: 6px 0"><span class="primary-text">accesso con Moodle</span>: il nome utente Moodle e, se la scuola ti fa vedere i docenti, la sessione del tuo ultimo accesso (cifrata). La password viene inviata solo al sito della scuola per verificarla e non viene salvata;</li>
+					<li style="margin: 6px 0"><span class="primary-text">Telegram</span>, se lo colleghi: il tuo ID Telegram;</li>
+					<li style="margin: 6px 0"><span class="primary-text">notifiche push</span>, per ogni dispositivo su cui le attivi: l'indirizzo e le chiavi per inviarle, un identificativo del dispositivo e una sua breve descrizione (es. browser e sistema);</li>
+					<li style="margin: 6px 0"><span class="primary-text">notifiche inviate</span>: quali eventi ti abbiamo gi&agrave; notificato, per non mandarli due volte;</li>
+					<li style="margin: 6px 0"><span class="primary-text">segnalazioni</span>: se usi <i>Segnala un problema</i>, il testo, l'email facoltativa per risponderti e lo screenshot facoltativo;</li>
+					<li style="margin: 6px 0"><span class="primary-text">log tecnici</span>: l'indirizzo IP e l'ora di accessi e tentativi, usati per sicurezza e per limitare gli abusi (es. troppi tentativi di accesso).</li>
+				</ul>
+			</div>
+			<div class="question">
+				<h3>2. Perch&eacute; li usiamo</h3>
+				<p class="answer">
+					I dati dell'account servono a fornirti il servizio che chiedi: trovare gli eventi che ti riguardano e avvisarti sui canali che scegli. I log tecnici servono a proteggere il servizio e gli account. Non usiamo i dati per pubblicit&agrave; e non li vendiamo.
 				</p>
 			</div>
 			<div class="question">
-				<h3>2. Trattamento dei dati</h3>
+				<h3>3. Chi pu&ograve; accedere ai dati</h3>
 				<p class="answer">
-					I dati forniti sono accessibili esclusivamente al team interno di Fermi Notify, composto da persone fisiche presenti a <RouterLink to="/team" class="link">questa pagina</RouterLink>. Collaboratori esterni e strumenti citati come "Extra" non hanno
-					accesso ai dati sensibili degli utenti. L'impiego dell'intelligenza artificiale (OpenAI ChatGPT, Google Gemini e GitHub Copilot) è limitato al supporto tecnico e allo sviluppo.
+					I dati sono accessibili solo al team interno di Fermi Notify. Per funzionare usiamo alcuni fornitori, che trattano i dati solo per conto nostro:
+				</p>
+				<ul style="line-height: 1.5em;">
+					<li style="margin: 6px 0"><span class="primary-text">Microsoft Azure</span>: database (Italia, Italy North) e invio delle email;</li>
+					<li style="margin: 6px 0"><span class="primary-text">Mailgun</span>: invio delle email;</li>
+					<li style="margin: 6px 0"><span class="primary-text">Render</span> e <span class="primary-text">Oracle Cloud</span>: server, hosting;</li>
+					<li style="margin: 6px 0"><span class="primary-text">Telegram</span>: invio dei messaggi, se colleghi il tuo account;</li>
+					<li style="margin: 6px 0"><span class="primary-text">servizi push dei browser</span> (es. Google, Mozilla, Apple): consegna delle notifiche push;</li>
+					<li style="margin: 6px 0"><span class="primary-text">Google</span>: accesso con Google, se lo usi, e la casella Gmail del progetto, dove arrivano le segnalazioni di <i>Segnala un problema</i>;</li>
+					<li style="margin: 6px 0"><span class="primary-text">fermimn.edu.it</span>: verifica delle credenziali Moodle, se accedi con Moodle.</li>
+				</ul>
+				<p class="answer answer-staccato">
+					L'impiego dell'intelligenza artificiale &egrave; limitato al supporto tecnico e allo sviluppo.
 				</p>
 			</div>
 			<div class="question">
-				<h3>3. Conservazione e utilizzo dei dati</h3>
+				<h3>4. Dati dei docenti</h3>
 				<p class="answer">
-					Fermi Notify utilizza tecnologie come i session cookie e localStorage per migliorare l'esperienza di navigazione. I session cookie sono essenziali per il funzionamento del sito e vengono eliminati automaticamente alla chiusura della
-					sessione. Le informazioni memorizzate in localStorage riguardano esclusivamente le preferenze dell'utente e conserva informazioni riguardanti le keywords/parole chiave nella sezione "Filtra eventi" nella homepage e vengono salvati in modo
-					locale sul dispositivo utilizzato per la navigazione.
+					L'orario dei docenti viene dall'area riservata del sito della scuola e lo mostriamo solo a chi accede con Moodle con un account che la scuola abilita a vederlo. Per gli utenti pubblici suggeriamo come keyword solo i cognomi gi&agrave; scritti nel calendario Google delle variazioni.
 				</p>
 			</div>
 			<div class="question">
-				<h3>4. Protezione dei dati</h3>
+				<h3>5. Cookie e dati salvati nel browser</h3>
 				<p class="answer">
-					Le informazioni personali fornite dagli utenti sono custodite in modo sicuro e non vengono condivise con terzi.<br>
-					La password fornita per l'accesso degli gli utenti registrati è soggetta a un processo di hash mediante un numero adeguato di round. Tale procedura è finalizzata a migliorare la sicurezza dei dati dell'utente. L'hashing rappresenta una
-					pratica crittografica che converte la password in una stringa di lunghezza fissa, rendendo impossibile risalire alla password originale a partire dal valore hash generato.<br>
-					Attualmente, i dati degli utenti sono conservati in un database protetto proprietario di Microsoft Azure localizzato in Italy North. L'adozione di misure di sicurezza avanzate, tra cui crittografia dei dati e protocolli di sicurezza,
-					garantisce la massima tutela delle informazioni personali degli utenti.
+					Usiamo un cookie tecnico per tenerti connesso, valido fino a un anno, che il sito non pu&ograve; leggere da JavaScript. Nella memoria del browser (localStorage) salviamo:
+				</p>
+				<ul style="line-height: 1.5em;">
+					<li style="margin: 6px 0">il token di accesso;</li>
+					<li style="margin: 6px 0">la sessione Moodle cifrata, se accedi con Moodle;</li>
+					<li style="margin: 6px 0">i dati della notifica push di quel dispositivo, se le attivi;</li>
+					<li style="margin: 6px 0">le keywords e i filtri di Cerca eventi;</li>
+					<li style="margin: 6px 0">alcune preferenze dell'interfaccia (es. avvisi chiusi).</li>
+				</ul>
+				<p class="answer answer-staccato">
+					Puoi cancellare questi dati dalle impostazioni del browser; alcune funzioni potrebbero smettere di funzionare finch&eacute; non accedi di nuovo.
 				</p>
 			</div>
 			<div class="question">
-				<h3>5. Possibilità di modifica, disabilitazione e cancellazione dell'account</h3>
+				<h3>6. Per quanto tempo conserviamo i dati</h3>
 				<p class="answer">
-					Gli utenti hanno la facoltà di cancellare i dati salvati in localStorage e disabilitare il salvataggio per il sito tramite le impostazioni del browser. Tuttavia, tale azione potrebbe limitare alcune funzionalità del servizio. Gli utenti
-					registrati possono eliminare l'account inviando una richiesta via email a <a href="mailto:mail@fn.lkev.in" class="link">mail@fn.lkev.in</a>. Fermi Notify gestirà le richieste di cancellazione dell'account nel rispetto delle
-					normative sulla protezione dei dati personali, assicurando la sicurezza e la privacy delle informazioni degli utenti.
+					I dati dell'account restano finch&eacute; l'account esiste e vengono eliminati quando ne chiedi la cancellazione. La sessione Moodle (nel browser e nel tuo account) dura al massimo 13 giorni; il link <i>Collega Moodle</i> scade dopo 30 minuti.
 				</p>
 			</div>
 			<div class="question">
-				<h3>6. Gestione dei dati in conformità alle normative sulla privacy</h3>
+				<h3>7. Come proteggiamo i dati</h3>
 				<p class="answer">
-					La gestione dei dati di Fermi Notify è svolta con attenzione alle normative sulla privacy vigenti. Sebbene l'utilizzo di localStorage non coinvolga la memorizzazione di dati personali o sensibili, il nostro impegno è garantire il rispetto
-					delle norme sulla protezione dei dati. Fermi Notify si adopera per condurre tutte le operazioni in conformità alle leggi italiane ed europee sulla privacy, assicurando che la gestione delle informazioni rispetti gli standard richiesti.
+					Le password sono salvate come hash (bcrypt), le comunicazioni passano su connessioni cifrate (HTTPS) e la sessione Moodle, nel browser e sul server, &egrave; cifrata (AES-256-GCM), cos&igrave; nessuno pu&ograve; leggerla o modificarla. I dati degli account sono in un database protetto di Microsoft Azure, in Italia (Italy North).
+				</p>
+			</div>
+			<div class="question">
+				<h3>8. I tuoi diritti</h3>
+				<p class="answer">
+					Puoi chiedere in qualsiasi momento di accedere ai tuoi dati, correggerli, riceverne una copia, opporti al loro uso o cancellare l'account, scrivendo a <a href="mailto:mail@fn.lkev.in" class="link">mail@fn.lkev.in</a>. Molte preferenze (keywords, canali, notifiche push) si cambiano direttamente nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>. Hai anche il diritto di presentare reclamo al <a href="https://www.garanteprivacy.it" class="link">Garante per la protezione dei dati personali</a>.
+				</p>
+			</div>
+			<div class="question">
+				<h3>9. Modifiche a questa informativa</h3>
+				<p class="answer">
+					Se cambiamo il modo in cui trattiamo i dati aggiorniamo questa pagina. Ultimo aggiornamento: ottobre 2026.
 				</p>
 			</div>
 			<div class="question">
 				<h3 class="flex-y-center">
-					7. Open Source&nbsp;<a class="flex-y-center" href="https://creativecommons.org/licenses/by-sa/4.0/"
+					10. Open Source&nbsp;<a class="flex-y-center" href="https://creativecommons.org/licenses/by-sa/4.0/"
 						><img src="https://creativecommons.org/images/deed/cc_icon_white_x2.png" style="height: 1em;" />
 						<img src="https://creativecommons.org/images/deed/attribution_icon_white_x2.png" style="height: 1em;" />
 						<img src="https://creativecommons.org/images/deed/sa_white_x2.png" style="height: 1em;" /></a
@@ -320,10 +371,7 @@ onBeforeUnmount(() => {
 				<a class="btn outlined flex-center" href="https://www.instagram.com/ferminotify/"
 					><FontAwesomeIcon icon="fa-brands fa-instagram" class="material-space-right" /> ferminotify</a
 				>
-				<!--
-				<a class="btn outlined flex-center" href="mailto:ferminotify@gmail.com"><span class="material-symbols-outlined material-space-right">mail</span> ferminotify@gmail.com</a>
-				<a class="btn text flex-center" @click="copy('ferminotify@gmail.com')"><span class="material-symbols-outlined">content_copy</span></a>
-				-->
+				<RouterLink class="btn outlined flex-center" to="/orario/segnala"><span class="material-symbols-outlined material-space-right">report</span> Segnala</RouterLink>
 			</div>
 			<RouterLink to="/team" class="btn filled flex-center" style="margin-top: 10px;">Team</RouterLink>
 		</div>
