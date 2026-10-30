@@ -115,13 +115,13 @@ onBeforeUnmount(() => {
 					Fermi Notify ti avvisa via email, Telegram o notifica push quando sul <a href="https://www.fermimn.edu.it/variazioni-orario/" class="link">calendario giornaliero</a> compare una variazione dell'orario o un evento che ti riguarda, come una sostituzione, un cambio aula o un'uscita anticipata.
 				</p>
 				<p class="answer answer-staccato">
-					Puoi anche cercare gli eventi in <RouterLink to="/" class="link">Cerca eventi</RouterLink> e vedere l'orario settimanale di classi e aule, con le variazioni gi&agrave; applicate, in <RouterLink to="/orario" class="link">Orario</RouterLink>.
+					Puoi anche cercare gli eventi in <RouterLink to="/" class="link">Cerca eventi</RouterLink> e vedere l'orario settimanale di classi e aule, con le variazioni gi&agrave; applicate in <RouterLink to="/orario" class="link">Orario</RouterLink>.
 				</p>
 			</div>
 			<div class="question">
 				<h3>2. Come faccio a registrarmi?</h3>
 				<p class="answer">
-					Vai su <RouterLink to="/register" class="link">Registrati</RouterLink> e scegli uno dei tre modi: email e password, account Google, oppure <span class="primary-text">Moodle</span> con le credenziali della scuola. Con Moodle ti chiediamo poi nome, cognome, genere ed email.
+					Per registrarti clicca <RouterLink to="/register" class="link">qui</RouterLink> con email, Google o Moodle.
 				</p>
 				<p class="answer answer-staccato">
 					L'email che indichi &egrave; quella che riceve le notifiche. Prima di poter usare l'account devi confermarla con il link che ti mandiamo.
@@ -130,25 +130,25 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>3. Come funziona l'accesso con Moodle?</h3>
 				<p class="answer">
-					Il nome utente e la password che inserisci vengono controllati direttamente sul sito della scuola. Noi salviamo solo il nome utente: la password <span class="primary-text">non viene mai salvata</span>.
+					Utilizza username e la password di Moodle Fermi. Vengono controllati direttamente sul sito del Fermi. Viene salviato su Fermi Notify solo il nome utente: la password <span class="primary-text">non viene mai salvata</span>.
 				</p>
 				<p class="answer answer-staccato">
-					Dopo la registrazione puoi entrare con il pulsante Moodle oppure con la tua email e la password di Moodle (o quella di Fermi Notify, se ne hai impostata una). Per l'orario dei docenti usiamo la sessione del tuo ultimo accesso con Moodle finch&eacute; &egrave; valida (al massimo 13 giorni), anche se entri in un altro modo; poi ti chiediamo di nuovo la password di Moodle.
+					I docenti che effettuano l'accesso con Moodle possono visualizzare l'orario dei docenti con le variazioni applicate. Usiamo la tua sessione del tuo ultimo accesso con Moodle finch&eacute; &egrave; valida (al massimo 13 giorni) per accedere all'orario; quando scale, dovrai riaccedere con Moodle.
 				</p>
 				<p class="answer answer-staccato">
-					Hai gi&agrave; un account con la stessa email? Accedi con Moodle e indica quell'email: ti mandiamo un'email <i>Collega Moodle</i> con un link valido 30 minuti. Aprendolo e confermando, Moodle viene collegato al tuo account. Se non sei stat&#601; tu, ignora l'email.
+					Hai gi&agrave; un account con email? Accedi con Moodle e indica quell'email per collegarla.
 				</p>
 			</div>
 			<div class="question">
 				<h3>4. Come viene protetta la password?</h3>
 				<p class="answer">
-					La password di Fermi Notify non viene salvata in chiaro: ne conserviamo solo un hash (bcrypt), da cui non &egrave; possibile risalire alla password. La password di Moodle non viene salvata affatto.
+					La password di Fermi Notify viene criptata attraverso un processo di hashing ricorsivi a un numero adeguato di round, un algoritmo impossibile da decifrare. La password di Moodle viene inviata direttamente al sito del Fermi e non viene mai salvata. 
 				</p>
 			</div>
 			<div class="question">
 				<h3>5. Quando arrivano le notifiche?</h3>
 				<p class="answer">
-					Se l'evento che ti riguarda &egrave; pubblicato prima del giorno stesso, ricevi una <i>Daily Notification</i> che raccoglie tutti gli eventi della giornata, di default alle <span class="primary-text">6:00</span>. Puoi cambiare l'orario nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink> (vedi <RouterLink to="/faq?page=configurazione" class="link">Configurazione</RouterLink>).
+					Se l'evento che ti riguarda &egrave; pubblicato prima del giorno stesso, ricevi una <i>Daily Notification</i> che raccoglie tutti gli eventi della giornata, di default alle <span class="primary-text">6:00</span>. Puoi cambiare l'orario nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>. Maggiori informazioni nella sezione <RouterLink to="/faq?page=configurazione" class="link">Configurazione</RouterLink>.
 				</p>
 				<p class="answer answer-staccato">
 					Se l'evento viene pubblicato dopo la Daily Notification, per esempio una sostituzione dell'ultimo minuto, ricevi una <i>Last Minute Notification</i> <span class="primary-text">entro pochi minuti</span>: il calendario viene controllato ogni 5 minuti.
@@ -157,13 +157,10 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>6. Come funziona la pagina Orario?</h3>
 				<p class="answer">
-					In <RouterLink to="/orario" class="link">Orario</RouterLink> trovi l'orario settimanale di ogni classe e aula preso dal sito della scuola, con le variazioni del calendario gi&agrave; applicate: lezioni cambiate, cancellate o aggiunte.
+					In <RouterLink to="/orario" class="link">Orario</RouterLink> trovi l'orario settimanale di ogni classe e aula, con le variazioni del calendario applicate in modo dinamico.
 				</p>
 				<p class="answer answer-staccato">
-					Un'uscita anticipata o un'entrata posticipata cancellano le lezioni di quella parte della giornata; gli eventi dopo l'ultima lezione (come uno sportello) restano visibili. Nei giorni di gita, se una parte della classe resta a scuola, l'orario mostra la giornata di chi resta e la gita come nota.
-				</p>
-				<p class="answer answer-staccato">
-					L'orario dei docenti viene dall'area riservata del sito della scuola: lo vede solo chi accede con Moodle con un account che la scuola abilita a vederlo.
+					L'orario dei docenti dinamico con le variazioni applicate &egrave; disponibile solo per chi ha l'account abilitato per visualizzarli sul sito del Fermi.
 				</p>
 			</div>
 			<div class="question">
@@ -188,42 +185,35 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>1. Cosa sono le keywords?</h3>
 				<p class="answer">
-					Le <span class="primary-text">keywords</span> sono le parole chiave della tua lista: ricevi una notifica quando nel calendario giornaliero c'&egrave; un evento che le riguarda. Ti consigliamo di aggiungere la tua <span class="primary-text">classe</span> e il tuo <span class="primary-text">cognome</span>.
-				</p>
-				<p class="answer answer-staccato">
-					Ogni keyword viene riconosciuta per quello che &egrave;:
+					Le <span class="primary-text">keywords</span> sono le parole chiave che inserisci nella tua lista per ricevere la notifica se è presente un evento che la riguarda nel calendario giornaliero. Ti consigliamo di aggiungere la tua <span class="primary-text">classe</span> e il tuo <span class="primary-text">cognome</span>.
 				</p>
 				<ul style="line-height: 1.5em;">
-					<li style="margin: 6px 0"><span class="primary-text">classe</span> (es. <code>4CIIN</code>): gli eventi della classe e quelli per tutto il suo anno o gruppo (es. <i>CLASSI QUARTE</i>, <i>TRIENNIO</i>). Spazi e simboli non contano: <code>4 CIIN</code> e <code>4°CIIN</code> vanno bene;</li>
-					<li style="margin: 6px 0"><span class="primary-text">classe articolata</span> (es. <code>5EELEET</code>): quando aggiungi una classe singola (es. <code>5EELE</code>) aggiungiamo anche le articolate di cui fa parte. Se la togli, non ricevi pi&ugrave; quegli eventi;</li>
-					<li style="margin: 6px 0"><span class="primary-text">cognome di un docente</span> (es. <code>ROSSI</code>): gli eventi in cui &egrave; nominato, anche come assente;</li>
-					<li style="margin: 6px 0"><span class="primary-text">aula</span> (es. <code>AULA 94</code>): gli eventi in quell'aula;</li>
-					<li style="margin: 6px 0">qualsiasi altra <span class="primary-text">parola</span> (es. il nome di un corso): gli eventi che la contengono nel titolo.</li>
+					<li style="margin: 6px 0"><span class="primary-text">classe</span> (es. <code>4CIIN</code>): gli eventi della classe e quelli per tutto il suo anno o gruppo (es. <i>CLASSI QUARTE</i>, <i>TRIENNIO</i>).</li>
+					<li style="margin: 6px 0"><span class="primary-text">cognome</span>: gli eventi in cui &egrave; nominato (es. <i>PEER TUTORING</i>, <i>ASSENTE</i>);</li>
+					<li style="margin: 6px 0"><span class="primary-text">aula</span>: gli eventi in quell'aula;</li>
+					<li style="margin: 6px 0">qualsiasi altra <span class="primary-text">parola</span> (es. <code>Corso FUSION</code>): gli eventi che la contengono nel titolo.</li>
 				</ul>
 			</div>
 			<div class="question">
 				<h3>2. Come aggiungo le keywords?</h3>
 				<p class="answer">
-					Scrivila nella casella della <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>: mentre scrivi ti suggeriamo classi e docenti. I docenti vengono dalla lista della scuola se accedi con Moodle con un account abilitato; altrimenti sono i cognomi che compaiono nel calendario pubblico.
-				</p>
-				<p class="answer answer-staccato">
-					Maiuscole e minuscole non contano. Se scrivi qualcosa che sembra una classe ma non esiste (es. <code>5CCIN</code>), ti proponiamo le classi pi&ugrave; simili: puoi sceglierne una o aggiungerla comunque.
+					Puoi aggiungere le keywords nella tua <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>.
 				</p>
 			</div>
 			<div class="question">
 				<h3>3. Come rimuovo le keywords?</h3>
 				<p class="answer">
-					Nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink> premi il pulsante di modifica accanto alla lista, poi tocca la keyword da togliere.
+					Nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink> premi il pulsante di modifica accanto alla lista, poi tocca la keyword per rimuoverla.
 				</p>
 			</div>
 			<div class="question">
 				<h3>4. Cosa sono le attivit&agrave; facoltative?</h3>
 				<p class="answer">
-					Sportelli, peer tutoring, olimpiadi e incontri per i rappresentanti sono attivit&agrave; a cui va solo chi vuole. Quando sono indicate per tutto l'anno o un gruppo (es. <i>CLASSI 5^ IT - SPORTELLO MATEMATICA</i>), ti avvisiamo solo se hai attivato quella categoria in <RouterLink to="/dashboard#facoltative" class="link">Attivit&agrave; facoltative</RouterLink>.
+					Sportelli, peer tutoring, olimpiadi e incontri per i rappresentanti sono attivit&agrave; che non riguardano tutta la classe o sono attività opzionali. Verrai notificato solo se hai attivato quella categoria in <RouterLink to="/dashboard#facoltative" class="link">Attivit&agrave; facoltative</RouterLink>.
 				</p>
-				<p class="answer answer-staccato">
+				<!--p class="answer answer-staccato"> TODO rivedere
 					Se il titolo nomina proprio la tua classe, la notifica arriva comunque. In Orario e in Cerca eventi queste attivit&agrave; si vedono sempre.
-				</p>
+				</p-->
 			</div>
 			<div class="question">
 				<h3>5. Come funziona la notifica tramite Telegram?</h3>
@@ -234,10 +224,7 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>6. Come funzionano le notifiche push?</h3>
 				<p class="answer">
-					Attivale in <i>Notifiche push</i> nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>: solo in quel momento il browser ti chiede il permesso di mostrare notifiche. Concedilo in modo permanente, altrimenti le notifiche si disattivano.
-				</p>
-				<p class="answer answer-staccato">
-					Puoi riceverle <i>all'aggiunta della variazione</i> oppure <i>insieme a email / Telegram</i>, cio&egrave; agli stessi orari della Daily Notification. Le notifiche push valgono per il dispositivo su cui le attivi: attivale su ognuno che vuoi usare.
+					Attiva le notifiche push nella <RouterLink to="/dashboard" class="link">Dashboard</RouterLink>, quindi approva il popup del browser per consentire le notifiche <b>in modo permanente</b>, altrimenti le notifiche si disattivano automaticamente da solo.
 				</p>
 			</div>
 			<div class="question">
@@ -270,7 +257,7 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>Informativa privacy</h3>
 				<p class="answer">
-					Questa informativa descrive quali dati personali tratta Fermi Notify, perch&eacute; e con chi, ai sensi del Regolamento (UE) 2016/679 (GDPR). Il servizio &egrave; gestito dal team di Fermi Notify (<RouterLink to="/team" class="link">questa pagina</RouterLink>); per qualsiasi richiesta scrivi a <a href="mailto:mail@fn.lkev.in" class="link">mail@fn.lkev.in</a>.
+					Questa informativa descrive quali dati personali tratta Fermi Notify, perch&eacute; e con chi, ai sensi del Regolamento (UE) 2016/679 (GDPR). Il servizio &egrave; gestito dal <RouterLink to="/team" class="link">team</RouterLink> di Fermi Notify; per qualsiasi richiesta scrivi a <a href="mailto:mail@fn.lkev.in" class="link">mail@fn.lkev.in</a>.
 				</p>
 			</div>
 			<div class="question">
@@ -302,22 +289,22 @@ onBeforeUnmount(() => {
 					I dati sono accessibili solo al team interno di Fermi Notify. Per funzionare usiamo alcuni fornitori, che trattano i dati solo per conto nostro:
 				</p>
 				<ul style="line-height: 1.5em;">
-					<li style="margin: 6px 0"><span class="primary-text">Microsoft Azure</span>: database (Italia, Italy North) e invio delle email, insieme a Mailgun;</li>
-					<li style="margin: 6px 0"><span class="primary-text">Mailgun</span>: invio delle email, insieme a Azure;</li>
-					<li style="margin: 6px 0"><span class="primary-text">Render</span> e <span class="primary-text">Oracle Cloud</span>: server su cui gira il servizio;</li>
+					<li style="margin: 6px 0"><span class="primary-text">Microsoft Azure</span>: database (Italia, Italy North) e invio delle email;</li>
+					<li style="margin: 6px 0"><span class="primary-text">Mailgun</span>: invio delle email;</li>
+					<li style="margin: 6px 0"><span class="primary-text">Render</span> e <span class="primary-text">Oracle Cloud</span>: server, hosting;</li>
 					<li style="margin: 6px 0"><span class="primary-text">Telegram</span>: invio dei messaggi, se colleghi il tuo account;</li>
 					<li style="margin: 6px 0"><span class="primary-text">servizi push dei browser</span> (es. Google, Mozilla, Apple): consegna delle notifiche push;</li>
 					<li style="margin: 6px 0"><span class="primary-text">Google</span>: accesso con Google, se lo usi, e la casella Gmail del progetto, dove arrivano le segnalazioni di <i>Segnala un problema</i>;</li>
-					<li style="margin: 6px 0">il <span class="primary-text">sito della scuola</span>: verifica delle credenziali Moodle, se accedi con Moodle.</li>
+					<li style="margin: 6px 0"><span class="primary-text">fermimn.edu.it</span>: verifica delle credenziali Moodle, se accedi con Moodle.</li>
 				</ul>
 				<p class="answer answer-staccato">
-					L'impiego dell'intelligenza artificiale (OpenAI ChatGPT, Google Gemini, GitHub Copilot, Anthropic Claude) &egrave; limitato al supporto tecnico e allo sviluppo.
+					L'impiego dell'intelligenza artificiale &egrave; limitato al supporto tecnico e allo sviluppo.
 				</p>
 			</div>
 			<div class="question">
 				<h3>4. Dati dei docenti</h3>
 				<p class="answer">
-					L'orario dei docenti viene dall'area riservata del sito della scuola e lo mostriamo solo a chi accede con Moodle con un account che la scuola abilita a vederlo. A tutti gli altri suggeriamo come keyword solo i cognomi gi&agrave; scritti nel calendario pubblico delle variazioni, senza orari. Non mostriamo mai nomi di studenti.
+					L'orario dei docenti viene dall'area riservata del sito della scuola e lo mostriamo solo a chi accede con Moodle con un account che la scuola abilita a vederlo. Per gli utenti pubblici suggeriamo come keyword solo i cognomi gi&agrave; scritti nel calendario Google delle variazioni.
 				</p>
 			</div>
 			<div class="question">
@@ -384,10 +371,7 @@ onBeforeUnmount(() => {
 				<a class="btn outlined flex-center" href="https://www.instagram.com/ferminotify/"
 					><FontAwesomeIcon icon="fa-brands fa-instagram" class="material-space-right" /> ferminotify</a
 				>
-				<!--
-				<a class="btn outlined flex-center" href="mailto:ferminotify@gmail.com"><span class="material-symbols-outlined material-space-right">mail</span> ferminotify@gmail.com</a>
-				<a class="btn text flex-center" @click="copy('ferminotify@gmail.com')"><span class="material-symbols-outlined">content_copy</span></a>
-				-->
+				<RouterLink class="btn outlined flex-center" to="/orario/segnala"><span class="material-symbols-outlined material-space-right">report</span> Segnala</RouterLink>
 			</div>
 			<RouterLink to="/team" class="btn filled flex-center" style="margin-top: 10px;">Team</RouterLink>
 		</div>

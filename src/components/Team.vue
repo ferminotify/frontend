@@ -19,7 +19,8 @@ const coreTeam = [
         name: 'Liu Kevin',
         roles: ['Project Management', 'Code', 'Design', 'Hosting'],
         instagram: 'https://instagram.com/kev1nl1u',
-        github: 'https://github.com/kev1nl1u'
+        github: 'https://github.com/kev1nl1u',
+        link: 'https://lkev.in'
     },
     {
         name: 'Sirico Davide',
@@ -34,13 +35,15 @@ const createdByTeam = [
         name: 'Bini Matteo',
         roles: ['Project Management', 'Code', 'Code Review'],
         instagram: 'https://www.instagram.com/matteobini_/',
-        github: 'https://github.com/MatteoBini'
+        github: 'https://github.com/MatteoBini',
+        link: 'https://www.matteobini.me/'
     },
     {
         name: 'Liu Kevin',
         roles: ['Code', 'Design'],
         instagram: 'https://instagram.com/kev1nl1u',
-        github: 'https://github.com/kev1nl1u'
+        github: 'https://github.com/kev1nl1u',
+        link: 'https://lkev.in'
     },
     {
         name: 'Sirico Davide',
@@ -211,6 +214,9 @@ onUnmounted(() => {
                                 </a>
                                 <a v-if="member.github" class="social-link" :href="member.github" target="_blank" rel="noopener noreferrer" :aria-label="`GitHub di ${member.name}`">
                                     <font-awesome-icon :icon="['fab', 'github']" />
+                                </a>
+                                <a v-if="member.link" class="social-link" :href="member.link" target="_blank" rel="noopener noreferrer" :aria-label="`Sito web di ${member.name}`">
+                                    <font-awesome-icon :icon="['fas', 'link']" />
                                 </a>
                             </div>
                         </div>
