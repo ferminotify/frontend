@@ -2,7 +2,6 @@
 
 const WEEKDAY_SHORT = ['', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 const WEEKDAY_LONG = ['', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato']
-const MONTHS = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
 const MONTHS_LONG = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre']
 
 const parts = (date) => date.split('-').map(Number) // [y, m, d]
@@ -10,10 +9,6 @@ const parts = (date) => date.split('-').map(Number) // [y, m, d]
 export const weekdayShort = (wd) => WEEKDAY_SHORT[wd]
 export const weekdayLong = (wd) => WEEKDAY_LONG[wd]
 export const dayOfMonth = (date) => parts(date)[2]
-export const shortDate = (date) => {
-  const [, m, d] = parts(date)
-  return `${d} ${MONTHS[m - 1]}`
-}
 
 /** "5 – 9 ottobre", "29 settembre – 3 ottobre" */
 export function weekRangeLabel(days) {
@@ -104,7 +99,7 @@ const sameRoom = (calendar, site) => {
   return words.every((w) => siteWords.includes(w))
 }
 
-// "Bonesi" (calendar, surname only) among "Bonesi Marco, Rossi Anna" (timetable)?
+// "Pallino" (calendar, surname only) among "Pallino Marco, Rossi Anna" (timetable)?
 const nameWords = (s) => String(s || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^A-Z0-9]+/).filter(Boolean)
 const mentions = (names, full) => {
   const f = nameWords(full)
@@ -420,7 +415,7 @@ const ENTITY_LABEL = { class: 'Classe', room: 'Aula', teacher: 'Docente' }
 const STATUS_LABEL = { regular: 'Normale', maybe: 'Variazione incerta', changed: 'Variazione', cancelled: 'Annullata', freed: 'Aula libera', added: 'Aggiunta' }
 
 /** "9 ottobre 2026" */
-export function longDate(date) {
+function longDate(date) {
   const [y, m, d] = parts(date)
   return `${d} ${MONTHS_LONG[m - 1]} ${y}`
 }

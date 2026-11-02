@@ -1,37 +1,22 @@
 import { computed, ref } from 'vue'
 import { fetchTimetableIndex } from '@/api/timetable'
 
-// Keyword suggestions (dashboard keywords, Cerca eventi): classes from the school timetable;
-// teachers from the school's list for school accounts and Moodle sessions, else the surnames
-// the public calendar prints. One shared index, loaded on the first focus of any field.
+// Keyword suggestions
 const index = ref(null) // { classes: [{key,name}], teachers: [{key,name}] | null, calendarTeachers: [surname] }
+let indexRequest = null
 let indexLoading = null
-let indexFor = null // the login the index was loaded with: teachers depend on it
 const MAX_SUGGESTIONS = 6
 
-const currentLogin = () => {
-  try {
-    return localStorage.getItem('token') || ''
-  } catch {
-    return ''
-  }
-}
-
+// Cached per login by the API: after logging in this returns the index with teachers.
 function loadIndex() {
-  // Loaded before logging in (Cerca eventi, then the dashboard): load it again, with teachers.
-  const login = currentLogin()
-  if (indexLoading && indexFor !== login) indexLoading = null
-  if (!indexLoading) {
-    indexFor = login
-    indexLoading = fetchTimetableIndex()
-      .then((data) => {
-        if (indexFor === login) index.value = data
-      })
-      .catch((err) => {
-        console.warn('Keyword suggestions unavailable', err)
-        if (indexFor === login) indexLoading = null // retry on the next focus
-      })
-  }
+  const request = fetchTimetableIndex()
+  if (request === indexRequest) return indexLoading
+  indexRequest = request
+  indexLoading = request
+    .then((data) => {
+      if (indexRequest === request) index.value = data
+    })
+    .catch((err) => console.warn('Keyword suggestions unavailable', err))
   return indexLoading
 }
 
@@ -49,7 +34,7 @@ const candidates = computed(() => {
   const classes = (index.value.classes || []).map((c) => ({ type: 'class', keyword: c.key.toUpperCase(), label: c.name }))
   // The school's list (school accounts, Moodle sessions), else the surnames the public
   // calendar prints (everyone; no first names, no timetables).
-  // Homonyms ("Vighi Giulia", "Vighi Cristina") get the whole name: the surname alone is both.
+  // Homonyms ("Clarabella Giulia", "Clarabella Cristina") get the whole name: the surname alone is both.
   const school = (index.value.teachers || []).filter((t) => !/\d/.test(t.name)) // vacant posts ("A40 …")
   const bySurname = new Map()
   for (const t of school) bySurname.set(surnameOf(t.name), (bySurname.get(surnameOf(t.name)) || 0) + 1)
@@ -135,7 +120,7 @@ export function useKeywordSuggestions({ input, exclude, onPick, onEnter }) {
 
 // ------- Class check: a keyword that looks like a class code but is no class -------
 // "5IIN", "5CCIN", "4CBIOIN": the notifier then only finds that exact word in the titles.
-// Same normalisation as the backend (utils/timetable/keywords.js keywordWords): no accents,
+// Same normalisation as the backend (utils/timetable/match.js keywordWords): no accents,
 // ordinal marks, dots or spaces ("5ºCIIN", "5 CIIN", "4E." are classes).
 const compact = (kw) =>
   String(kw || '')
@@ -144,7 +129,7 @@ const compact = (kw) =>
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^A-Z0-9]/g, '')
 
-// Joint classes as the calendar writes them (backend merge.js jointCalendarName):
+// Joint classes as the calendar writes them (backend match.js jointCalendarName):
 // site "5EELEEET" (5EELE + 5EET) → "5EELEET".
 function jointNames(keys) {
   const out = []

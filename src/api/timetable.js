@@ -51,8 +51,28 @@ async function get(path) {
   return res.json()
 }
 
+// One request per login/ticket, shared by /orario and the keyword suggestions.
+let indexCache = null // { key, promise }
+const indexKey = () => {
+  try {
+    return `${localStorage.getItem('token') || ''}|${schoolTicket.value || ''}`
+  } catch {
+    return `|${schoolTicket.value || ''}`
+  }
+}
+
 /** { classes, rooms: [{key,name}], teachers: [{key,name}] | null, schoolSession: boolean } */
-export const fetchTimetableIndex = () => get('/timetable')
+export function fetchTimetableIndex() {
+  const key = indexKey()
+  if (indexCache?.key !== key) {
+    const promise = get('/timetable').catch((err) => {
+      if (indexCache?.promise === promise) indexCache = null // retry next time
+      throw err
+    })
+    indexCache = { key, promise }
+  }
+  return indexCache.promise
+}
 
 /**
  * Week timetable with variations applied.

@@ -78,7 +78,7 @@
         </p>
         <div class="impostazioni-sect-content">
           <div class="checkNot-container">
-            <p style="font-size: 12px; color: var(--on-surface);">Per il corretto funzionamento delle notifiche push, se richiesto, imposta l'autorizzazione per ricevere le notifiche a "per sempre" nel popup! Altrimenti verranno disattivate automaticamente.</p>
+            <p style="font-size: 12px; color: var(--on-surface);">Per il corretto funzionamento delle notifiche push, se richiesto, imposta l'autorizzazione per ricevere le notifiche a "per sempre" nel popup, altrimenti verranno disattivate automaticamente.</p>
           </div>
           <div class="checkNot-container">
             Attiva notifiche push
@@ -137,7 +137,7 @@
         </div>
       </div>
 
-      <!-- Opt-in activities: listed for a whole year, notified only if chosen -->
+      <!-- Opt-in activities: notified only if chosen, also when they name the class -->
       <div v-if="optInCategories.length" class="impostazioni-sect invioNotificheContainer" id="facoltative" style="padding-bottom: 15px">
         <p style="padding-bottom: 10px" class="impostazioni-sect-title">
           <span class="material-symbols-outlined">volunteer_activism</span>
@@ -145,8 +145,7 @@
         </p>
         <div class="impostazioni-sect-content">
           <p style="font-size: 12px; color: var(--on-surface)">
-            Sportelli, tutoring e simili indicati per tutto l'anno ("CLASSI 2^ IT") arrivano solo se li attivi qui.
-            Se nominano la tua classe ti arrivano comunque. In Orario li vedi sempre.
+            Disattiva le notifiche per le attività opzionali.
           </p>
           <div v-for="c in optInCategories" :key="c.id" class="optin-row">
             <div class="checkNot-container">
@@ -162,7 +161,6 @@
                 <span class="slider round"></span>
               </label>
             </div>
-            <p class="optin-desc">{{ c.description }}</p>
             <p class="optin-desc optin-example">Es. {{ c.example }}</p>
           </div>
         </div>

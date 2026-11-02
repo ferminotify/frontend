@@ -268,7 +268,7 @@
   }
 
   // --- view mode + day -----------------------------------------------------------
-  const viewMode = ref('settimana')
+  const viewMode = ref('giorno')
   const selectedDay = ref(null)
   const focusSlot = ref(null)
 
@@ -442,7 +442,7 @@
 
   onMounted(() => {
     const savedView = storage.get(VIEW_KEY)
-    viewMode.value = savedView || (window.matchMedia('(max-width: 700px)').matches ? 'giorno' : 'settimana')
+    viewMode.value = savedView || 'giorno'
 
     // /orario with nothing selected: reopen the last class/room.
     if (!route.params.ref) {

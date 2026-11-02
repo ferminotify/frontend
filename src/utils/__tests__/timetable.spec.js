@@ -188,10 +188,10 @@ describe('describeCell: possible variation', () => {
 
 describe('describeCell: possible variation in a free hour', () => {
   it('shows the event', () => {
-    const v = { uid: 'm', kind: 'change', summary: 'CLASSE 3MENEITEL - SALA EROS - PROF. RONCONI', classes: ['3MENEITEL'], room: 'SALA EROS', teachers: ['Ronconi'], absent: [], maybe: true }
+    const v = { uid: 'm', kind: 'change', summary: 'CLASSE 3MENEITEL - SALA EROS - PROF. PAPERINO', classes: ['3MENEITEL'], room: 'SALA EROS', teachers: ['Paperino'], absent: [], maybe: true }
     const d = describeCell({ start: '10:05', slots: ['10:05'], span: 1, subject: null, detail: null, status: 'maybe', variations: [v] }, 'class')
     expect(d).toMatchObject({ badge: 'Variazione', title: '3MENEITEL', tone: 'maybe' })
-    expect(texts(d)).toEqual(['SALA EROS', 'Ronconi'])
+    expect(texts(d)).toEqual(['SALA EROS', 'Paperino'])
   })
 })
 
