@@ -275,12 +275,13 @@ onBeforeUnmount(() => {
 					<li style="margin: 6px 0"><span class="primary-text">notifiche inviate</span>: quali eventi ti abbiamo gi&agrave; notificato, per non mandarli due volte;</li>
 					<li style="margin: 6px 0"><span class="primary-text">segnalazioni</span>: se usi <i>Segnala un problema</i>, il testo, l'email facoltativa per risponderti e lo screenshot facoltativo;</li>
 					<li style="margin: 6px 0"><span class="primary-text">log tecnici</span>: l'indirizzo IP e l'ora di accessi e tentativi, usati per sicurezza e per limitare gli abusi (es. troppi tentativi di accesso).</li>
+					<li style="margin: 6px 0"><span class="primary-text">apertura email</span>: attraverso pixel di tracciamento, registriamo per scopi puramente analitici la percentuale di apertura delle email inviate.</li>
 				</ul>
 			</div>
 			<div class="question">
 				<h3>2. Perch&eacute; li usiamo</h3>
 				<p class="answer">
-					I dati dell'account servono a fornirti il servizio che chiedi: trovare gli eventi che ti riguardano e avvisarti sui canali che scegli. I log tecnici servono a proteggere il servizio e gli account. Non usiamo i dati per pubblicit&agrave; e non li vendiamo.
+					I dati dell'account servono a fornire il servizio di notifica e avvisarti sui canali che scegli. I log tecnici servono a proteggere il servizio e gli account. Apertura delle email per analisi e ci aiuta a capire come gli utenti interagiscono con i messaggi. Non usiamo i dati per pubblicit&agrave; e non li vendiamo.
 				</p>
 			</div>
 			<div class="question">
@@ -320,13 +321,13 @@ onBeforeUnmount(() => {
 					<li style="margin: 6px 0">alcune preferenze dell'interfaccia (es. avvisi chiusi).</li>
 				</ul>
 				<p class="answer answer-staccato">
-					Puoi cancellare questi dati dalle impostazioni del browser; alcune funzioni potrebbero smettere di funzionare finch&eacute; non accedi di nuovo.
+					Puoi cancellare questi dati dalle impostazioni del browser; alcune funzioni potrebbero smettere di funzionare finch&eacute; non accedi di nuovo. Per disabilitare il tracciamento pixel nelle email, puoi disattivare la visualizzazione automatica delle immagini, altrimenti contattaci per ricevere le notifiche in modo personalizzato senza pixel di tracciamento.
 				</p>
 			</div>
 			<div class="question">
 				<h3>6. Per quanto tempo conserviamo i dati</h3>
 				<p class="answer">
-					I dati dell'account restano finch&eacute; l'account esiste e vengono eliminati quando ne chiedi la cancellazione. La sessione Moodle (nel browser e nel tuo account) dura al massimo 13 giorni; il link <i>Collega Moodle</i> scade dopo 30 minuti.
+					I dati dell'account restano finch&eacute; l'account esiste e vengono eliminati quando ne chiedi la cancellazione. La sessione Moodle (nel browser e nel tuo account) dura al massimo 13 giorni; il link <i>Collega Moodle</i> scade dopo 30 minuti. Le analitiche di apertura delle email vengono conservate per 6 mesi.
 				</p>
 			</div>
 			<div class="question">
