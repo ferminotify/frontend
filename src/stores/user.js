@@ -4,6 +4,8 @@ import axios from 'axios'
 import { API_URL } from '@/utils/config'
 
 const MOODLE_SIGNUP_KEY = 'moodleSignup'
+// Signed up already, email not confirmed: what was given then ({name, surname, gender, email masked})
+const MOODLE_PENDING_KEY = 'moodleSignupPending'
 
 export const useUserStore = defineStore('user', {
   getters: {
@@ -104,6 +106,8 @@ export const useUserStore = defineStore('user', {
       const res = await axios.post(`${API_URL}/user/auth/moodle`, { username, password })
       if (res.data.signup) {
         sessionStorage.setItem(MOODLE_SIGNUP_KEY, res.data.signup)
+        if (res.data.pending) sessionStorage.setItem(MOODLE_PENDING_KEY, JSON.stringify(res.data.pending))
+        else sessionStorage.removeItem(MOODLE_PENDING_KEY)
         return { signup: true }
       }
       const { setSchoolTicket } = await import('@/api/timetable')
@@ -113,6 +117,14 @@ export const useUserStore = defineStore('user', {
       localStorage.setItem('token', this.token)
       await this.fetchProfile()
       return { signup: false, teachers: Boolean(res.data.ticket) }
+    },
+
+    moodlePendingSignup() {
+      try {
+        return JSON.parse(sessionStorage.getItem(MOODLE_PENDING_KEY) || 'null')
+      } catch {
+        return null
+      }
     },
 
     hasMoodleSignup() {
@@ -127,6 +139,7 @@ export const useUserStore = defineStore('user', {
       const signup = sessionStorage.getItem(MOODLE_SIGNUP_KEY)
       const res = await axios.post(`${API_URL}/user/auth/moodle/complete`, { signup, name, surname, gender, email })
       sessionStorage.removeItem(MOODLE_SIGNUP_KEY)
+      sessionStorage.removeItem(MOODLE_PENDING_KEY)
       // The email already has an account: its owner links Moodle from the email we sent.
       // New account: it enters once the email is confirmed (no session yet).
       if (res.data.linkSent || res.data.confirmSent) return res.data

@@ -35,7 +35,11 @@
               <input v-model="email" placeholder=" " type="email" required name="email" autocomplete="email" />
               <label>Email</label>
             </div>
-            <p class="cp-hint">Ti invieremo un link per confermarla: le notifiche partono dopo la conferma.</p>
+            <p v-if="pendingEmail" class="cp-hint">
+              Non hai ancora confermato l'email: il link è stato inviato a <b>{{ pendingEmail }}</b>. Se è sbagliata,
+              inseriscine un'altra; altrimenti scrivila di nuovo per ricevere un nuovo link.
+            </p>
+            <p v-else class="cp-hint">Ti invieremo un link per confermarla: le notifiche partono dopo la conferma.</p>
           </div>
 
           <!-- Google signup: optional password for email + password login too -->
@@ -188,6 +192,7 @@
   // Signing up with Moodle: no account yet, it is created on submit (see stores/user.js).
   const moodle = route.query.moodle === '1'
   const email = ref('')
+  const pendingEmail = ref('') // masked: the address of a signup not confirmed yet
   const btnParams = ref(null)
 
   const passwordLong = computed(() => (password.value?.length || 0) >= 6)
@@ -214,6 +219,14 @@
       if (!user.hasMoodleSignup()) {
         generateAlert('error', 'Accesso con Moodle scaduto, accedi di nuovo.')
         await router.replace({ name: 'login', query: { moodle: '1' } })
+        return
+      }
+      const pending = user.moodlePendingSignup()
+      if (pending) {
+        name.value = pending.name || ''
+        surname.value = pending.surname || ''
+        gender.value = pending.gender && pending.gender !== 'X' ? pending.gender : ''
+        pendingEmail.value = pending.email || ''
       }
       return
     }
@@ -255,13 +268,19 @@
       }
       loading(submitBtnRef.value)
       try {
+        const resumed = Boolean(pendingEmail.value)
         const result = await user.completeMoodleSignup({ name: n, surname: s, gender: gender.value, email: e })
         if (result?.linkSent) {
           generateAlert('success', 'Questa email ha già un account: ti abbiamo inviato un link per collegarlo a Moodle (controlla anche lo SPAM).')
           await router.replace({ name: 'login' })
           return
         }
-        generateAlert('success', 'Account creato! Conferma l’email con il link che ti abbiamo inviato, poi accedi con Moodle (controlla anche lo SPAM).')
+        generateAlert(
+          'success',
+          resumed
+            ? 'Ti abbiamo inviato un nuovo link a questa email: confermala, poi accedi con Moodle (controlla anche lo SPAM).'
+            : 'Account creato! Conferma l’email con il link che ti abbiamo inviato, poi accedi con Moodle (controlla anche lo SPAM).'
+        )
         await router.replace({ name: 'login', query: { moodle: '1' } })
       } catch (error) {
         const data = error?.response?.data || {}

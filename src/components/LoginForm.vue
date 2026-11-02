@@ -52,8 +52,17 @@
           <h1 class="firstTitle flex-center-x">Accedi</h1>
           <div class="input-container">
             <div class="material-textfield">
-              <input v-model="email" placeholder=" " type="email" required name="email" />
-              <label>Email</label>
+              <!-- An email: this account's password. Anything else: a Moodle username (school site). -->
+              <input
+                v-model="email"
+                placeholder=" "
+                type="text"
+                required
+                name="username"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false" />
+              <label>Email o Moodle</label>
             </div>
             <p class="firstSubtitle">
               Non hai un account?
@@ -166,8 +175,13 @@
     if (!submitBtnRef.value) return
     if (!btnParams.value) btnParams.value = saveBtnParams(submitBtnRef.value)
     loading(submitBtnRef.value)
+    const id = email.value.trim()
+    if (!id.includes('@')) {
+      await moodleLogin(id, password, submitBtnRef.value, btnParams.value)
+      return
+    }
     try {
-      await user.login(email.value, password.value)
+      await user.login(id, password.value)
       await router.push(consumeRedirect())
     } catch (error) {
       // Better normalization: handle network/CORS errors and backend messages
@@ -181,7 +195,7 @@
         generateAlert('error', 'Impossibile contattare il server. Controlla la connessione e riprova.')
       } else if (status === 404) {
         generateAlert('error', {
-          html: `Non ci sono utenti registrati con l'email ${email.value}. Crea un account <a href="/register" style="text-decoration: underline">qui</a>.`
+          html: `Non ci sono utenti registrati con l'email ${escapeHtml(id)}. Crea un account <a href="/register" style="text-decoration: underline">qui</a>, oppure accedi con il nome utente Moodle.`
         })
       } else if (code === 'google_only') {
         generateAlert('error', {
@@ -243,9 +257,14 @@
     if (!moodleBtnRef.value) return
     if (!moodleBtnParams.value) moodleBtnParams.value = saveBtnParams(moodleBtnRef.value)
     loading(moodleBtnRef.value)
+    await moodleLogin(moodleUser.value.trim(), moodlePassword, moodleBtnRef.value, moodleBtnParams.value)
+  }
+
+  // Shared by the Moodle form and the main one (a username instead of an email).
+  async function moodleLogin(username, passwordRef, btn, params) {
     try {
-      const { signup, teachers } = await user.loginWithMoodle(moodleUser.value.trim(), moodlePassword.value)
-      moodlePassword.value = ''
+      const { signup, teachers } = await user.loginWithMoodle(username, passwordRef.value)
+      passwordRef.value = ''
       // New account: the profile step asks what the school site does not tell us.
       if (signup) return await router.push({ name: 'complete-profile', query: { moodle: '1' } })
       const to = consumeRedirect()
@@ -254,9 +273,11 @@
     } catch (error) {
       if (!error?.response) generateAlert('error', 'Impossibile contattare il server. Controlla la connessione e riprova.')
       else generateAlert('error', error.response.data?.error || 'Si è verificato un errore. Riprova più tardi.')
-      resetLoading(moodleBtnRef.value, moodleBtnParams.value)
+      resetLoading(btn, params)
     }
   }
+
+  const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 
   function onGoogle() {
     user.loginWithGoogle()
