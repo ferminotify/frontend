@@ -1,50 +1,57 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { faArrowUpRightFromSquare, faFilePdf, faHeart } from '@fortawesome/free-solid-svg-icons'
 import Title from '@/components/common/Title.vue';
 
 const STORAGE_KEY = 'archiveStyleMode'
+const THEME_CLASSES = ['archive-theme-old', 'archive-theme-current']
 
-const isClient = typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function'
-const savedMode = isClient ? localStorage.getItem(STORAGE_KEY) : null
-const styleMode = ref(savedMode === 'current' ? 'current' : 'old')
+function readSavedMode() {
+	try {
+		return localStorage.getItem(STORAGE_KEY)
+	} catch {
+		return null
+	}
+}
 
-const styleLabel = computed(() => `> stile: ${styleMode.value}`)
-const heartEmoji = computed(() => (styleMode.value === 'old' ? '💛' : '💙'))
+const styleMode = ref(readSavedMode() === 'current' ? 'current' : 'old')
+const styleLabel = computed(() => (styleMode.value === 'old' ? 'Stile originale' : 'Stile attuale'))
 
 function toggleStyleMode() {
 	styleMode.value = styleMode.value === 'old' ? 'current' : 'old'
-	localStorage.setItem(STORAGE_KEY, styleMode.value)
+	try {
+		localStorage.setItem(STORAGE_KEY, styleMode.value)
+	} catch {
+		return
+	}
 }
 
 function applyPageTheme(mode) {
-	const html = document.documentElement
-	const body = document.body
-	html.classList.remove('archive-theme-old', 'archive-theme-current')
-	body.classList.remove('archive-theme-old', 'archive-theme-current')
-	html.classList.add(`archive-theme-${mode}`)
-	body.classList.add(`archive-theme-${mode}`)
+	for (const el of [document.documentElement, document.body]) {
+		el.classList.remove(...THEME_CLASSES)
+		if (mode) el.classList.add(`archive-theme-${mode}`)
+	}
 }
 
-onMounted(() => {
-	applyPageTheme(styleMode.value)
-})
+onMounted(() => applyPageTheme(styleMode.value))
+watch(styleMode, applyPageTheme)
+onBeforeUnmount(() => applyPageTheme(null))
 
-watch(styleMode, (mode) => {
-	applyPageTheme(mode)
-})
-
-onBeforeUnmount(() => {
-	const html = document.documentElement
-	const body = document.body
-	html.classList.remove('archive-theme-old', 'archive-theme-current')
-	body.classList.remove('archive-theme-old', 'archive-theme-current')
-})
+function displayUrl(item) {
+	if (item.url.startsWith('/')) return `${item.type}, ${item.url.split('/').pop()}`
+	const { hostname, pathname } = new URL(item.url)
+	const host = hostname.replace(/^www\./, '')
+	const segments = pathname.split('/').filter(Boolean)
+	if (segments.length === 0) return host
+	if (segments.length > 2) return `${host}/${segments[0]}`
+	return `${host}/${segments.join('/')}`
+}
 
 const archiveSections = [
 	{
 		title: 'Poster',
 		description: 'Poster promozionali diffusi al Fermi #MadeByHumans',
-        year: '2023',
+		year: '2023',
 		items: [
 			{
 				name: 'Poster informativi',
@@ -77,21 +84,21 @@ const archiveSections = [
 				url: 'https://github.com/ferminotify/webapp',
 				type: 'REPO',
 			},
-            {
-                name: 'Webapp v1',
-                url: 'https://github.com/ferminotify/old.webapp',
-                type: 'REPO'
-            },
-            {
-                name: 'Notifier',
-                url: 'https://github.com/ferminotify/notifier',
-                type: 'REPO'
-            },
-            {
-                name: 'Tutto di Fermi Notify',
-                url: 'https://github.com/ferminotify',
-                type: 'GITHUB',
-            }
+			{
+				name: 'Webapp v1',
+				url: 'https://github.com/ferminotify/old.webapp',
+				type: 'REPO',
+			},
+			{
+				name: 'Notifier',
+				url: 'https://github.com/ferminotify/notifier',
+				type: 'REPO',
+			},
+			{
+				name: 'Tutto di Fermi Notify',
+				url: 'https://github.com/ferminotify',
+				type: 'GITHUB',
+			},
 		],
 	},
 	{
@@ -113,16 +120,16 @@ const archiveSections = [
 				url: 'https://node.fn.lkev.in',
 				type: 'WEBAPP',
 			},
-            {
-                name: 'Webapp v1',
-                url: 'https://old.fn.lkev.in',
-                type: 'WEBAPP'
-            },
-            {
-                name: 'Status',
-                url: 'https://status.fn.lkev.in',
-                type: 'WEBAPP',
-            },
+			{
+				name: 'Webapp v1',
+				url: 'https://old.fn.lkev.in',
+				type: 'WEBAPP',
+			},
+			{
+				name: 'Status',
+				url: 'https://status.fn.lkev.in',
+				type: 'WEBAPP',
+			},
 			{
 				name: 'Sorgente calendario',
 				url: 'https://docs.google.com/spreadsheets/d/1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g/export?format=csv&id=1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g&gid=0',
@@ -130,84 +137,86 @@ const archiveSections = [
 			},
 		],
 	},
-    {
-        title: 'Social',
-        description: 'Profili social di Fermi Notify',
-        items: [
-            {
-                name: 'Instagram',
-                url: 'https://www.instagram.com/ferminotify/',
-                type: 'IG',
-            }
-        ],
-    }
+	{
+		title: 'Social',
+		description: 'Profili social di Fermi Notify',
+		items: [
+			{
+				name: 'Instagram',
+				url: 'https://www.instagram.com/ferminotify/',
+				type: 'IG',
+			},
+		],
+	},
 ]
 </script>
 
 <template>
 	<section class="archive-page" :class="`mode-${styleMode}`">
-		<header class="hero">
-			<button class="hero-kicker hero-switch" type="button" @click="toggleStyleMode">
+		<header class="archive-head">
+			<Title title="Archivio Fermi Notify" subtitle="Una raccolta di risorse prodotte da Fermi Notify" :showVideo="'archive'" />
+			<button
+				class="style-switch"
+				type="button"
+				:aria-pressed="styleMode === 'current'"
+				@click="toggleStyleMode"
+			>
 				{{ styleLabel }}
 			</button>
-			<Title class="archive-title" title="Archivio Fermi Notify" subtitle="Una raccolta di risorse prodotte da Fermi Notify" />
 		</header>
 
-		<div class="archive-grid">
-			<article v-for="section in archiveSections" :key="section.title" class="archive-card">
-				<div class="card-head">
-					<p class="card-kicker">sezione {{ archiveSections.indexOf(section) + 1 }}</p>
-					<h2>{{ section.title }}</h2>
-					<p>{{ section.description }} <span v-if="section.year" class="pill">{{ section.year }}</span></p>
+		<div class="archive-index">
+			<section
+				v-for="(section, i) in archiveSections"
+				:key="section.title"
+				class="archive-group"
+				:style="{ '--i': i }"
+			>
+				<div class="group-head">
+					<h2>
+						{{ section.title }}
+						<span v-if="section.year" class="group-year">{{ section.year }}</span>
+					</h2>
+					<p>{{ section.description }}</p>
 				</div>
 
 				<ul class="links-list">
 					<li v-for="item in section.items" :key="item.url">
 						<a :href="item.url" target="_blank" rel="noopener noreferrer" class="archive-link">
-							<span class="link-arrow">&gt;</span>
 							<span class="link-body">
 								<strong>{{ item.name }}</strong>
-								<small>{{ item.url }}</small>
+								<small>{{ displayUrl(item) }}</small>
 							</span>
-							<span class="link-badge">{{ item.type }}</span>
+							<font-awesome-icon
+								class="link-icon"
+								:icon="item.type === 'PDF' ? faFilePdf : faArrowUpRightFromSquare"
+								aria-hidden="true"
+							/>
 						</a>
 					</li>
 				</ul>
-			</article>
+			</section>
 		</div>
 
-        <div style="text-align: center; margin: 60px 0 30px; font-family: 'Montserrat', sans-serif; color: var(--archive-text-muted);">
-			<h3>Grazie per aver utilizzato Fermi Notify! {{ heartEmoji }}</h3>
-        </div>
-
-        <div style="text-align: center; margin: 30px 0 60px;">
-            <RouterLink to="/team" class="btn outlined">Scopri il team 🌐</RouterLink>
-        </div>
+		<footer class="archive-foot">
+			<p>
+				Grazie per aver utilizzato Fermi Notify!
+				<font-awesome-icon class="foot-heart" :icon="faHeart" aria-hidden="true" />
+			</p>
+			<RouterLink to="/team" class="team-cta">Scopri il team</RouterLink>
+		</footer>
 	</section>
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Source+Code+Pro:wght@500;700&display=swap');
-
 .archive-page {
-	--archive-main-bg-color: #101010;
-	--archive-surface: #181818;
-	--archive-surface-hover: #202020;
-	--archive-primary-color: #ff9800;
-	--archive-text: #ffffff;
-	--archive-text-muted: #cfcfcf;
-	--archive-border: #cfcfcf;
-	--card-radius: 16px;
-	--link-radius: 10px;
-	--hero-font: 'Montserrat', sans-serif;
-	--hero-font-weight: 800;
-	position: relative;
+	--archive-radius: 10px;
 	min-height: calc(100dvh - 180px);
 	padding: 2.5rem 1rem 3rem;
 	color: var(--archive-text);
-	background-color: transparent;
 }
 
+/* Original 2023 palette */
 :global(html.archive-theme-old),
 :global(body.archive-theme-old) {
 	background-color: #101010;
@@ -241,188 +250,94 @@ const archiveSections = [
 }
 
 .archive-page.mode-old {
-	--archive-main-bg-color: #101010;
-	--archive-surface: #181818;
-	--archive-surface-hover: #202020;
-	--archive-primary-color: #ff9800;
+	--archive-accent: #ff9800;
 	--archive-text: #ffffff;
 	--archive-text-muted: #cfcfcf;
-	--archive-border: #505050;
-	--archive-title-bg: linear-gradient(180deg, rgba(255, 152, 0, 0.14), rgba(16, 16, 16, 0.96));
-	--archive-title-text: #fff7ea;
-	--archive-title-subtitle: #e5d6c2;
-	--archive-title-border: rgba(255, 152, 0, 0.3);
-	--card-radius: 16px;
-	--link-radius: 10px;
-	--hero-font: 'Montserrat', sans-serif;
-	--hero-font-weight: 800;
+	--archive-line: #ffffff;
+	--archive-fill: #ff9800;
+	--archive-fill-hover: #e56900;
+	--archive-on-fill: #101010;
 }
 
 .archive-page.mode-current {
-	--archive-main-bg-color: var(--surface);
-	--archive-surface: var(--surface-variant);
-	--archive-surface-hover: var(--surface-variant-hover-bg, #211f21);
-	--archive-primary-color: var(--on-surface-primary, #004a77);
+	--archive-accent: var(--on-surface-primary, #c2e7ff);
 	--archive-text: var(--on-surface, #e3e3e3);
 	--archive-text-muted: var(--on-surface-variant, #c4c7c5);
-	--archive-border: var(--divider, rgb(94, 98, 101));
-	--archive-title-bg: linear-gradient(180deg, rgba(194, 231, 255, 0.1), rgba(20, 19, 20, 0.96));
-	--archive-title-text: #f4fbff;
-	--archive-title-subtitle: #c4c7c5;
-	--archive-title-border: rgba(194, 231, 255, 0.24);
-	--card-radius: 18px;
-	--link-radius: 12px;
-	--hero-font: 'Montserrat', sans-serif;
-	--hero-font-weight: 700;
+	--archive-line: var(--on-surface-variant, #c4c7c5);
+	--archive-fill: var(--primary, #004a77);
+	--archive-fill-hover: var(--primary-hover, #125680);
+	--archive-on-fill: var(--on-primary, #c2e7ff);
 }
 
-.hero,
-.archive-grid {
-	max-width: 1120px;
+.archive-head,
+.archive-index,
+.archive-foot {
+	max-width: 980px;
 	margin: 0 auto;
 }
 
-.hero {
-	text-align: center;
-	margin-bottom: 2rem;
-	animation: fadeInUp 0.8s ease both;
+.archive-head {
+	display: grid;
+	justify-items: end;
+	gap: 0.75rem;
+	margin-bottom: 3rem;
 }
 
-.hero-kicker {
+.style-switch {
 	font-family: 'Source Code Pro', monospace;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	font-size: 0.9rem;
-	margin: 0;
-	color: var(--archive-primary-color);
-}
-
-.hero-switch {
+	font-size: 0.85rem;
+	color: var(--archive-accent);
 	background: transparent;
-	border: 1px solid rgba(127, 127, 127, 0.35);
-	border-radius: 999px;
-	padding: 0.45rem 0.8rem;
+	border: none;
+	padding: 0.5rem 0.25rem;
 	cursor: pointer;
-	transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.hero-switch:hover {
-	border-color: var(--archive-primary-color);
-	background: color-mix(in srgb, var(--archive-primary-color) 10%, transparent);
+.style-switch:hover {
+	text-decoration: underline;
 }
 
-.hero-switch:focus-visible {
-	outline: 2px solid var(--archive-primary-color);
+.style-switch:focus-visible,
+.archive-link:focus-visible,
+.team-cta:focus-visible {
+	outline: 2px solid var(--archive-accent);
 	outline-offset: 3px;
 }
 
-.archive-title {
-	margin-top: 1rem;
-	background: var(--archive-title-bg);
-	border: 1px solid var(--archive-title-border);
-	border-radius: 24px;
-	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
-	color: var(--archive-title-text);
-}
-
-.archive-title :deep(.firstTitle) {
-	font-family: var(--hero-font);
-	font-weight: var(--hero-font-weight);
-	font-size: clamp(2rem, 7vw, 4rem);
-	line-height: 1.05;
-	margin: 0.8rem 0;
-	color: inherit;
-	text-wrap: balance;
-}
-
-.archive-title :deep(.firstSubtitle) {
-	margin: 0;
-	font-family: 'Montserrat', sans-serif;
-	font-size: 1rem;
-	line-height: 1.5;
-	color: var(--archive-title-subtitle);
-	text-wrap: balance;
-}
-
-.archive-grid {
+.archive-index {
 	display: grid;
-	gap: 1rem;
-	grid-template-columns: 1fr;
+	gap: 3rem;
 }
 
-.archive-card {
-	grid-column: span 1;
-	background: var(--archive-surface);
-	border: 2px solid var(--archive-border);
-	border-radius: var(--card-radius);
-	padding: 1rem;
-	box-shadow: 0 0 0 rgba(0, 0, 0, 0);
-	transform: translateY(0);
-	transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-	animation: cardReveal 0.75s ease both;
-	will-change: transform;
+.group-head {
+	border-left: 1px solid var(--archive-line);
+	padding-left: 1rem;
+	margin-bottom: 1.25rem;
 }
 
-.archive-card:nth-child(2) {
-	animation-delay: 0.08s;
-}
-
-.archive-card:nth-child(3) {
-	animation-delay: 0.16s;
-}
-
-.archive-card:nth-child(4) {
-	animation-delay: 0.24s;
-}
-
-.archive-card:hover {
-	transform: translateY(-4px);
-	box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
-	border-color: var(--archive-primary-color);
-}
-
-.card-head {
-	border-bottom: 1px dashed color-mix(in srgb, var(--archive-border) 85%, transparent);
-	padding-bottom: 0.9rem;
-	margin-bottom: 0.8rem;
-}
-
-.card-kicker {
-	margin: 0;
-	font-family: 'Source Code Pro', monospace;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	font-size: 0.68rem;
-	color: var(--archive-primary-color);
-}
-
-.card-head h2 {
-	margin: 0.35rem 0;
-	font-size: 1.25rem;
-	font-family: 'Montserrat', sans-serif;
-	font-weight: 700;
-}
-
-.card-head p {
-	margin: 0;
-	font-family: 'Montserrat', sans-serif;
-	font-size: 0.9rem;
-	line-height: 1.45;
-	color: var(--archive-text-muted);
-}
-
-.pill {
-	margin-left: 0.5rem;
-	padding: 0.15rem 0.5rem;
-	font-size: 0.8rem;
-	line-height: 1;
-	color: var(--archive-primary-color);
-	border: 1px solid var(--archive-primary-color);
-	border-radius: 999px;
-	display: inline-flex;
+.group-head h2 {
+	margin: 0 0 0.35rem;
+	font-size: 1.5rem;
+	font-weight: 800;
+	display: flex;
 	align-items: center;
-	justify-content: center;
-	vertical-align: middle;
+	gap: 0.6rem;
+}
+
+.group-year {
+	background-color: #ffffff;
+	color: #101010;
+	padding: 4px 9px;
+	font-size: 0.75rem;
+	font-weight: 700;
+	border-radius: 10px;
+}
+
+.group-head p {
+	margin: 0;
+	font-size: 0.95rem;
+	line-height: 1.5;
+	color: var(--archive-text-muted);
 }
 
 .links-list {
@@ -430,34 +345,32 @@ const archiveSections = [
 	padding: 0;
 	list-style: none;
 	display: grid;
-	gap: 0.65rem;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 12px;
 }
 
 .archive-link {
-	display: grid;
-	grid-template-columns: auto 1fr auto;
-	gap: 0.7rem;
-	text-decoration: none;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	height: 100%;
+	box-sizing: border-box;
+	padding: 14px 16px;
+	border: 1px solid var(--archive-line);
+	border-radius: var(--archive-radius);
 	color: inherit;
-	background: color-mix(in srgb, var(--archive-surface) 72%, var(--archive-main-bg-color));
-	border: 1px solid color-mix(in srgb, var(--archive-border) 90%, transparent);
-	border-radius: var(--link-radius);
-	padding: 0.65rem;
-	transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+	transition: background-color 0.2s var(--m3-standard), border-color 0.2s var(--m3-standard), color 0.2s var(--m3-standard);
 }
 
 .archive-link:hover {
-	transform: translateY(-1px);
-	background: var(--archive-surface-hover);
-	border-color: var(--archive-primary-color);
+	background-color: var(--archive-fill);
+	border-color: var(--archive-fill);
+	color: var(--archive-on-fill);
 }
 
-.link-arrow {
-	font-family: 'Source Code Pro', monospace;
-	font-size: 1.1rem;
-	color: var(--archive-primary-color);
-	line-height: 1;
-	margin-top: 0.1rem;
+.archive-link:active {
+	transform: scale(0.98);
 }
 
 .link-body {
@@ -466,72 +379,99 @@ const archiveSections = [
 
 .link-body strong {
 	display: block;
-	font-family: 'Montserrat', sans-serif;
 	font-weight: 600;
 	font-size: 1rem;
-	line-height: 1.15;
+	line-height: 1.25;
 }
 
 .link-body small {
 	display: block;
-	margin-top: 0.35rem;
+	margin-top: 0.3rem;
 	font-family: 'Source Code Pro', monospace;
-	font-size: 0.72rem;
-	color: var(--archive-text-muted);
-	overflow-wrap: anywhere;
+	font-size: 0.75rem;
+	opacity: 0.75;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
-.link-badge {
-	align-self: start;
-	font-family: 'Source Code Pro', monospace;
-	font-size: 0.7rem;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	color: var(--archive-main-bg-color);
-	background: var(--archive-primary-color);
-	border-radius: 999px;
-	padding: 0.25rem 0.5rem;
+.link-icon {
+	flex-shrink: 0;
+	font-size: 0.85rem;
+	color: var(--archive-accent);
+	transition: transform 0.2s var(--m3-standard);
 }
 
+.archive-link:hover .link-icon {
+	color: inherit;
+	transform: translate(2px, -2px);
+}
 
+.archive-foot {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1.5rem;
+	margin-top: 4rem;
+	text-align: center;
+}
 
-@media (max-width: 1000px) {
-	.archive-card {
-		grid-column: span 1;
+.archive-foot p {
+	margin: 0;
+	font-size: 1.15rem;
+	font-weight: 700;
+}
+
+.foot-heart {
+	margin-left: 0.35rem;
+	color: var(--archive-accent);
+}
+
+.team-cta {
+	font-size: 1.1rem;
+	font-weight: 600;
+	padding: 13px 25px;
+	border-radius: 48px;
+	background-color: var(--archive-fill);
+	color: var(--archive-on-fill);
+	transition: background-color 0.2s var(--m3-standard);
+}
+
+.team-cta:hover {
+	background-color: var(--archive-fill-hover);
+	color: var(--archive-on-fill);
+}
+
+.team-cta:active {
+	transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.archive-group {
+		animation: groupReveal 0.6s var(--m3-emph-decel) both;
+		animation-delay: calc(var(--i) * 60ms);
 	}
 }
 
-@media (max-width: 720px) {
+@media (max-width: 560px) {
 	.archive-page {
-		padding: 2rem 0.8rem 2.5rem;
+		padding: 2rem 1rem 2.5rem;
 	}
 
-	.archive-card {
-		grid-column: span 1;
+	.links-list {
+		grid-template-columns: 1fr;
 	}
 }
 
-@keyframes fadeInUp {
+@keyframes groupReveal {
 	from {
 		opacity: 0;
-		transform: translateY(14px);
+		transform: translateY(12px);
 	}
 
 	to {
 		opacity: 1;
 		transform: translateY(0);
-	}
-}
-
-@keyframes cardReveal {
-	from {
-		opacity: 0;
-		transform: translateY(18px) scale(0.98);
-	}
-
-	to {
-		opacity: 1;
-		transform: translateY(0) scale(1);
 	}
 }
 </style>

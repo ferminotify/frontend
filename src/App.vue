@@ -89,6 +89,10 @@
         return
       }
       const targetRect = targetEl.getBoundingClientRect()
+      if (!targetRect.width) {
+        indicatorStyle.value = { opacity: 0 }
+        return
+      }
       
       if (initialLoad) {
         // First set position with scale 0, then animate to scale 1
@@ -148,6 +152,9 @@
   watch(() => route.hash, (hash, prev) => {
     if (hash && hash !== prev) scrollToHash(hash)
   })
+
+  // Views that handle their own param changes (e.g. /orario/classe/1a → /2b) stay mounted
+  const viewKey = (r) => (r.name === 'orario' ? 'orario' : r.path)
 
   const onViewAfterLeave = () => {
     if (typeof window !== 'undefined') {
@@ -532,8 +539,15 @@
           </a>
         </RouterLink>
 
+        <RouterLink to="/orario" custom v-slot="{ href, navigate }">
+          <a :href="href" @click="navigate" class="sidebar-link" id="orario" :class="{ active: route.path.startsWith('/orario') }">
+            <span class="material-symbols-outlined sidebar-icon">view_agenda</span>
+            <span class="sidebar-link-text">Orario</span>
+          </a>
+        </RouterLink>
+
         <RouterLink v-if="!isStandalone" to="/app" custom v-slot="{ href, navigate, isExactActive }">
-          <a :href="href" @click="installApp(navigate, $event)" class="sidebar-link" id="app" :class="{ active: isExactActive }">
+          <a :href="href" @click="installApp(navigate, $event)" class="sidebar-link sidebar-desktop" id="app" :class="{ active: isExactActive }">
             <span class="material-symbols-outlined sidebar-icon">download</span>
             <span class="sidebar-link-text">Installa l'app</span>
           </a>
@@ -592,27 +606,34 @@
           </button>
           <div id="mobile-menu" class="nav-links" :class="{ open: menuOpen }" :inert="!menuOpen" @click.self="closeMenu">
             <ul>
-              <li :style="{ '--i': 0 }">
+              <li v-if="!isStandalone" :style="{ '--i': 0 }">
+                <RouterLink to="/app" custom v-slot="{ href, navigate }">
+                  <a :href="href" class="sidebar-menu-link" @click="closeMenu(); installApp(navigate, $event)">
+                    <span class="material-symbols-outlined">download</span> Installa l'app
+                  </a>
+                </RouterLink>
+              </li>
+              <li :style="{ '--i': 1 }">
                 <RouterLink to="/faq" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">help_center</span> FAQ
                 </RouterLink>
               </li>
-              <li :style="{ '--i': 1 }">
+              <li :style="{ '--i': 2 }">
                 <RouterLink to="/supporters" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">favorite</span> Supporta
                 </RouterLink>
               </li>
-              <li :style="{ '--i': 2 }">
+              <li :style="{ '--i': 3 }">
                 <RouterLink to="/team" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">group</span> Team
                 </RouterLink>
               </li>
-              <li :style="{ '--i': 3 }">
+              <li :style="{ '--i': 4 }">
                 <RouterLink to="/archive" class="sidebar-menu-link" @click="closeMenu">
                   <span class="material-symbols-outlined">archive</span> Archivio
                 </RouterLink>
               </li>
-              <li :style="{ '--i': 4 }">
+              <li :style="{ '--i': 5 }">
                 <div class="sidebar-link sidebar-contatti">
                   <RouterLink to="/ig" target="_blank" @click="closeMenu">
                     <font-awesome-icon :icon="['fab', 'instagram']" />
@@ -635,7 +656,7 @@
     <main class="main">
       <RouterView v-slot="{ Component, route: viewRoute }">
         <Transition appear mode="out-in" name="fade-up" @after-leave="onViewAfterLeave" @after-enter="onViewAfterEnter">
-          <div :key="viewRoute.path" style="width: 100%;">
+          <div :key="viewKey(viewRoute)" style="width: 100%;">
             <component :is="Component" />
           </div>
         </Transition>

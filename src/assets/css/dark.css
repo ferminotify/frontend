@@ -20,5 +20,13 @@
 
   --muted: #6c757d;
 
+  /* Status colours: errors, warnings (uncertain), success (free room, good reading) */
+  --error: #ef5350;
+  --error-soft: #f2b8b5;
+  --warning: #f9a825;
+  --warning-soft: #e6c46a;
+  --success: #66bb6a;
+  --success-soft: #a8dab5;
+
   --logo: #fff;
 }

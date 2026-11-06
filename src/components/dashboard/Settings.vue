@@ -78,7 +78,7 @@
         </p>
         <div class="impostazioni-sect-content">
           <div class="checkNot-container">
-            <p style="font-size: 12px; color: var(--on-surface);">Per il corretto funzionamento delle notifiche push, se richiesto, imposta l'autorizzazione per ricevere le notifiche a "per sempre" nel popup! Altrimenti verranno disattivate automaticamente.</p>
+            <p style="font-size: 12px; color: var(--on-surface);">Per il corretto funzionamento delle notifiche push, se richiesto, imposta l'autorizzazione per ricevere le notifiche a "per sempre" nel popup, altrimenti verranno disattivate automaticamente.</p>
           </div>
           <div class="checkNot-container">
             Attiva notifiche push
@@ -137,30 +137,32 @@
         </div>
       </div>
 
-      <!-- Probable Variations -->
-      <div class="impostazioni-sect invioNotificheContainer" id="variazioni" style="padding-bottom: 15px">
+      <!-- Opt-in activities: notified only if chosen -->
+      <div v-if="optInCategories.length" class="impostazioni-sect invioNotificheContainer" id="facoltative" style="padding-bottom: 15px">
         <p style="padding-bottom: 10px" class="impostazioni-sect-title">
-          <span class="material-symbols-outlined">bolt</span>
-          Variazioni dell'orario
+          <span class="material-symbols-outlined">volunteer_activism</span>
+          Attività facoltative
         </p>
         <div class="impostazioni-sect-content">
-          <div class="checkNot-container sendEmail" style="display: flex; align-items: flex-start">
-            Invia variazioni probabili
-            <label class="switch">
-              <input id="sendSimilar" type="checkbox" v-model="includeSimilar" @change="toggleSimilar" class="checkbox" />
-              <span class="slider round"></span>
-            </label>
+          <p style="font-size: 12px; color: var(--on-surface)">
+            Attiva le notifiche per le attività facoltative.
+          </p>
+          <div v-for="c in optInCategories" :key="c.id" class="optin-row">
+            <div class="checkNot-container">
+              <label :for="'optin-' + c.id">{{ c.label }}</label>
+              <label class="switch">
+                <input
+                  :id="'optin-' + c.id"
+                  type="checkbox"
+                  class="checkbox"
+                  :checked="optIn.includes(c.id)"
+                  :disabled="savingOptIn"
+                  @change="toggleOptIn(c.id, $event.target.checked)" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <p class="optin-desc optin-example">Es. {{ c.example }}</p>
           </div>
-          <p style="font-size: 12px; color: var(--on-surface)">
-            Ricevi notifiche anche delle variazioni dell'orario che potrebbero essere associate alle tue keyword.
-          </p>
-          <!-- prettier-ignore -->
-          <p style="font-size: 12px; color: var(--on-surface);">
-            <span class="material-symbols-outlined">arrow_right_alt</span>Esempio: con keyword<code>5 CIN</code> invia le variazioni sulla <code>5CIIN</code>.
-          </p>
-          <p style="font-size: 12px; color: var(--on-surface)">
-            Utile per includere le variazioni con errori di battitura.
-          </p>
         </div>
       </div>
     </div>
@@ -184,7 +186,9 @@
   const router = useRouter()
 
   const preferences = ref({ email: false, telegram: false, push: false, pushNotificationTime: 'false' })
-  const includeSimilar = ref(false)
+  const optInCategories = ref([])
+  const optIn = ref([])
+  const savingOptIn = ref(false)
   const notificationTime = ref('06:00')
   const notificationDay = ref('false')
   const isEditingTime = ref(false)
@@ -209,6 +213,10 @@
     // Load mdtimepicker script
     loadTimepickerScript()
     loadUserPreferences()
+    store
+      .fetchOptInCategories()
+      .then((list) => (optInCategories.value = list || []))
+      .catch((err) => console.warn('Opt-in categories unavailable', err))
     loadUserPushSubscription()
   })
 
@@ -426,8 +434,7 @@
       telegram: pref === 1 || pref === 3,
     }
 
-    // Load similar tags preference
-    includeSimilar.value = user.include_similar_tags || false
+    optIn.value = [...(user.notify_optin || [])]
 
     // Load notification time
     if (user.notification_time) {
@@ -465,14 +472,18 @@
     }
   }
 
-  async function toggleSimilar() {
+  async function toggleOptIn(id, on) {
+    const before = optIn.value
+    optIn.value = on ? [...new Set([...before, id])] : before.filter((x) => x !== id)
+    savingOptIn.value = true
     try {
-      await store.toggleProbableNotifications()
+      await store.updateNotifyOptin(optIn.value)
     } catch (err) {
-      console.error('Failed to toggle similar notifications:', err)
+      console.error('Failed to update opt-in categories:', err)
       generateAlert('error', 'Si è verificato un errore. Riprova più tardi.')
-      // Revert on error
-      includeSimilar.value = !includeSimilar.value
+      optIn.value = before
+    } finally {
+      savingOptIn.value = false
     }
   }
 
@@ -574,5 +585,25 @@
   }
   .impostazioni-sect-content{
     padding: 0 25px;
+  }
+  .optin-row + .optin-row {
+    margin-top: 6px;
+  }
+  .optin-row .checkNot-container label:first-child {
+    cursor: pointer;
+  }
+  .optin-desc {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--on-surface-variant);
+  }
+  .optin-example {
+    font-size: 11px;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+  .optin-row .checkNot-container {
+    padding-bottom: 0;
+    line-height: 1.5rem;
   }
 </style>

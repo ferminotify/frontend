@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import csv2json from '@/utils/csv2json.js'
+import { searchEvents } from '@/api/timetable'
 
 const props = defineProps({
   activeFilter: {
@@ -11,11 +12,20 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  // Dashboard: the days up to "Tra 3 giorni" (or the first 3 with events), then "Carica altro"
+  paged: {
+    type: Boolean,
+    default: false,
+  },
+  // Dashboard: the user's opt-in categories, to mark what is not notified. null: a plain search
+  optIn: {
+    type: Array,
+    default: null,
+  },
 })
 
 const events = ref([])
 const isLoading = ref(true)
-const days = [0, 1, 2, 3]
 
 // Intersection observer for scroll-triggered animations
 let observer = null
@@ -103,11 +113,7 @@ onMounted(async () => {
   )
 
   try {
-    const res = await fetch(
-      'https://docs.google.com/spreadsheets/d/1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g/export?format=csv&id=1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g&gid=0'
-    )
-    const csv = await res.text()
-    events.value = csv2json(csv)
+    events.value = await loadEvents()
 
     // Filter: keep events whose end is after the start of today.
     const todayStart = new Date()
@@ -138,12 +144,11 @@ onMounted(async () => {
 
     events.value.sort(compareEvents)
 
-    console.log(events.value)
-
     // if query param 'id' is provided, scroll to that event
     const urlParams = new URLSearchParams(window.location.search)
     const eventId = urlParams.get('id')
     if (eventId) {
+      showAll.value = true
       setTimeout(() => {
         const el = document.getElementById(eventId)
         if (el) {
@@ -174,19 +179,91 @@ onUnmounted(() => {
   }
 })
 
-// Watch for changes in filtered events and re-observe new elements
+// Keyword matching from the backend, the notifier's rules: { KEYWORD: { matches, optional } }.
+// Keywords it did not answer for (backend down, over the limit) use the word search below.
+const MAX_MATCH_KEYWORDS = 20
+const backendAnswers = ref({})
+let matchRequest = 0
 watch(
-  () => [props.activeFilter, props.keywords],
-  () => {
-    // Wait for DOM to update with new filtered events
-    setTimeout(() => {
-      document.querySelectorAll('.events-list .event:not(.event-visible)').forEach((el) => {
-        if (observer) observer.observe(el)
-      })
-    }, 50)
+  () => props.keywords,
+  async (list) => {
+    const kws = [...new Set((list || []).filter((k) => k && k !== '*'))].slice(0, MAX_MATCH_KEYWORDS)
+    const id = ++matchRequest
+    if (!kws.length) return (backendAnswers.value = {})
+    try {
+      const { matches, optional } = await searchEvents(kws)
+      if (id !== matchRequest) return
+      const out = {}
+      for (const kw of kws) out[kw.toUpperCase()] = { matches: matches?.[kw] || [], optional: optional?.[kw] || {} }
+      backendAnswers.value = out
+    } catch (e) {
+      if (id === matchRequest) backendAnswers.value = {}
+      console.warn('Keyword match from the backend failed, using the word search', e)
+    }
   },
-  { deep: true }
+  { immediate: true, deep: true }
 )
+
+// Per keyword: uids notified to this user, and opt-in ones they turned off (shown, marked).
+// A plain search (optIn null) shows every opt-in activity, unmarked.
+const backendMatches = computed(() => {
+  const out = {}
+  for (const [kw, a] of Object.entries(backendAnswers.value)) {
+    const notified = new Set(a.matches)
+    const off = new Set()
+    for (const [cat, uids] of Object.entries(a.optional)) {
+      const on = !props.optIn || cat.split('+').every((c) => props.optIn.includes(c))
+      for (const uid of uids) (on ? notified : off).add(uid)
+    }
+    out[kw] = { notified, off }
+  }
+  return out
+})
+
+const wordMatch = (kw, ev) =>
+  new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&') + '\\b', 'i').test(displayTitle(ev).toUpperCase())
+
+// Dashboard: shown only through opt-in activities the user turned off
+function optedOut(ev) {
+  if (!props.optIn || !ev.uid) return false
+  let off = false
+  for (const kw of props.keywords || []) {
+    const a = backendMatches.value[String(kw).toUpperCase()]
+    if (!a) {
+      if (kw !== '*' && wordMatch(kw, ev)) return false
+    } else if (a.notified.has(ev.uid)) return false
+    else if (a.off.has(ev.uid)) off = true
+  }
+  return off
+}
+
+// The Sheet CSV: only a few days ahead (see calendar-to-sheet.gs), used if the backend is down.
+const CSV_URL =
+  'https://docs.google.com/spreadsheets/d/1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g/export?format=csv&id=1ADaUVRQeYU078-suUxGk0u1aMj_GbcjsAzG11YlMp5g&gid=0'
+
+// Backend event { uid, summary, date, start, end, allDay } → the calendar fields used below
+// (local times; an all-day event starts and ends on its own day).
+function fromBackend(ev) {
+  if (ev.allDay) return { uid: ev.uid, summary: ev.summary, 'start.date': ev.date, 'end.date': ev.date }
+  return {
+    uid: ev.uid,
+    summary: ev.summary,
+    'start.dateTime': `${ev.date}T${ev.start}:00`,
+    'end.dateTime': `${ev.date}T${ev.end || ev.start}:00`,
+  }
+}
+
+// All upcoming events from the Calendar API (via the backend), else the Sheet CSV.
+async function loadEvents() {
+  try {
+    const { events } = await searchEvents()
+    return events.map(fromBackend)
+  } catch (e) {
+    console.warn('Events from the backend failed, using the CSV', e)
+    const res = await fetch(CSV_URL)
+    return csv2json(await res.text())
+  }
+}
 
 // Date parsing helpers
 function parseEnd(ev) {
@@ -263,20 +340,27 @@ function eventClasses(ev) {
   }
 }
 
-// Group events into buckets by day offset (0 = today, 1, 2, 3)
+// Group events into buckets by day offset (0 = today, 1, 2, …)
 const eventsByDay = computed(() => {
-  const buckets = { 0: [], 1: [], 2: [], 3: [] }
+  const buckets = {}
   for (const ev of events.value || []) {
     const start = getEventStartDate(ev)
     const off = start ? dayOffsetFromToday(start) : null
-    if (off != null && off >= 0 && off <= 3) buckets[off].push(ev)
+    if (off != null && off >= 0) (buckets[off] ||= []).push(ev)
   }
   return buckets
 })
 
+// Days that have events, in order
+const days = computed(() =>
+  Object.keys(eventsByDay.value)
+    .map(Number)
+    .sort((a, b) => a - b)
+)
+
 // Apply active filter to events per day
 const filteredEventsByDay = computed(() => {
-  const out = { 0: [], 1: [], 2: [], 3: [] }
+  const out = {}
   const filter = props.activeFilter
   const keywords = props.keywords || []
 
@@ -308,28 +392,62 @@ const filteredEventsByDay = computed(() => {
     // Special case: '*' shows all events
     if (keywords.includes('*')) return true
 
-    // Check if event title/summary matches any keyword using word boundaries
-    const title = displayTitle(ev).toUpperCase()
+    // Backend match when it answered for the keyword (as the notifier), else whole words in the title
     return keywords.some((kw) => {
-      // Use word boundary regex for more precise matching (like dashboard.ejs)
-      const regex = new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&') + '\\b', 'i')
-      return regex.test(title)
+      const a = backendMatches.value[String(kw).toUpperCase()]
+      if (a) return Boolean(ev.uid) && (a.notified.has(ev.uid) || a.off.has(ev.uid))
+      return wordMatch(kw, ev)
     })
   }
 
-  for (const k of [0, 1, 2, 3]) {
-    out[k] = (eventsByDay.value[k] || []).filter(match)
+  for (const k of days.value) {
+    out[k] = eventsByDay.value[k].filter(match)
   }
   return out
 })
 
-const firstDayWithEvents = computed(() => days.find((d) => eventsForDay(d).length > 0))
+// ------- Paging (dashboard) -------
+const PAGE_DAYS = 3 // first page: up to "Tra 3 giorni"; each "Carica altro": 3 more days with events
+const loadedPages = ref(0)
+const showAll = ref(false) // a link to one event (?id=…): every day, so it can be scrolled to
+const daysWithEvents = computed(() => days.value.filter((d) => eventsForDay(d).length > 0))
+const visibleDayCount = computed(() => {
+  if (!props.paged || showAll.value) return daysWithEvents.value.length
+  const soon = daysWithEvents.value.filter((d) => d <= PAGE_DAYS).length
+  return (soon || PAGE_DAYS) + loadedPages.value * PAGE_DAYS
+})
+const visibleDays = computed(() => new Set(daysWithEvents.value.slice(0, visibleDayCount.value)))
+const hasMoreDays = computed(() => visibleDayCount.value < daysWithEvents.value.length)
+function loadMoreDays() {
+  loadedPages.value++
+}
+// Other keywords or filter: back to the first page
+watch(
+  () => [props.activeFilter, props.keywords],
+  () => (loadedPages.value = 0),
+  { deep: true }
+)
+
+// Re-observe new event elements whenever the shown list changes: filters, keywords, and the
+// backend's matches, which arrive after the keywords (else those events stay invisible).
+watch(
+  () => [filteredEventsByDay.value, visibleDayCount.value],
+  () => {
+    document.querySelectorAll('.events-list .event:not(.event-visible)').forEach((el) => {
+      if (observer) observer.observe(el)
+    })
+  },
+  { flush: 'post' }
+)
+
+const firstDayWithEvents = computed(() => days.value.find((d) => eventsForDay(d).length > 0))
+
 
 function eventsForDay(dayIndex) {
   return filteredEventsByDay.value[dayIndex] || []
 }
 
-const hasAnyEvents = computed(() => [0, 1, 2, 3].some((d) => (filteredEventsByDay.value?.[d]?.length || 0) > 0))
+const hasAnyEvents = computed(() => days.value.some((d) => (filteredEventsByDay.value?.[d]?.length || 0) > 0))
 
 // ------- Dates header formatting -------
 function getDateInfo(offset) {
@@ -444,6 +562,7 @@ function sameStartEnd(ev) {
     <slot v-if="!isLoading && !hasAnyEvents" name="after-first-day" />
     <template v-for="d in days" :key="d">
     <div
+      v-if="visibleDays.has(d)"
       class="events-container"
       :id="`events-${d}`"
       :style="{ display: eventsForDay(d).length ? 'block' : 'none' }">
@@ -454,6 +573,9 @@ function sameStartEnd(ev) {
       <div class="events-list" :id="`events-${d}-eventslist`">
         <div v-for="(event, i) in eventsForDay(d)" :key="i" class="event" :class="eventClasses(event)" :id="event.uid">
           <p class="event-title">{{ renderTitle(event) }}</p>
+          <p v-if="optedOut(event)" class="event-optin" aria-label="Non notificato: attività facoltativa disattivata">
+            <span class="material-symbols-outlined" aria-hidden="true">notifications_off</span>
+          </p>
           <div class="event-time">
             <p class="event-time-start">
               <span class="start-end-text">
@@ -474,12 +596,30 @@ function sameStartEnd(ev) {
     </div>
     <slot v-if="d === firstDayWithEvents" name="after-first-day" />
     </template>
+    <div v-if="!isLoading && hasMoreDays" class="events-more">
+      <button type="button" class="btn outlined" @click="loadMoreDays">
+        <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+        Carica altro
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped src="@/assets/css/cercaeventi.css"></style>
 
 <style scoped>
+/* "Carica altro" (dashboard) */
+.events-more {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 8px;
+}
+.events-more .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Fade-up entrance animation for events - triggered on scroll into view */
 @keyframes event-fade-up {
   from {
@@ -523,5 +663,23 @@ function sameStartEnd(ev) {
 }
 .event .event-title {
   transition: transform 220ms cubic-bezier(.2,.9,.2,1);
+}
+
+/* Dashboard: matched only through an opt-in activity the user turned off */
+.event-optin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.event-optin .material-symbols-outlined {
+  font-size: 16px;
+}
+.event-optin a {
+  color: var(--on-surface-primary);
+  text-decoration: underline;
 }
 </style>

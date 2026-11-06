@@ -2,6 +2,10 @@
 
 :root {
   --sidebar-width: clamp(180px, 20vw, 275px);
+  /* Material 3 easing */
+  --m3-standard: cubic-bezier(0.2, 0, 0, 1);
+  --m3-emph-decel: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --m3-emph-accel: cubic-bezier(0.3, 0, 0.8, 0.15);
 }
 
 * {
@@ -760,6 +764,74 @@ code,
 
 .material-textfield input::placeholder {
   text-transform: initial;
+}
+
+/* Multi-line field: same look; the label rests on the first line, not mid-height */
+.material-textfield textarea {
+  display: block;
+  font: inherit;
+  font-size: 1rem;
+  border: 0;
+  outline: 1px solid var(--muted);
+  border-radius: 10px;
+  padding: 1rem 0.7rem;
+  color: var(--on-surface);
+  transition: 0.1s ease-out;
+  background-color: var(--surface);
+  resize: vertical;
+}
+.material-textfield textarea + label {
+  top: 1.5rem;
+}
+.material-textfield textarea:focus {
+  outline-color: var(--on-primary);
+}
+.material-textfield textarea:focus + label {
+  color: var(--on-primary);
+}
+.material-textfield textarea:focus + label,
+.material-textfield textarea:not(:placeholder-shown) + label {
+  top: 0;
+  transform: translateY(-50%) scale(0.9);
+}
+
+/* Narrow single-column page (report form, test tool) and its "← back" link */
+.page-narrow {
+  max-width: var(--page-max, 720px);
+  margin: 25px auto;
+  padding: 0 16px;
+  box-sizing: border-box;
+  color: var(--on-surface);
+}
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--on-surface-variant);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.back-link:hover {
+  color: var(--on-surface);
+}
+.back-link .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* Small outlined chip (pick a class, try an example): size and radius set where used */
+.chip {
+  max-width: 100%;
+  border: 1px solid var(--divider);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chip:focus-visible {
+  outline: 2px solid var(--on-surface-primary);
+  outline-offset: 2px;
 }
 
 .sidebar-menu {
