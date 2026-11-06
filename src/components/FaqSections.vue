@@ -209,7 +209,7 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>4. Cosa sono le attivit&agrave; facoltative?</h3>
 				<p class="answer">
-					Sportelli, peer tutoring, olimpiadi e incontri per i rappresentanti sono attivit&agrave; che non riguardano tutta la classe o sono attività opzionali. Verrai notificato solo se hai attivato quella categoria in <RouterLink to="/dashboard#facoltative" class="link">Attivit&agrave; facoltative</RouterLink>.
+					Sportelli, peer tutoring, olimpiadi e incontri per i rappresentanti sono attivit&agrave; che non riguardano tutta la classe o sono attività opzionali. I gruppi di classi sono gli eventi rivolti a un intero anno, senza nominare la tua classe (es. <i>CLASSI 3^ - ASSEMBLEA IN AULA MAGNA</i>). Verrai notificato solo se hai attivato quella categoria in <RouterLink to="/dashboard#facoltative" class="link">Attivit&agrave; facoltative</RouterLink>: di default sono attivi gruppi di classi, olimpiadi e rappresentanti.
 				</p>
 				<!--p class="answer answer-staccato"> TODO rivedere
 					Se il titolo nomina proprio la tua classe, la notifica arriva comunque. In Orario e in Cerca eventi queste attivit&agrave; si vedono sempre.
@@ -305,7 +305,7 @@ onBeforeUnmount(() => {
 			<div class="question">
 				<h3>4. Dati dei docenti</h3>
 				<p class="answer">
-					L'orario dei docenti viene dall'area riservata del sito della scuola e lo mostriamo solo a chi accede con Moodle con un account che la scuola abilita a vederlo. Per gli utenti pubblici suggeriamo come keyword solo i cognomi gi&agrave; scritti nel calendario Google delle variazioni.
+					L'orario dei docenti viene dall'area riservata del sito del Fermi, visualizzabile solo a chi accede con Moodle con un account abilitato. Per gli utenti pubblici suggeriamo come keyword solo i cognomi gi&agrave; scritti nel calendario Google delle variazioni.
 				</p>
 			</div>
 			<div class="question">

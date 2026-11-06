@@ -35,7 +35,6 @@
                 {{ s }}
               </button>
             </template>
-            <button type="button" class="btn text kw-check-keep" @click="keepKeyword(t.keyword)">Va bene così</button>
           </li>
         </ul>
       </div>
@@ -192,24 +191,7 @@
   // ------- Class check (see useClassCheck) -------
   const { check } = useClassCheck()
   const pendingTypo = ref(null) // { keyword, suggestions } waiting for a choice
-  const KEEP_KEY = 'keywordsKept' // keywords the user said are fine as they are
-  const kept = ref(readKept())
-  function readKept() {
-    try {
-      return new Set(JSON.parse(localStorage.getItem(KEEP_KEY) || '[]'))
-    } catch {
-      return new Set()
-    }
-  }
-  function keepKeyword(kw) {
-    kept.value = new Set([...kept.value, kw])
-    try {
-      localStorage.setItem(KEEP_KEY, JSON.stringify([...kept.value]))
-    } catch {
-      // private mode: kept for this visit only
-    }
-  }
-  const savedTypos = computed(() => keywords.value.filter((k) => !kept.value.has(k)).map(check).filter(Boolean))
+  const savedTypos = computed(() => keywords.value.map(check).filter(Boolean))
   const typoKeys = computed(() => new Set(savedTypos.value.map((t) => t.keyword)))
 
   async function replaceKeyword(oldKw, newKw) {
@@ -251,7 +233,7 @@
         const list = joints.join(', ')
         generateAlert(
           'info',
-          `Aggiunt${joints.length > 1 ? 'e' : 'a'} anche ${list}, classe articolata con ${kw.toUpperCase()}. Se non ti interessa, toglila.`
+          `Aggiunt${joints.length > 1 ? 'e' : 'a'} anche ${list}, classe articolata con ${kw.toUpperCase()}. Rimuovila se non ti riguarda.`
         )
       }
       // Optionally refresh similar suggestions in the future
@@ -365,10 +347,6 @@
     padding: 4px 12px;
     border-radius: 999px;
     font-weight: 600;
-  }
-  .kw-check-keep {
-    margin-left: auto;
-    font-size: 0.8125rem;
   }
   .keyword.keyword-unknown {
     outline: 1px dashed var(--warning-soft);

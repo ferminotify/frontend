@@ -17,6 +17,11 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // Dashboard: the user's opt-in categories, to mark what is not notified. null: a plain search
+  optIn: {
+    type: Array,
+    default: null,
+  },
 })
 
 const events = ref([])
@@ -174,34 +179,63 @@ onUnmounted(() => {
   }
 })
 
-// Keyword matching from the backend, the notifier's rules: { KEYWORD: Set(uid) }.
+// Keyword matching from the backend, the notifier's rules: { KEYWORD: { matches, optional } }.
 // Keywords it did not answer for (backend down, over the limit) use the word search below.
 const MAX_MATCH_KEYWORDS = 20
-const backendMatches = ref({})
+const backendAnswers = ref({})
 let matchRequest = 0
 watch(
   () => props.keywords,
   async (list) => {
     const kws = [...new Set((list || []).filter((k) => k && k !== '*'))].slice(0, MAX_MATCH_KEYWORDS)
     const id = ++matchRequest
-    if (!kws.length) return (backendMatches.value = {})
+    if (!kws.length) return (backendAnswers.value = {})
     try {
       const { matches, optional } = await searchEvents(kws)
       if (id !== matchRequest) return
       const out = {}
-      for (const kw of kws) {
-        // Opt-in activities (help desks…) too: this is a search, as on the timetable page.
-        const extra = Object.values(optional?.[kw] || {}).flat()
-        out[kw.toUpperCase()] = new Set([...(matches?.[kw] || []), ...extra])
-      }
-      backendMatches.value = out
+      for (const kw of kws) out[kw.toUpperCase()] = { matches: matches?.[kw] || [], optional: optional?.[kw] || {} }
+      backendAnswers.value = out
     } catch (e) {
-      if (id === matchRequest) backendMatches.value = {}
+      if (id === matchRequest) backendAnswers.value = {}
       console.warn('Keyword match from the backend failed, using the word search', e)
     }
   },
   { immediate: true, deep: true }
 )
+
+// Per keyword: uids notified to this user, and opt-in ones they turned off (shown, marked).
+// A plain search (optIn null) shows every opt-in activity, unmarked.
+const backendMatches = computed(() => {
+  const out = {}
+  for (const [kw, a] of Object.entries(backendAnswers.value)) {
+    const notified = new Set(a.matches)
+    const off = new Set()
+    for (const [cat, uids] of Object.entries(a.optional)) {
+      const on = !props.optIn || cat.split('+').every((c) => props.optIn.includes(c))
+      for (const uid of uids) (on ? notified : off).add(uid)
+    }
+    out[kw] = { notified, off }
+  }
+  return out
+})
+
+const wordMatch = (kw, ev) =>
+  new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&') + '\\b', 'i').test(displayTitle(ev).toUpperCase())
+
+// Dashboard: shown only through opt-in activities the user turned off
+function optedOut(ev) {
+  if (!props.optIn || !ev.uid) return false
+  let off = false
+  for (const kw of props.keywords || []) {
+    const a = backendMatches.value[String(kw).toUpperCase()]
+    if (!a) {
+      if (kw !== '*' && wordMatch(kw, ev)) return false
+    } else if (a.notified.has(ev.uid)) return false
+    else if (a.off.has(ev.uid)) off = true
+  }
+  return off
+}
 
 // The Sheet CSV: only a few days ahead (see calendar-to-sheet.gs), used if the backend is down.
 const CSV_URL =
@@ -358,14 +392,11 @@ const filteredEventsByDay = computed(() => {
     // Special case: '*' shows all events
     if (keywords.includes('*')) return true
 
-    // Backend match when available, else the keyword as whole words in the title
-    const title = displayTitle(ev).toUpperCase()
+    // Backend match when it answered for the keyword (as the notifier), else whole words in the title
     return keywords.some((kw) => {
-      const uids = backendMatches.value[String(kw).toUpperCase()]
-      if (uids && ev.uid && uids.has(ev.uid)) return true
-      // Use word boundary regex for more precise matching (like dashboard.ejs)
-      const regex = new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&') + '\\b', 'i')
-      return regex.test(title)
+      const a = backendMatches.value[String(kw).toUpperCase()]
+      if (a) return Boolean(ev.uid) && (a.notified.has(ev.uid) || a.off.has(ev.uid))
+      return wordMatch(kw, ev)
     })
   }
 
@@ -542,6 +573,9 @@ function sameStartEnd(ev) {
       <div class="events-list" :id="`events-${d}-eventslist`">
         <div v-for="(event, i) in eventsForDay(d)" :key="i" class="event" :class="eventClasses(event)" :id="event.uid">
           <p class="event-title">{{ renderTitle(event) }}</p>
+          <p v-if="optedOut(event)" class="event-optin" aria-label="Non notificato: attività facoltativa disattivata">
+            <span class="material-symbols-outlined" aria-hidden="true">notifications_off</span>
+          </p>
           <div class="event-time">
             <p class="event-time-start">
               <span class="start-end-text">
@@ -629,5 +663,23 @@ function sameStartEnd(ev) {
 }
 .event .event-title {
   transition: transform 220ms cubic-bezier(.2,.9,.2,1);
+}
+
+/* Dashboard: matched only through an opt-in activity the user turned off */
+.event-optin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+.event-optin .material-symbols-outlined {
+  font-size: 16px;
+}
+.event-optin a {
+  color: var(--on-surface-primary);
+  text-decoration: underline;
 }
 </style>

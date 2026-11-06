@@ -137,7 +137,7 @@
         </div>
       </div>
 
-      <!-- Opt-in activities: notified only if chosen, also when they name the class -->
+      <!-- Opt-in activities: notified only if chosen -->
       <div v-if="optInCategories.length" class="impostazioni-sect invioNotificheContainer" id="facoltative" style="padding-bottom: 15px">
         <p style="padding-bottom: 10px" class="impostazioni-sect-title">
           <span class="material-symbols-outlined">volunteer_activism</span>
@@ -145,7 +145,7 @@
         </p>
         <div class="impostazioni-sect-content">
           <p style="font-size: 12px; color: var(--on-surface)">
-            Disattiva le notifiche per le attività opzionali.
+            Attiva le notifiche per le attività facoltative.
           </p>
           <div v-for="c in optInCategories" :key="c.id" class="optin-row">
             <div class="checkNot-container">
@@ -601,5 +601,9 @@
     font-size: 11px;
     color: var(--muted);
     overflow-wrap: anywhere;
+  }
+  .optin-row .checkNot-container {
+    padding-bottom: 0;
+    line-height: 1.5rem;
   }
 </style>
