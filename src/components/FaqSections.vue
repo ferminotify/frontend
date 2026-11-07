@@ -269,7 +269,7 @@ onBeforeUnmount(() => {
 					<li style="margin: 6px 0"><span class="primary-text">account</span>: nome, cognome, email, genere, l'hash della password (se ne imposti una), la data dell'ultimo accesso;</li>
 					<li style="margin: 6px 0"><span class="primary-text">preferenze</span>: keywords, canali e orario delle notifiche, attivit&agrave; facoltative scelte;</li>
 					<li style="margin: 6px 0"><span class="primary-text">accesso con Google</span>: l'identificativo dell'account Google;</li>
-					<li style="margin: 6px 0"><span class="primary-text">accesso con Moodle</span>: il nome utente Moodle e, se la scuola ti fa vedere i docenti, la sessione del tuo ultimo accesso (cifrata). La password viene inviata solo al sito della scuola per verificarla e non viene salvata;</li>
+					<li style="margin: 6px 0"><span class="primary-text">accesso con Moodle</span>: il nome utente Moodle e, se sei abilitato a vedere i docenti, la sessione del tuo ultimo accesso (cifrata). La password viene inviata solo al Fermi per verificarla e non viene salvata;</li>
 					<li style="margin: 6px 0"><span class="primary-text">Telegram</span>, se lo colleghi: il tuo ID Telegram;</li>
 					<li style="margin: 6px 0"><span class="primary-text">notifiche push</span>, per ogni dispositivo su cui le attivi: l'indirizzo e le chiavi per inviarle, un identificativo del dispositivo e una sua breve descrizione (es. browser e sistema);</li>
 					<li style="margin: 6px 0"><span class="primary-text">notifiche inviate</span>: quali eventi ti abbiamo gi&agrave; notificato, per non mandarli due volte;</li>

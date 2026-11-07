@@ -32,7 +32,7 @@ export const useUserStore = defineStore('user', {
   },
 
   actions: {
-    async register({ name, surname, email, password, password2, gender }) {
+    async register({ name, surname, email, password, password2, gender, keywords }) {
       try {
         const res = await axios.put(`${API_URL}/user/auth/register`, {
           name,
@@ -41,6 +41,7 @@ export const useUserStore = defineStore('user', {
           password,
           password2,
           gender,
+          keywords,
         })
         return res.data
       } catch (err) {
@@ -135,9 +136,9 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    async completeMoodleSignup({ name, surname, gender, email }) {
+    async completeMoodleSignup({ name, surname, gender, email, keywords }) {
       const signup = sessionStorage.getItem(MOODLE_SIGNUP_KEY)
-      const res = await axios.post(`${API_URL}/user/auth/moodle/complete`, { signup, name, surname, gender, email })
+      const res = await axios.post(`${API_URL}/user/auth/moodle/complete`, { signup, name, surname, gender, email, keywords })
       sessionStorage.removeItem(MOODLE_SIGNUP_KEY)
       sessionStorage.removeItem(MOODLE_PENDING_KEY)
       // The email already has an account: its owner links Moodle from the email we sent.
@@ -153,6 +154,8 @@ export const useUserStore = defineStore('user', {
     // "Collega Moodle" (link from the email): links Moodle to the account and logs in.
     async linkMoodle(token) {
       const res = await axios.post(`${API_URL}/user/auth/moodle/link`, { token })
+      const { setSchoolTicket } = await import('@/api/timetable')
+      setSchoolTicket(res.data.ticket)
       this.token = res.data.token
       this.onboarding = !!res.data.onboarding
       localStorage.setItem('token', this.token)
@@ -164,11 +167,11 @@ export const useUserStore = defineStore('user', {
       return res.data
     },
 
-    async completeProfile({ name, surname, gender, password, password2 }) {
-      const res = await api.post(`${API_URL}/user/complete-profile`, { name, surname, gender, password, password2 })
+    async completeProfile({ name, surname, gender, password, password2, keywords }) {
+      const res = await api.post(`${API_URL}/user/complete-profile`, { name, surname, gender, password, password2, keywords })
       this.onboarding = !!res.data?.onboarding
       if (this.user) {
-        this.user = { ...this.user, name, surname, gender, profile_complete: true }
+        this.user = { ...this.user, name, surname, gender, profile_complete: true, keywords: res.data?.keywords ?? this.user.keywords }
       }
       return res.data
     },

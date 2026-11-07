@@ -10,13 +10,13 @@
             <h1 class="firstTitle">Collega Moodle</h1>
           </div>
           <p v-if="info" class="lm-text">
-            Collega l’account Moodle <strong>{{ info.schoolUsername }}</strong> al tuo account Fermi Notify: potrai accedere anche con
+            Collega l’account Moodle <strong>{{ info.schoolUsername }}</strong> al tuo account Fermi Notify per accedere anche con
             Moodle.
           </p>
           <p v-else-if="invalid" class="lm-text">{{ invalid }}</p>
           <button v-if="info" class="btn filled submit-btn" ref="submitBtnRef" type="submit">Collega</button>
           <RouterLink v-else-if="invalid" to="/login?moodle=1" class="btn filled submit-btn lm-link">Accedi con Moodle</RouterLink>
-          <p v-if="info" class="lm-note">Non sei stato tu? Chiudi questa pagina: il tuo account resta com’è.</p>
+          <p v-if="info" class="lm-note">Non sei stato tu? Chiudi questa pagina.</p>
         </form>
       </div>
     </div>

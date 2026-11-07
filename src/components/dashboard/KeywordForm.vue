@@ -14,14 +14,16 @@
         <span class="material-symbols-outlined">edit_square</span>
       </button>
       <!-- Saved keywords that look like a class and are none: the notifier only finds that exact word -->
-      <div v-if="savedTypos.length" class="kw-check" role="status">
+      <div v-if="shownTypos.length" class="kw-check kw-check-dismissable" role="status">
+        <button type="button" class="kw-check-close" aria-label="Nascondi avviso" @click="dismissTypos">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
         <p class="kw-check-title">
           <span class="material-symbols-outlined" aria-hidden="true">help</span>
-          {{ savedTypos.length === 1 ? 'Questa keyword non corrisponde' : 'Queste keyword non corrispondono' }} a nessuna classe:
-          le notifiche arrivano solo se è scritta così nel calendario.
+          {{ shownTypos.length === 1 ? 'Questa keyword non corrisponde' : 'Queste keyword non corrispondono' }} a nessuna classe.
         </p>
         <ul class="kw-check-list">
-          <li v-for="t in savedTypos" :key="t.keyword">
+          <li v-for="t in shownTypos" :key="t.keyword">
             <code>{{ t.keyword }}</code>
             <template v-if="t.suggestions.length">
               <span class="kw-check-hint">intendevi</span>
@@ -91,7 +93,7 @@
       <div v-if="pendingTypo" class="kw-check" role="alert">
         <p class="kw-check-title">
           <span class="material-symbols-outlined" aria-hidden="true">help</span>
-          <span><code>{{ pendingTypo.keyword }}</code> non è una classe.{{ pendingTypo.suggestions.length ? ' Intendevi:' : '' }}</span>
+          <span>Classe <code>{{ pendingTypo.keyword }}</code> non trovata.{{ pendingTypo.suggestions.length ? ' Intendevi:' : '' }}</span>
         </p>
         <div class="kw-check-actions">
           <button
@@ -193,6 +195,26 @@
   const pendingTypo = ref(null) // { keyword, suggestions } waiting for a choice
   const savedTypos = computed(() => keywords.value.map(check).filter(Boolean))
   const typoKeys = computed(() => new Set(savedTypos.value.map((t) => t.keyword)))
+  // Warning closed with the x: the keyword keeps its outline, a click on it shows it again
+  const DISMISSED_KEY = 'keywordWarningDismissed'
+  const dismissed = ref(readDismissed())
+  function readDismissed() {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]'))
+    } catch {
+      return new Set()
+    }
+  }
+  function saveDismissed(set) {
+    dismissed.value = set
+    try {
+      localStorage.setItem(DISMISSED_KEY, JSON.stringify([...set]))
+    } catch {
+      // private mode: for this visit only
+    }
+  }
+  const shownTypos = computed(() => savedTypos.value.filter((t) => !dismissed.value.has(t.keyword)))
+  const dismissTypos = () => saveDismissed(new Set([...dismissed.value, ...shownTypos.value.map((t) => t.keyword)]))
 
   async function replaceKeyword(oldKw, newKw) {
     try {
@@ -255,7 +277,10 @@
   }
 
   async function onKeywordClick(kw) {
-    if (!isEditing.value) return
+    if (!isEditing.value) {
+      if (dismissed.value.has(kw)) saveDismissed(new Set([...dismissed.value].filter((k) => k !== kw)))
+      return
+    }
     await deleteKeyword(kw)
   }
 
@@ -309,11 +334,39 @@
     box-sizing: border-box;
   }
   .kw-check {
+    width: fit-content;
+    max-width: 100%;
+    box-sizing: border-box;
     margin: 12px 0;
     padding: 10px 14px;
     border-radius: 14px;
     background: color-mix(in srgb, var(--warning) 12%, transparent);
     font-size: 0.875rem;
+  }
+  .kw-check-dismissable {
+    position: relative;
+    padding-right: 40px;
+  }
+  .kw-check-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--on-surface-variant);
+    cursor: pointer;
+  }
+  .kw-check-close:hover {
+    background: color-mix(in srgb, var(--on-surface) 10%, transparent);
+  }
+  .kw-check-close .material-symbols-outlined {
+    font-size: 18px;
   }
   .kw-check-title {
     display: flex;
@@ -351,5 +404,8 @@
   .keyword.keyword-unknown {
     outline: 1px dashed var(--warning-soft);
     outline-offset: 2px;
+  }
+  .keyword.keyword-unknown:not(.keyword-editing) {
+    cursor: pointer;
   }
 </style>

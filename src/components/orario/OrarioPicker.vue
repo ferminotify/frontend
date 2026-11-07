@@ -62,7 +62,7 @@
           <span class="material-symbols-outlined op-notice-icon" aria-hidden="true">school</span>
           <div class="op-notice-text">
             <strong>Orario dei docenti</strong>
-            <span>Accedi o registrati con Moodle per cercare i docenti (solo account abilitati dalla scuola).</span>
+            <span>Accedi o registrati con Moodle per cercare i docenti (solo account abilitati).</span>
           </div>
           <div class="op-notice-actions">
             <button type="button" class="op-notice-btn" @click="moodleLogin">Accedi con Moodle</button>

@@ -195,12 +195,19 @@
         generateAlert('error', 'Impossibile contattare il server. Controlla la connessione e riprova.')
       } else if (status === 404) {
         generateAlert('error', {
-          html: `Non ci sono utenti registrati con l'email ${escapeHtml(id)}. Crea un account <a href="/register" style="text-decoration: underline">qui</a>, oppure accedi con il nome utente Moodle.`
+          html: `Non ci sono utenti registrati con l'email ${escapeHtml(id)}. Crea un account <a href="/register" style="text-decoration: underline">qui</a>, oppure accedi Moodle.`
         })
       } else if (code === 'google_only') {
-        generateAlert('error', {
-          html: `Questo account usa l'accesso con Google. Accedi con Google, oppure imposta una password <a href="/password_reset" style="text-decoration: underline">qui</a>.`
+        const google = Object.assign(document.createElement('a'), { href: '#', textContent: 'Accedi con Google' })
+        const reset = Object.assign(document.createElement('a'), { href: '/password_reset', textContent: 'qui' })
+        for (const a of [google, reset]) a.style.textDecoration = 'underline'
+        google.addEventListener('click', (e) => {
+          e.preventDefault()
+          onGoogle()
         })
+        const node = document.createElement('span')
+        node.append("Questo account usa l'accesso con Google. ", google, ', oppure imposta una password ', reset, '.')
+        generateAlert('error', { node })
       } else if (status === 401) {
         // Moodle accounts take the Moodle password here
         generateAlert('error', 'La password non è corretta.')
@@ -268,7 +275,7 @@
       // New account: the profile step asks what the school site does not tell us.
       if (signup) return await router.push({ name: 'complete-profile', query: { moodle: '1' } })
       const to = consumeRedirect()
-      if (!teachers && to.startsWith('/orario')) generateAlert('info', 'Il tuo account Moodle non è abilitato dalla scuola a vedere i docenti.')
+      if (!teachers && to.startsWith('/orario')) generateAlert('info', 'Il tuo account Fermi non è abilitato a vedere i docenti.')
       await router.push(to)
     } catch (error) {
       if (!error?.response) generateAlert('error', 'Impossibile contattare il server. Controlla la connessione e riprova.')

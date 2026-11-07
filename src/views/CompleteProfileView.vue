@@ -28,6 +28,7 @@
             </select>
             <label class="select-label">Genere</label>
           </div>
+          <SignupKeywordField v-model="keywords" class="cp-keyword" />
 
           <!-- Moodle signup: the school site gives no address, and notifications need one -->
           <div v-if="moodle" class="cp-field">
@@ -37,51 +38,47 @@
             </div>
             <p v-if="pendingEmail" class="cp-hint">
               Non hai ancora confermato l'email: il link è stato inviato a <b>{{ pendingEmail }}</b>. Se è sbagliata,
-              inseriscine un'altra; altrimenti scrivila di nuovo per ricevere un nuovo link.
+              inseriscine un'altra; altrimenti riscrivila per ricevere un nuovo link.
             </p>
-            <p v-else class="cp-hint">Ti invieremo un link per confermarla: le notifiche partono dopo la conferma.</p>
           </div>
 
           <!-- Google signup: optional password for email + password login too -->
-          <fieldset v-else class="cp-optional">
-            <legend>Password <span class="cp-optional-note">(facoltativa)</span></legend>
-            <div class="material-textfield">
-              <input
-                v-model="password"
-                placeholder=" "
-                type="password"
-                name="password"
-                id="password"
-                autocomplete="new-password"
-                ref="pswInputRef"
-                @input="onPasswordInput"
-                @keyup="onPasswordInput" />
-              <label>Password</label>
-              <span id="PSWShowHideIcon" @click="onTogglePsw">
-                <span class="material-symbols-outlined" aria-hidden="true" ref="pswIconRef">visibility_off</span>
-              </span>
-              <p class="input-warning flex-y-center" v-show="showShort">
-                <span class="material-symbols-outlined primary-text material-space-right">error</span>
-                La password deve essere lunga almeno 6 caratteri
-              </p>
-            </div>
-            <div class="material-textfield" v-show="password.length > 0">
-              <input
-                v-model="password2"
-                placeholder=" "
-                type="password"
-                name="password2"
-                id="password2"
-                autocomplete="new-password"
-                @input="onConfirmInput"
-                @keyup="onConfirmInput" />
-              <label>Conferma password</label>
-              <p class="input-warning flex-y-center" v-show="showMismatch">
-                <span class="material-symbols-outlined primary-text material-space-right">error</span>
-                Le password non corrispondono
-              </p>
-            </div>
-          </fieldset>
+          <div class="material-textfield" v-if="!moodle">
+            <input
+              v-model="password"
+              placeholder=" "
+              type="password"
+              name="password"
+              id="password"
+              autocomplete="new-password"
+              ref="pswInputRef"
+              @input="onPasswordInput"
+              @keyup="onPasswordInput" />
+            <label>Password (opzionale)</label>
+            <span id="PSWShowHideIcon" @click="onTogglePsw">
+              <span class="material-symbols-outlined" aria-hidden="true" ref="pswIconRef">visibility_off</span>
+            </span>
+            <p class="input-warning flex-y-center" v-show="showShort">
+              <span class="material-symbols-outlined primary-text material-space-right">error</span>
+              La password deve essere lunga almeno 6 caratteri
+            </p>
+          </div>
+          <div class="material-textfield" v-show="password.length > 0" v-if="!moodle">
+            <input
+              v-model="password2"
+              placeholder=" "
+              type="password"
+              name="password2"
+              id="password2"
+              autocomplete="new-password"
+              @input="onConfirmInput"
+              @keyup="onConfirmInput" />
+            <label>Conferma password</label>
+            <p class="input-warning flex-y-center" v-show="showMismatch">
+              <span class="material-symbols-outlined primary-text material-space-right">error</span>
+              Le password non corrispondono
+            </p>
+          </div>
 
           <button class="btn filled submit-btn" ref="submitBtnRef" type="submit">{{ moodle ? 'Crea account' : 'Continua' }}</button>
         </form>
@@ -92,7 +89,6 @@
 
 <style scoped src="@/assets/css/page.css"></style>
 <style scoped>
-  /* Header as on "Accedi con Moodle": icon, then title and subtitle, aligned left */
   .cp-head {
     display: flex;
     align-items: center;
@@ -120,7 +116,7 @@
   }
   .cp-names input,
   .cp-field input,
-  .cp-optional input {
+  .cp-keyword :deep(input) {
     width: 100%;
     box-sizing: border-box;
   }
@@ -137,23 +133,6 @@
     color: var(--muted);
     font-size: 0.8125rem;
     line-height: 1.4;
-  }
-  .cp-optional {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-  }
-  .cp-optional legend {
-    padding: 0;
-    margin-bottom: 12px; /* a legend ignores the fieldset's gap */
-    font-weight: 600;
-  }
-  .cp-optional-note {
-    font-weight: 400;
-    color: var(--muted);
   }
   @media (max-width: 500px) {
     .cp-names {
@@ -175,6 +154,7 @@
   import { consumeRedirect } from '@/utils/redirect.js'
   import { generateAlert } from '@/utils/alertbanner.js'
   import { useUserStore } from '@/stores/user'
+  import SignupKeywordField from '@/components/common/SignupKeywordField.vue'
 
   const submitBtnRef = ref(null)
   const pswInputRef = ref(null)
@@ -182,6 +162,7 @@
   const name = ref('')
   const surname = ref('')
   const gender = ref('')
+  const keywords = ref([])
   const password = ref('')
   const password2 = ref('')
   const showShort = ref(false)
@@ -256,7 +237,7 @@
 
     const n = name.value.trim()
     const s = surname.value.trim()
-    if (!n || !s || !gender.value) {
+    if (!n || !s || !gender.value || !keywords.value.length) {
       generateAlert('error', 'Compila tutti i campi!')
       return
     }
@@ -269,7 +250,7 @@
       loading(submitBtnRef.value)
       try {
         const resumed = Boolean(pendingEmail.value)
-        const result = await user.completeMoodleSignup({ name: n, surname: s, gender: gender.value, email: e })
+        const result = await user.completeMoodleSignup({ name: n, surname: s, gender: gender.value, email: e, keywords: keywords.value })
         if (result?.linkSent) {
           generateAlert('success', 'Questa email ha già un account: ti abbiamo inviato un link per collegarlo a Moodle (controlla anche lo SPAM).')
           await router.replace({ name: 'login' })
@@ -310,6 +291,7 @@
         name: n,
         surname: s,
         gender: gender.value,
+        keywords: keywords.value,
         password: password.value || undefined,
         password2: password2.value || undefined,
       })

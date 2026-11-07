@@ -55,6 +55,7 @@ const candidates = computed(() => {
  */
 export function useKeywordSuggestions({ input, exclude, onPick, onEnter }) {
   const focused = ref(false)
+  const closed = ref(false) // Enter / Escape: hidden until typing again
   const activeIndex = ref(-1)
 
   const suggestions = computed(() => {
@@ -77,7 +78,7 @@ export function useKeywordSuggestions({ input, exclude, onPick, onEnter }) {
       .map((x) => x.c)
   })
 
-  const showSuggestions = computed(() => focused.value && suggestions.value.length > 0)
+  const showSuggestions = computed(() => focused.value && !closed.value && suggestions.value.length > 0)
 
   function pick(s) {
     activeIndex.value = -1
@@ -88,9 +89,13 @@ export function useKeywordSuggestions({ input, exclude, onPick, onEnter }) {
     suggestions,
     showSuggestions,
     activeIndex,
-    resetActive: () => (activeIndex.value = -1),
+    resetActive() {
+      activeIndex.value = -1
+      closed.value = false
+    },
     onFocus() {
       focused.value = true
+      closed.value = false
       loadIndex()
     },
     onBlur() {
@@ -101,17 +106,20 @@ export function useKeywordSuggestions({ input, exclude, onPick, onEnter }) {
       const n = suggestions.value.length
       if (e.key === 'ArrowDown' && n) {
         e.preventDefault()
+        closed.value = false
         activeIndex.value = (activeIndex.value + 1) % n
       } else if (e.key === 'ArrowUp' && n) {
         e.preventDefault()
         activeIndex.value = (activeIndex.value - 1 + n) % n
       } else if (e.key === 'Escape') {
         activeIndex.value = -1
-        focused.value = false
+        closed.value = true
       } else if (e.key === 'Enter') {
         e.preventDefault()
         if (showSuggestions.value && activeIndex.value >= 0) pick(suggestions.value[activeIndex.value])
         else onEnter()
+        activeIndex.value = -1
+        closed.value = true
       }
     },
     pick,

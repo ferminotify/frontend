@@ -72,6 +72,9 @@
               <label class="select-label">Genere</label>
             </div>
           </div>
+          <div class="input-container">
+            <SignupKeywordField v-model="keywords" />
+          </div>
           <button class="btn filled submit-btn" ref="submitBtnRef" type="submit">Registrati</button>
           <div class="oauth-divider"><span>oppure</span></div>
           <button type="button" class="btn google-btn" @click="onGoogle">
@@ -97,6 +100,7 @@
   import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
   import { generateAlert } from '@/utils/alertbanner.js'
   import { useUserStore } from '@/stores/user'
+  import SignupKeywordField from '@/components/common/SignupKeywordField.vue'
 
   const submitBtnRef = ref(null)
   const pswInputRef = ref(null)
@@ -107,6 +111,7 @@
   const password = ref('')
   const password2 = ref('')
   const gender = ref('')
+  const keywords = ref([])
   const userStore = useUserStore()
   const router = useRouter()
   const btnParams = ref(null)
@@ -124,6 +129,7 @@
       password: password.value,
       password2: password2.value,
       gender: gender.value,
+      keywords: keywords.value,
     }
   }
 
@@ -150,7 +156,7 @@
     loading(submitBtnRef.value)
     try {
       const data = serialize()
-      if (!data.name || !data.surname || !data.email || !data.password || !data.password2 || !data.gender) {
+      if (!data.name || !data.surname || !data.email || !data.password || !data.password2 || !data.gender || !data.keywords.length) {
         generateAlert('error', 'Compila tutti i campi!')
         resetLoading(submitBtnRef.value, btnParams.value)
         return
