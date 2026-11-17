@@ -262,6 +262,11 @@
 
   async function onMoodleSubmit() {
     if (!moodleBtnRef.value) return
+    if (moodleUser.value.includes('@')) {
+      generateAlert('error', "Usa il nome utente Moodle, non l'email")
+      moodleUserRef.value?.focus()
+      return
+    }
     if (!moodleBtnParams.value) moodleBtnParams.value = saveBtnParams(moodleBtnRef.value)
     loading(moodleBtnRef.value)
     await moodleLogin(moodleUser.value.trim(), moodlePassword, moodleBtnRef.value, moodleBtnParams.value)
