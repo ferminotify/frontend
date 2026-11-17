@@ -115,13 +115,12 @@ onMounted(async () => {
   try {
     events.value = await loadEvents()
 
-    // Filter: keep events whose end is after the start of today.
     const todayStart = new Date()
     todayStart.setHours(0, 0, 0, 0)
 
     events.value = (events.value || []).filter((ev) => {
       const end = parseEnd(ev)
-      return end ? end.getTime() > todayStart.getTime() : false
+      return end ? end.getTime() >= todayStart.getTime() : false
     })
 
     // Sort: by start date ascending, then by end date ascending when starts are equal
