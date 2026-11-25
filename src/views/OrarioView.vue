@@ -79,7 +79,10 @@
       <p v-if="error" class="orario-message orario-message--error">
         <span class="material-symbols-outlined" aria-hidden="true">cloud_off</span>
         {{ error }}
-        <button type="button" class="btn text" @click="loadWeek()">Riprova</button>
+        <template v-if="teacherLocked">
+          <button v-if="!schoolTicket" type="button" class="btn text" @click="moodleLogin">Accedi con Moodle</button>
+        </template>
+        <button v-else type="button" class="btn text" @click="loadWeek()">Riprova</button>
       </p>
 
       <div v-if="loading && !week" class="orario-skeleton" aria-busy="true" aria-label="Caricamento orario">
@@ -161,6 +164,7 @@
   import { fetchTimetableIndex, fetchTimetableWeek, schoolTicket } from '@/api/timetable'
   import { colorSubjects, readingInfo, reportQuery, weekRangeLabel, weekdayShort, dayOfMonth } from '@/utils/timetable'
   import { useSwipe } from '@/composables/useSwipe'
+  import { saveRedirect } from '@/utils/redirect.js'
 
   const ROUTE_TYPE = { class: 'classe', room: 'aula', teacher: 'docente' }
   const LAST_KEY = 'orario:last'
@@ -222,11 +226,13 @@
     const id = ++requestId
     loading.value = true
     if (!silent) error.value = ''
+    if (!silent) teacherLocked.value = false
     try {
       const data = await fetchTimetableWeek(type.value, refKey.value.toLowerCase(), route.query.settimana)
       if (id !== requestId) return
       week.value = colorSubjects(data)
       error.value = ''
+      teacherLocked.value = false
       ensureSelectedDay()
       rememberSelection(data.entity)
     } catch (e) {
@@ -236,6 +242,7 @@
           e.status === 403
             ? 'L’orario dei docenti è visibile solo accedendo con Moodle con un account abilitato dal Fermi.'
             : { classe: 'Classe non trovata.', aula: 'Aula non trovata.', docente: 'Docente non trovato.' }[type.value]
+        teacherLocked.value = e.status === 403
         week.value = null
       } else if (!silent || !week.value) {
         error.value = 'Orario non raggiungibile in questo momento.'
@@ -243,6 +250,13 @@
     } finally {
       if (id === requestId) loading.value = false
     }
+  }
+
+  // 403: teachers need a Moodle login; back here after it
+  const teacherLocked = ref(false)
+  function moodleLogin() {
+    saveRedirect(route.fullPath)
+    router.push({ path: '/login', query: { moodle: '1' } })
   }
 
   function rememberSelection(entity) {
