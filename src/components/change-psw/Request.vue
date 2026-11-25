@@ -16,6 +16,7 @@
 
 <script setup>
   import { ref } from 'vue'
+  import { useRoute } from 'vue-router'
   import { loading, saveBtnParams, resetLoading } from '@/utils/loading.js'
   import { generateAlert } from '@/utils/alertbanner.js'
   import { useUserStore } from '@/stores/user.js'
@@ -24,7 +25,8 @@
   const emit = defineEmits(['next-step'])
 
   const submitBtnRef = ref(null)
-  const email = ref('')
+  const route = useRoute()
+  const email = ref(typeof route.query.email === 'string' ? route.query.email.trim().slice(0, 50) : '')
 
   async function onSubmit() {
     const btnParams = saveBtnParams(submitBtnRef.value)
