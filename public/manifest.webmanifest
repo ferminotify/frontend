@@ -1,21 +1,58 @@
 {
+  "id": "/",
   "name": "Fermi Notify",
   "short_name": "Fermi Notify",
+  "description": "Variazioni dell'orario dell'IS E. Fermi di Mantova in tempo reale: cerca sostituzioni, cambi aula e uscite anticipate, consulta l'orario con le variazioni e ricevi notifiche. Servizio non ufficiale creato dagli studenti.",
+  "lang": "it",
+  "dir": "ltr",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#141314",
   "theme_color": "#141314",
-  "description": "Fermi Notify è un servizio non ufficiale dell'IS E. Fermi Mantova creato dagli studenti per cercare variazioni giornaliere e ricevere notifiche per essere sempre aggiornati.",
+  "categories": ["education", "productivity", "utilities"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Cerca eventi",
+      "short_name": "Cerca",
+      "description": "Cerca le variazioni dell'orario per classe, docente o aula",
+      "url": "/",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Orario",
+      "short_name": "Orario",
+      "description": "Orario settimanale di classi e aule con le variazioni applicate",
+      "url": "/orario",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Keyword e notifiche del tuo account",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

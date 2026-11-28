@@ -53,6 +53,8 @@ Di default l'app viene avviata in sviluppo con Vite.
 - `npm run preview`: serve localmente la build di produzione.
 - `npm run lint`: esegue ESLint con correzione automatica.
 - `npm run format`: formatta i file in `src/` con Prettier.
+- `npm run icons:subset`: rigenera il font delle icone con solo le icone usate (vedi sotto).
+- `npm run seo:indexnow`: dopo un deploy, avvisa Bing e gli altri motori IndexNow che le pagine sono cambiate.
 
 ## Rotte principali
 
@@ -107,14 +109,39 @@ docker compose -f docker-compose.dev.yml down
 
 - L'app registra automaticamente il service worker al primo caricamento.
 - Le subscription push vengono associate all'utente autenticato.
-- Il router aggiorna titolo, descrizione, canonical e meta robots per ogni pagina.
+- Il router aggiorna titolo, descrizione, canonical e meta robots per ogni pagina (vedi SEO).
 - L'app conserva un piccolo stato locale in `localStorage` per token, endpoint push, device id, preferenze UI e chiusura di alcuni avvisi.
+
+## SEO e crawler AI
+
+La build (`vite-ssg`) prerenderizza le pagine pubbliche in HTML statico con head completo: i crawler, anche quelli che non eseguono JavaScript (GPTBot, ClaudeBot, PerplexityBot...), ricevono contenuto e meta di ogni pagina.
+
+- **Head**: `src/seo/site.js` (dati del sito e grafo JSON-LD: `Organization`, `WebSite`, `WebApplication`, la scuola, `WebPage`/`FAQPage`/`AboutPage` e breadcrumb) e `src/seo/usePageSeo.js` (title, description, robots, canonical, Open Graph, X). `App.vue` li applica dai `meta` delle rotte (`title`, `description`, `robots`, `schemaType`, `breadcrumb`); le viste possono raffinarli (es. `OrarioView`).
+- **Pagine prerenderizzate**: `PAGES` in `src/seo/pages.js` più una pagina per classe (`/orario/classe/<codice>`), con l'elenco classi letto in build da `GET /timetable` (API di produzione se `VITE_API_URL` è locale; `SSG_TIMETABLE_API` per forzarla). Se l'API non risponde la build prosegue senza pagine classe.
+- **Classi nuove (inizio anno)**: l'elenco è fissato al momento del build. Il backend rilancia il build da solo quando le classi sul sito della scuola cambiano (`CF_PAGES_DEPLOY_HOOK`, vedi README del backend); per un rebuild manuale: GitHub → Actions → "Rebuild sito" (secret `CF_PAGES_DEPLOY_HOOK` nel repo).
+- **Output in `dist/` generato in build** (`scripts/seo-build.js`): `sitemap.xml` (con `lastmod` dall'ultimo commit dei file della pagina), JSON-LD `FAQPage` estratto da `/faq`, una copia Markdown di ogni pagina (`/faq.md`, `/index.html.md`, ...) e `llms-full.txt`. `public/llms.txt` è l'indice per LLM, scritto a mano.
+- **URL**: `dirStyle: 'flat'` (`faq.html`): Cloudflare Pages serve `/faq` senza redirect, coerente con canonical e sitemap. Gli URL sconosciuti mostrano `NotFoundView` con `noindex`.
+- `@unhead/vue` deve restare sulla stessa major usata da `vite-ssg` (oggi la 2): con due copie i meta spariscono dall'HTML prerenderizzato. La build si ferma se succede.
+- **Immagini di anteprima** (Open Graph): una per pagina e una per classe, generate in build da `scripts/og/render.js` (satori + resvg, nessun browser) in `dist/og/`. Testi in `PAGES` (`src/seo/pages.js`), scelta dell'immagine in `ogImageFor`. Lo sfondo usa variazioni di esempio senza nomi di persona; le righe di classi non più esistenti vengono scartate. `public/og-image.png` è l'immagine generica per le altre pagine.
+- `public/_headers`: cache lunga per `/assets/*` e content-type dei file per LLM; `public/robots.txt`: regole per motori e bot AI.
+
+### Font delle icone
+
+`material-icons.css` usa `src/assets/fonts/material-symbols-subset.woff2`: solo le icone (ligature) che compaiono nei sorgenti, con tutti gli assi variabili (~0,3 MB invece di ~15 MB). Se usi un'icona nuova, rigenera il font (serve Python con `pip install fonttools brotli`):
+
+```bash
+npm run icons:subset
+```
+
+La build avvisa quando nei sorgenti compare un nome di icona assente dal subset (anche parole comuni che coincidono con un'icona: in quel caso l'avviso è innocuo).
 
 ## Struttura sintetica
 
 - `src/App.vue`: layout principale, barra laterale, loading screen e bootstrap PWA.
 - `src/main.js`: bootstrap di Vue, Pinia, router, Font Awesome e service worker.
 - `src/router/`: definizione delle rotte e dei meta tag SEO.
+- `src/seo/`: head, Open Graph e JSON-LD delle pagine.
+- `scripts/`: build SEO (sitemap, Markdown, FAQ), subset del font icone, IndexNow.
 - `src/stores/`: stato applicativo, autenticazione e push notifications.
 - `src/components/`: componenti riutilizzabili e sezioni della UI.
 - `public/`: asset statici, manifest e service worker.

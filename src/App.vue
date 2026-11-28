@@ -6,34 +6,68 @@
   import { generateAlert } from '@/utils/alertbanner.js'
   import { scrollToHash } from '@/utils/scroll.js'
   import SondaggioDesktop from './components/SondaggioDesktop.vue'
+  import { usePageSeo } from '@/seo/usePageSeo'
+  import {
+    DEFAULT_DESCRIPTION,
+    DEFAULT_ROBOTS,
+    DEFAULT_TITLE,
+    LOCALE,
+    OG_IMAGE,
+    SITE_NAME,
+    jsonLdScript,
+    siteGraph,
+  } from '@/seo/site'
+  import { ogImageFor } from '@/seo/pages'
+  import iconFontUrl from '@/assets/fonts/material-symbols-subset.woff2?url'
 
   const route = useRoute()
   const user = useUserStore()
 
-  const SITE_URL = 'https://fn.lkev.in'
-  const DEFAULT_DESCRIPTION =
-    'Resta aggiornato sulle variazioni dell\'orario giornaliero dell\'IS E. Fermi Mantova con Fermi Notify. L\'app user-friendly creata dagli studenti con notifiche e funzioni avanzate.'
+  usePageSeo(() => ({
+    title: route.meta.title || DEFAULT_TITLE,
+    description: route.meta.description || DEFAULT_DESCRIPTION,
+    robots: route.meta.robots || DEFAULT_ROBOTS,
+    path: route.path,
+  }))
 
   useHead(computed(() => {
-    const title = route.meta.title || 'Fermi Notify'
-    const description = route.meta.description || DEFAULT_DESCRIPTION
-    const robots = route.meta.robots || 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'
-    const canonicalUrl = new URL(route.path, SITE_URL).toString()
-
+    const indexable = !route.meta.robots || !route.meta.robots.startsWith('noindex')
+    const image = ogImageFor(route.path)
     return {
-      title,
+      htmlAttrs: { lang: 'it' },
       meta: [
-        { name: 'description', content: description },
-        { name: 'robots', content: robots },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:url', content: canonicalUrl },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:locale', content: LOCALE },
+        { property: 'og:site_name', content: SITE_NAME },
+        { property: 'og:image', content: image.url },
+        { property: 'og:image:secure_url', content: image.url },
+        { property: 'og:image:type', content: OG_IMAGE.type },
+        { property: 'og:image:width', content: String(OG_IMAGE.width) },
+        { property: 'og:image:height', content: String(OG_IMAGE.height) },
+        { property: 'og:image:alt', content: image.alt },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:image', content: image.url },
+        { name: 'twitter:image:alt', content: image.alt },
       ],
       link: [
-        { rel: 'canonical', href: canonicalUrl },
+        // The app shows its UI only once the icon font is in (see waitForIconsToLoad).
+        { rel: 'preload', href: iconFontUrl, as: 'font', type: 'font/woff2', crossorigin: '' },
       ],
+      // Structured data only where the page may be indexed.
+      script: indexable
+        ? [
+            jsonLdScript(
+              'jsonld-site',
+              siteGraph({
+                path: route.path,
+                title: route.meta.title || DEFAULT_TITLE,
+                description: route.meta.description || DEFAULT_DESCRIPTION,
+                type: route.meta.schemaType,
+                breadcrumb: route.meta.breadcrumb,
+              }),
+            ),
+          ]
+        : [],
     }
   }))
 
@@ -527,65 +561,65 @@
         <div class="sidebar-indicator" :style="indicatorStyle"></div>
         <RouterLink to="/" custom v-slot="{ href, navigate, isExactActive }">
           <a :href="href" @click="navigate" class="sidebar-link" id="cercaeventi" :class="{ active: isExactActive }" >
-            <span class="material-symbols-outlined sidebar-icon">search</span>
+            <span class="material-symbols-outlined sidebar-icon" aria-hidden="true">search</span>
             <span class="sidebar-link-text">Cerca Eventi</span>
           </a>
         </RouterLink>
 
         <RouterLink :to="authTo" custom v-slot="{ href, navigate }">
           <a :href="href" @click="navigate" class="sidebar-link" id="login" :class="{ active: isAuthActive }">
-            <span class="material-symbols-outlined sidebar-icon">{{ authIcon }}</span>
+            <span class="material-symbols-outlined sidebar-icon" aria-hidden="true">{{ authIcon }}</span>
             <span class="sidebar-link-text">{{ authLabel }}</span>
           </a>
         </RouterLink>
 
         <RouterLink to="/orario" custom v-slot="{ href, navigate }">
           <a :href="href" @click="navigate" class="sidebar-link" id="orario" :class="{ active: route.path.startsWith('/orario') }">
-            <span class="material-symbols-outlined sidebar-icon">view_agenda</span>
+            <span class="material-symbols-outlined sidebar-icon" aria-hidden="true">view_agenda</span>
             <span class="sidebar-link-text">Orario</span>
           </a>
         </RouterLink>
 
         <RouterLink v-if="!isStandalone" to="/app" custom v-slot="{ href, navigate, isExactActive }">
           <a :href="href" @click="installApp(navigate, $event)" class="sidebar-link sidebar-desktop" id="app" :class="{ active: isExactActive }">
-            <span class="material-symbols-outlined sidebar-icon">download</span>
+            <span class="material-symbols-outlined sidebar-icon" aria-hidden="true">download</span>
             <span class="sidebar-link-text">Installa l'app</span>
           </a>
         </RouterLink>
 
         <RouterLink to="/faq" custom v-slot="{ href, navigate, isExactActive }">
           <a :href="href" @click="navigate" class="sidebar-link sidebar-desktop" id="faq" :class="{ active: isExactActive }">
-            <span class="material-symbols-outlined sidebar-icon">help_center</span>
+            <span class="material-symbols-outlined sidebar-icon" aria-hidden="true">help_center</span>
             <span class="sidebar-link-text">FAQ</span>
           </a>
         </RouterLink>
 
         <RouterLink to="/supporters" custom v-slot="{ href, navigate, isExactActive }">
           <a :href="href" @click="navigate" class="sidebar-link sidebar-desktop" id="supporters" :class="{ active: isExactActive }">
-            <span class="material-symbols-outlined sidebar-icon">favorite</span>
+            <span class="material-symbols-outlined sidebar-icon" aria-hidden="true">favorite</span>
             <span class="sidebar-link-text">Supporta</span>
           </a>
         </RouterLink>
 
         <RouterLink to="/team" custom v-slot="{ href, navigate, isExactActive }">
           <a :href="href" @click="navigate" class="sidebar-link sidebar-desktop" id="team" :class="{ active: isExactActive }">
-            <span class="material-symbols-outlined sidebar-icon">group</span>
+            <span class="material-symbols-outlined sidebar-icon" aria-hidden="true">group</span>
             <span class="sidebar-link-text">Team</span>
           </a>
         </RouterLink>
 
         <RouterLink to="/archive" custom v-slot="{ href, navigate, isExactActive }">
           <a :href="href" @click="navigate" class="sidebar-link sidebar-desktop" id="archive" :class="{ active: isExactActive }">
-            <span class="material-symbols-outlined sidebar-icon">archive</span>
+            <span class="material-symbols-outlined sidebar-icon" aria-hidden="true">archive</span>
             <span class="sidebar-link-text">Archivio</span>
           </a>
         </RouterLink>
 
         <div class="sidebar-link sidebar-contatti sidebar-desktop">
-          <a href="https://www.instagram.com/ferminotify/" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.instagram.com/ferminotify/" target="_blank" rel="noopener noreferrer" aria-label="Fermi Notify su Instagram">
             <font-awesome-icon :icon="['fab', 'instagram']" />
           </a>
-          <a href="https://github.com/ferminotify" target="_blank" rel="noopener noreferrer">
+          <a href="https://github.com/ferminotify" target="_blank" rel="noopener noreferrer" aria-label="Fermi Notify su GitHub">
             <font-awesome-icon :icon="['fab', 'github']" />
           </a>
         </div>
@@ -609,36 +643,36 @@
               <li v-if="!isStandalone" :style="{ '--i': 0 }">
                 <RouterLink to="/app" custom v-slot="{ href, navigate }">
                   <a :href="href" class="sidebar-menu-link" @click="closeMenu(); installApp(navigate, $event)">
-                    <span class="material-symbols-outlined">download</span> Installa l'app
+                    <span class="material-symbols-outlined" aria-hidden="true">download</span> Installa l'app
                   </a>
                 </RouterLink>
               </li>
               <li :style="{ '--i': 1 }">
                 <RouterLink to="/faq" class="sidebar-menu-link" @click="closeMenu">
-                  <span class="material-symbols-outlined">help_center</span> FAQ
+                  <span class="material-symbols-outlined" aria-hidden="true">help_center</span> FAQ
                 </RouterLink>
               </li>
               <li :style="{ '--i': 2 }">
                 <RouterLink to="/supporters" class="sidebar-menu-link" @click="closeMenu">
-                  <span class="material-symbols-outlined">favorite</span> Supporta
+                  <span class="material-symbols-outlined" aria-hidden="true">favorite</span> Supporta
                 </RouterLink>
               </li>
               <li :style="{ '--i': 3 }">
                 <RouterLink to="/team" class="sidebar-menu-link" @click="closeMenu">
-                  <span class="material-symbols-outlined">group</span> Team
+                  <span class="material-symbols-outlined" aria-hidden="true">group</span> Team
                 </RouterLink>
               </li>
               <li :style="{ '--i': 4 }">
                 <RouterLink to="/archive" class="sidebar-menu-link" @click="closeMenu">
-                  <span class="material-symbols-outlined">archive</span> Archivio
+                  <span class="material-symbols-outlined" aria-hidden="true">archive</span> Archivio
                 </RouterLink>
               </li>
               <li :style="{ '--i': 5 }">
                 <div class="sidebar-link sidebar-contatti">
-                  <RouterLink to="/ig" target="_blank" @click="closeMenu">
+                  <RouterLink to="/ig" target="_blank" aria-label="Fermi Notify su Instagram" @click="closeMenu">
                     <font-awesome-icon :icon="['fab', 'instagram']" />
                   </RouterLink>
-                  <RouterLink to="/gh" target="_blank" @click="closeMenu">
+                  <RouterLink to="/gh" target="_blank" aria-label="Fermi Notify su GitHub" @click="closeMenu">
                     <font-awesome-icon :icon="['fab', 'github']" />
                   </RouterLink>
                 </div>

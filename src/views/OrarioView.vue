@@ -1,6 +1,6 @@
 <template>
   <div class="section orario">
-    <h1 class="sr-only">Orario</h1>
+    <h1 class="sr-only">{{ pageSeo?.heading || 'Orario classi e aule IS E. Fermi Mantova' }}</h1>
 
     <p class="orario-beta">
       <span class="orario-beta-pill">Beta</span>
@@ -28,10 +28,25 @@
     </p>
 
     <!-- Empty state -->
-    <div v-if="!refKey" class="orario-empty">
-      <span class="material-symbols-outlined" aria-hidden="true">calendar_view_week</span>
-      <p>Scegli una classe o un’aula per vedere l’orario della settimana con le variazioni già applicate.</p>
-    </div>
+    <template v-if="!refKey">
+      <div class="orario-empty">
+        <span class="material-symbols-outlined" aria-hidden="true">calendar_view_week</span>
+        <p>Scegli una classe o un’aula per vedere l’orario della settimana con le variazioni già applicate.</p>
+      </div>
+
+      <!-- Every class as a plain link: quick to scan, and crawlable (prerendered pages) -->
+      <nav v-if="classGroups.length" class="orario-directory" aria-labelledby="orario-directory-title">
+        <h2 id="orario-directory-title" class="orario-directory-title">Tutte le classi</h2>
+        <div v-for="group in classGroups" :key="group.year" class="orario-directory-group">
+          <h3 class="orario-directory-year">{{ group.label }}</h3>
+          <ul>
+            <li v-for="c in group.items" :key="c.key">
+              <RouterLink :to="`/orario/classe/${c.key.toLowerCase()}`" :title="`Orario classe ${c.key}`">{{ c.key }}</RouterLink>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </template>
 
     <template v-else>
       <!-- Week + view toolbar -->
@@ -156,6 +171,9 @@
   import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useHead } from '@unhead/vue'
+  import { usePageSeo } from '@/seo/usePageSeo'
+  import { DEFAULT_ROBOTS, jsonLdScript, siteGraph } from '@/seo/site'
+  import { BUILD_CLASSES, classesByYear, orarioPageSeo } from '@/seo/orario'
   import { useUserStore } from '@/stores/user'
   import TimetableWeek from '@/components/orario/TimetableWeek.vue'
   import TimetableDay from '@/components/orario/TimetableDay.vue'
@@ -484,20 +502,26 @@
     window.removeEventListener('keydown', onKeydown)
   })
 
+  // Head of /orario/:type/:ref. From the URL alone, so the prerendered class pages have
+  // it too; rooms and teachers get their proper name once the week is loaded.
+  const pageSeo = computed(() => orarioPageSeo(route.params.type, route.params.ref, week.value?.entity.name))
+  usePageSeo(() => pageSeo.value && { ...pageSeo.value, robots: pageSeo.value.robots || DEFAULT_ROBOTS })
   useHead(
     computed(() => {
-      const name = week.value?.entity.name
-      if (!name) return {}
-      if (week.value.entity.type === 'teacher') {
-        return { title: `Orario prof. ${name} · Fermi Notify`, meta: [{ name: 'robots', content: 'noindex,nofollow' }] }
-      }
-      const what = week.value.entity.type === 'class' ? `classe ${name}` : name
+      const page = pageSeo.value
+      if (!page || page.robots) return {}
       return {
-        title: `Orario ${name} · Fermi Notify`,
-        meta: [{ name: 'description', content: `Orario settimanale ${what} dell’IS Fermi di Mantova con le variazioni del giorno.` }],
+        script: [
+          jsonLdScript(
+            'jsonld-site',
+            siteGraph({ path: route.path, title: page.title, description: page.description, breadcrumb: page.breadcrumb }),
+          ),
+        ],
       }
-    })
+    }),
   )
+
+  const classGroups = classesByYear(BUILD_CLASSES)
 </script>
 
 <style scoped>
@@ -806,6 +830,51 @@
     max-width: 42ch;
     margin: 0;
     line-height: 1.5;
+  }
+
+  .orario-directory {
+    margin: 8px auto 0;
+    max-width: 960px;
+  }
+  .orario-directory-title {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+  }
+  .orario-directory-group {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    align-items: baseline;
+    gap: 8px;
+    padding: 10px 0;
+    border-top: 1px solid var(--divider);
+  }
+  .orario-directory-year {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--on-surface-variant);
+  }
+  .orario-directory ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .orario-directory a {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--surface-variant);
+    color: var(--on-surface);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+  }
+  .orario-directory a:hover,
+  .orario-directory a:focus-visible {
+    background: var(--primary);
+    color: var(--on-primary);
   }
 
   .orario-message {

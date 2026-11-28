@@ -22,6 +22,16 @@ export default defineConfig([
     },
   },
 
+  {
+    // Build config and scripts run in Node
+    files: ['vite.config.js', 'vitest.config.js', 'scripts/**/*.{js,mjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
 

@@ -45,7 +45,6 @@ const donators = [
 
 const totalCoffees = donators.reduce((sum, d) => sum + d.coffees, 0);
 
-const processedDonators = ref([]);
 const bubbleRefs = ref({});
 const containerRef = ref(null);
 
@@ -59,17 +58,20 @@ const {
 
 const initials = (name) => name.split(' ').map((part) => part[0]).join('').slice(0, 2);
 
-const processDonator = (donator, index, total) => ({
+const processDonator = (donator, index, total, random = false) => ({
     ...donator,
     color: colorAt(index, 1),
-    offsetX: getRandomOffset(14),
-    offsetY: getRandomOffset(10),
-    rotation: getRandomRotation(4),
+    offsetX: random ? getRandomOffset(14) : 0,
+    offsetY: random ? getRandomOffset(10) : 0,
+    rotation: random ? getRandomRotation(4) : 0,
     delay: index * 0.06,
     zIndex: total - index,
     dragX: 0,
     dragY: 0
 });
+
+const processAll = (random) => donators.map((d, i) => processDonator(d, i, donators.length, random));
+const processedDonators = ref(processAll(false));
 
 const getList = () => processedDonators;
 
@@ -80,7 +82,7 @@ const onStartDrag = (event, index) => {
 let cleanupListeners = null;
 
 onMounted(() => {
-    processedDonators.value = donators.map((d, i) => processDonator(d, i, donators.length));
+    processedDonators.value = processAll(true);
     cleanupListeners = setupDragListeners(getList);
 });
 

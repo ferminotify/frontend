@@ -18,17 +18,13 @@ const OrarioView = () => import('../views/OrarioView.vue')
 const SegnalaView = () => import('../views/SegnalaView.vue')
 const AuthCallbackView = () => import('../views/AuthCallbackView.vue')
 const CompleteProfileView = () => import('../views/CompleteProfileView.vue')
+const NotFoundView = () => import('../views/NotFoundView.vue')
 
 export const routes = [
   {
     path: '/',
     name: 'home',
     component: HomeView,
-    meta: {
-      title: 'Fermi Notify',
-      description:
-        'Resta aggiornato sulle variazioni dell\'orario giornaliero dell\'IS E. Fermi Mantova con Fermi Notify. L\'app user-friendly creata dagli studenti con notifiche e funzioni avanzate.',
-    },
   },
   {
     path: '/CercaEventi',
@@ -143,7 +139,8 @@ export const routes = [
     meta: {
       title: 'Orario · Fermi Notify',
       description:
-        "Orario settimanale di classi e aule dell'IS E. Fermi di Mantova, aggiornato in tempo reale con le variazioni del calendario giornaliero.",
+        "Orario settimanale di tutte le classi, le aule e i docenti dell'IS E. Fermi di Mantova con sostituzioni, cambi aula e variazioni del calendario giornaliero già applicate.",
+      breadcrumb: [{ name: 'Orario', path: '/orario' }],
     },
   },
   {
@@ -151,8 +148,11 @@ export const routes = [
     name: 'faq',
     component: FaqView,
     meta: {
-      title: 'FAQ · Fermi Notify',
-      description: 'Domande frequenti su utilizzo, notifiche, privacy e funzionamento di Fermi Notify.',
+      title: 'Domande frequenti · Fermi Notify',
+      description:
+        'Come funzionano Fermi Notify, le notifiche Daily e Last Minute, le keyword, l\'orario con le variazioni e l\'accesso con Moodle. Informativa privacy inclusa.',
+      schemaType: 'FAQPage',
+      breadcrumb: [{ name: 'FAQ', path: '/faq' }],
     },
   },
   {
@@ -171,7 +171,9 @@ export const routes = [
     component: AppView,
     meta: {
       title: "Installa l'app · Fermi Notify",
-      description: 'Installa l\'app Fermi Notify sul tuo dispositivo.',
+      description:
+        "Installa Fermi Notify come app sul telefono o sul computer: orario e variazioni dell'IS E. Fermi di Mantova sempre a portata di mano, con notifiche push.",
+      breadcrumb: [{ name: "Installa l'app", path: '/app' }],
     },
   },
   {
@@ -180,7 +182,9 @@ export const routes = [
     component: SupportersView,
     meta: {
       title: 'Sostenitori · Fermi Notify',
-      description: 'Conosci i sostenitori e i contributori che supportano il progetto Fermi Notify.',
+      description:
+        'Le persone che sostengono Fermi Notify, il progetto gratuito e senza pubblicità degli studenti dell\'IS E. Fermi di Mantova. Offrici un caffè!',
+      breadcrumb: [{ name: 'Sostenitori', path: '/supporters' }],
     },
   },
   {
@@ -189,14 +193,21 @@ export const routes = [
     component: TeamView,
     meta: {
       title: 'Team · Fermi Notify',
-      description: 'Scopri il team che sviluppa e mantiene Fermi Notify.',
+      description:
+        'Gli studenti ed ex studenti dell\'IS E. Fermi di Mantova che hanno creato e sviluppano Fermi Notify, progetto open source senza scopo di lucro.',
+      schemaType: 'AboutPage',
+      breadcrumb: [{ name: 'Team', path: '/team' }],
     },
   },
   {
     path: '/feedback',
     name: 'feedback',
     component: FeedbackView,
-    meta: { title: 'Feedback · Fermi Notify' },
+    meta: {
+      title: 'Feedback · Fermi Notify',
+      description: 'Racconta la tua esperienza con Fermi Notify.',
+      robots: 'noindex,follow',
+    },
   },
   {
     path: '/archive',
@@ -204,7 +215,10 @@ export const routes = [
     component: ArchiveView,
     meta: {
       title: 'Archivio · Fermi Notify',
-      description: 'Consulta l\'archivio dei contenuti storici di Fermi Notify.',
+      description:
+        'Archivio di Fermi Notify: poster, grafiche e risorse open source prodotte dal progetto per gli studenti dell\'IS E. Fermi di Mantova.',
+      schemaType: 'CollectionPage',
+      breadcrumb: [{ name: 'Archivio', path: '/archive' }],
     },
   },
   {
@@ -215,7 +229,7 @@ export const routes = [
         window.location.href = 'https://www.instagram.com/ferminotify/'
       }
     },
-    meta: { title: 'Instagram · Fermi Notify' },
+    meta: { title: 'Instagram · Fermi Notify', robots: 'noindex,follow' },
   },
   {
     path: '/gh',
@@ -225,7 +239,7 @@ export const routes = [
         window.location.href = 'https://github.com/ferminotify'
       }
     },
-    meta: { title: 'GitHub · Fermi Notify' },
+    meta: { title: 'GitHub · Fermi Notify', robots: 'noindex,follow' },
   },
   {
     path: '/test',
@@ -235,6 +249,17 @@ export const routes = [
       title: 'Test · Fermi Notify',
       description: 'Pagina di test interno per nuove feature e verifiche tecniche di Fermi Notify.',
       robots: 'noindex,nofollow',
+    },
+  },
+  {
+    // Unknown URLs
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: NotFoundView,
+    meta: {
+      title: 'Pagina non trovata · Fermi Notify',
+      description: 'La pagina che cerchi non esiste o è stata spostata.',
+      robots: 'noindex,follow',
     },
   },
 ]

@@ -1,17 +1,17 @@
 <template>
     <div class="rounded-container" style="margin: 25px 0;" id="domini">
         <div class="rounded-inner">
-            <h2 style="margin: 0;">Stato servizi Fermi Notify <a href="//status.fn.lkev.in/" class="btn text"><span class="material-symbols-outlined">open_in_new</span></a></h2>
+            <h2 style="margin: 0;">Stato servizi Fermi Notify <a href="https://status.fn.lkev.in/" class="btn text"><span class="material-symbols-outlined">open_in_new</span></a></h2>
             <div class="grid-center-2col" style="padding-top: 0.83em; line-height: 2; place-items: start;">
                 <div class="service">
                     <div class="dot verifying" id="service-notifier" title="Verifica in corso"></div>
                     <span class="material-space-right">Invio notifiche (Notifier)</span>
-                    <a href="//status.fn.lkev.in/notifier" class="btn text"><span class="material-symbols-outlined">open_in_new</span></a>
+                    <a href="https://status.fn.lkev.in/notifier" class="btn text"><span class="material-symbols-outlined">open_in_new</span></a>
                 </div>
                 <div class="service">
                     <div class="dot verifying" id="service-notifier-backup" title="Verifica in corso"></div>
                     <span class="material-space-right">Notifier Backup</span>
-                    <a href="//status.fn.lkev.in/notifier?service=backup" class="btn text"><span class="material-symbols-outlined">open_in_new</span></a>
+                    <a href="https://status.fn.lkev.in/notifier?service=backup" class="btn text"><span class="material-symbols-outlined">open_in_new</span></a>
                 </div>
             </div>
 
@@ -165,12 +165,12 @@ export default {
         });
 
         // check notifier services
-        fetch('//status.fn.lkev.in/notifier/get/status').then(r => r.json()).then(response => {
+        fetch('https://status.fn.lkev.in/notifier/get/status').then(r => r.json()).then(response => {
             if (response.status === 'error') this.setStatus('service-notifier', 'inactive');
             else this.setStatus('service-notifier', 'active');
         }).catch(() => this.setStatus('service-notifier', 'na'));
 
-        fetch('//status.fn.lkev.in/notifier/get/status?backup=true').then(r => r.json()).then(response => {
+        fetch('https://status.fn.lkev.in/notifier/get/status?backup=true').then(r => r.json()).then(response => {
             if (response.status === 'error') this.setStatus('service-notifier-backup', 'inactive');
             else if (response.status === 'idle') this.setStatus('service-notifier-backup', 'idle');
             else this.setStatus('service-notifier-backup', 'active');

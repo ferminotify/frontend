@@ -282,8 +282,8 @@
               @focus="onFocus"
               @blur="onBlur"
               @keydown="onKeydown" />
-            <label>Keyword</label>
-            <!-- Suggestions as in the dashboard: classes, and teachers for school accounts -->
+            <label for="cercaEventiInput">Keyword</label>
+
             <KeywordSuggestions
               id="cercaEventi-suggestions"
               :show="showSuggestions"
@@ -292,9 +292,9 @@
               @pick="pick"
               @hover="activeIndex = $event" />
           </div>
-          <a id="submit-btn" class="btn filled addButton" @click="cercaEventi">
-            <span class="material-symbols-outlined" style="transform: translateY(0)">arrow_forward_ios</span>
-          </a>
+          <button type="button" id="submit-btn" class="btn filled addButton" aria-label="Cerca" @click="cercaEventi">
+            <span class="material-symbols-outlined" style="transform: translateY(0)" aria-hidden="true">arrow_forward_ios</span>
+          </button>
         </div>
       </div>
     </div>
@@ -302,10 +302,10 @@
 
   <div class="relative flex-center-x cercaEventiInfo-container">
     <transition name="opener" @after-leave="onOpenerAfterLeave">
-      <a id="cercaEventiInfoShow" class="btn text" v-if="showOpener" @click="openInfo">
-        <span class="material-symbols-outlined material-space-right">help</span>
+      <button type="button" id="cercaEventiInfoShow" class="btn text" v-if="showOpener" @click="openInfo">
+        <span class="material-symbols-outlined material-space-right" aria-hidden="true">help</span>
         <span>Come funziona?</span>
-      </a>
+      </button>
     </transition>
 
     <transition @enter="slideEnter" @after-enter="slideAfterEnter" @leave="slideLeave" @after-leave="slideAfterLeave">
@@ -351,12 +351,12 @@
             </div>
           </transition>
           <div class="action-btn-container">
-            <a class="btn text" @click="toggleDetails">
+            <button type="button" class="btn text" :aria-expanded="showDetails" @click="toggleDetails">
               <span class="action-btn-container-btn-text">
                 {{ showDetails ? 'Mostra di meno' : 'Mostra di più' }}
               </span>
-            </a>
-            <a class="btn filled" @click="closeInfo">Chiudi</a>
+            </button>
+            <button type="button" class="btn filled" @click="closeInfo">Chiudi</button>
           </div>
         </div>
       </div>
@@ -377,12 +377,12 @@
     </div>
     <div class="cercaEventi-filter-container">
       <div class="relative">
-        <a class="btn flex-center" :class="filtersOpen ? 'filled' : 'outlined'" @click="toggleFilters">
-          <span class="material-symbols-outlined material-space-right" style="transform: translateY(0)">
+        <button type="button" class="btn flex-center" :class="filtersOpen ? 'filled' : 'outlined'" :aria-expanded="filtersOpen" @click="toggleFilters">
+          <span class="material-symbols-outlined material-space-right" style="transform: translateY(0)" aria-hidden="true">
             {{ filterIcon }}
           </span>
           Filtri
-        </a>
+        </button>
         <span
           class="material-symbols-outlined filter-on-circle"
           :style="{ visibility: filterBadgeVisible ? 'visible' : 'hidden' }">

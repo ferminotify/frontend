@@ -1,0 +1,17 @@
+# Rebuilds the site on Cloudflare Pages without a new commit, e.g. after the school changed
+# its classes (the backend does it by itself: CF_PAGES_DEPLOY_HOOK, utils/timetable/classesWatch.js).
+# Run it from GitHub: Actions → "Rebuild sito" → Run workflow.
+# Needs the repository secret CF_PAGES_DEPLOY_HOOK (Cloudflare Pages → Settings → Builds → Deploy hooks).
+name: Rebuild sito
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cloudflare Pages deploy hook
+        run: curl -fsS -X POST "$HOOK"
+        env:
+          HOOK: ${{ secrets.CF_PAGES_DEPLOY_HOOK }}

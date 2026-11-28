@@ -1,9 +1,44 @@
+# Fermi Notify — https://fn.lkev.in
+# Pagine pubbliche aperte a motori di ricerca e assistenti AI.
+# Per LLM e agenti: https://fn.lkev.in/llms.txt (indice) e https://fn.lkev.in/llms-full.txt (testo completo).
+
 User-agent: *
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: Applebot
+User-agent: DuckDuckBot
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Meta-ExternalAgent
+User-agent: MistralAI-User
+User-agent: DuckAssistBot
+User-agent: Amazonbot
+User-agent: CCBot
 Allow: /
+# Area personale, accesso e link personali (conferme, disiscrizioni): niente da indicizzare
 Disallow: /dashboard
 Disallow: /login
 Disallow: /register
 Disallow: /password_reset
 Disallow: /password-otp
+Disallow: /complete-profile
+Disallow: /collega-moodle
+Disallow: /auth/
+Disallow: /user/auth/
+Disallow: /orario/docente/
+Disallow: /orario/segnala
+Disallow: /feedback
 Disallow: /test
+Disallow: /ig
+Disallow: /gh
+Disallow: /CercaEventi
+
 Sitemap: https://fn.lkev.in/sitemap.xml

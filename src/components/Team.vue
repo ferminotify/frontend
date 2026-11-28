@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useBubbleDrag } from '@/composables/useBubbleDrag';
 import '@/assets/css/bubbles.css';
+import { coreTeam, createdByTeam, externalCollaborators, extraCredits } from '@/data/team';
 
 const roleIcons = {
     'Project Management': 'event_note',
@@ -14,95 +15,12 @@ const roleIcons = {
     'Side quests': 'explore'
 };
 
-const coreTeam = [
-    {
-        name: 'Liu Kevin',
-        roles: ['Project Management', 'Code', 'Design', 'Hosting'],
-        instagram: 'https://instagram.com/kev1nl1u',
-        github: 'https://github.com/kev1nl1u',
-        link: 'https://lkev.in'
-    },
-    {
-        name: 'Sirico Davide',
-        roles: ['Code', 'Hosting'],
-        instagram: 'https://www.instagram.com/davidesirico05/',
-        github: 'https://github.com/DavideSirico'
-    }
-];
-
-const createdByTeam = [
-    {
-        name: 'Bini Matteo',
-        roles: ['Project Management', 'Code', 'Code Review'],
-        instagram: 'https://www.instagram.com/matteobini_/',
-        github: 'https://github.com/MatteoBini',
-        link: 'https://www.matteobini.me/'
-    },
-    {
-        name: 'Liu Kevin',
-        roles: ['Code', 'Design'],
-        instagram: 'https://instagram.com/kev1nl1u',
-        github: 'https://github.com/kev1nl1u',
-        link: 'https://lkev.in'
-    },
-    {
-        name: 'Sirico Davide',
-        roles: ['Code'],
-        instagram: 'https://www.instagram.com/davidesirico05/',
-        github: 'https://github.com/DavideSirico'
-    },
-    {
-        name: 'Casari Simone',
-        roles: ['Business', 'Design'],
-        instagram: 'https://www.instagram.com/simonecasari_/',
-        github: 'https://github.com/SimoneCasari'
-    },
-    {
-        name: 'Tardiani Simone',
-        roles: ['Code'],
-        instagram: 'https://www.instagram.com/simone_tardiani/',
-        github: 'https://github.com/Captniz'
-    },
-    {
-        name: 'Rastelli Francesco',
-        roles: ['Testing'],
-        instagram: 'https://www.instagram.com/francescoo_rastellii/',
-        github: 'https://github.com/franchecco'
-    }
-];
-
-const externalCollaborators = [
-    {
-        name: 'Malinverno Tommaso',
-        roles: ['Code'],
-        instagram: 'https://www.instagram.com/tommaso_malinverno/',
-        github: 'https://github.com/lampaDario1543'
-    },
-    {
-        name: 'Tellaroli Alberto',
-        roles: ['Side quests'],
-        instagram: 'https://www.instagram.com/albertotellarolii/',
-        github: 'https://github.com/zAnimus'
-    }
-];
-
-const extraCredits = [
-    { name: 'OpenAI ChatGPT', link: 'https://chat.openai.com/' },
-    { name: 'Anthropic Claude', link: 'https://www.anthropic.com/claude' },
-    { name: 'Google Gemini', link: 'https://gemini.google.com/' }
-];
-
 const sections = [
     { key: 'core', title: 'Core', description: 'Sviluppatori e mantenitori attuali', members: coreTeam, layout: 'core' },
     { key: 'createdBy', title: 'Creato da', description: "Chi c'era al giorno 1 e il loro ruolo precedente", members: createdByTeam, layout: 'grid', inactive: true },
     { key: 'external', title: 'Collaboratori esterni', description: null, members: externalCollaborators, layout: 'pair', inactive: true }
 ];
 
-const lists = {
-    core: ref([]),
-    createdBy: ref([]),
-    external: ref([])
-};
 const bubbleRefs = ref({});
 const containerRef = ref(null);
 const showExtra = ref(false);
@@ -122,17 +40,20 @@ const githubAvatar = (url) => {
 
 const initials = (name) => name.split(' ').map((part) => part[0]).join('').slice(0, 2);
 
-const processMember = (member, index, total) => ({
+const processMember = (member, index, total, random = false) => ({
     ...member,
     avatar: member.github ? githubAvatar(member.github) : null,
-    offsetX: getRandomOffset(16),
-    offsetY: getRandomOffset(12),
-    rotation: getRandomRotation(4),
+    offsetX: random ? getRandomOffset(16) : 0,
+    offsetY: random ? getRandomOffset(12) : 0,
+    rotation: random ? getRandomRotation(4) : 0,
     delay: index * 0.06,
     zIndex: total - index,
     dragX: 0,
     dragY: 0
 });
+
+const membersOf = (section, random) => section.members.map((m, i) => processMember(m, i, section.members.length, random));
+const lists = Object.fromEntries(sections.map((section) => [section.key, ref(membersOf(section, false))]));
 
 const getList = (section) => lists[section];
 
@@ -154,7 +75,7 @@ let cleanupListeners = null;
 
 onMounted(() => {
     for (const section of sections) {
-        lists[section.key].value = section.members.map((m, i) => processMember(m, i, section.members.length));
+        lists[section.key].value = membersOf(section, true);
     }
 
     cleanupListeners = setupDragListeners(getList);
